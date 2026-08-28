@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>{C8CBD189-2785-492A-8F12-300833ACE468}</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(VisualStudioVersion)' == '' Or '$(VisualStudioVersion)' &lt; '11.0'">
+    <VisualStudioVersion>11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Calcolo11Par.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Conv.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmConvAngoli.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmPolare.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmPredict.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmTabSat.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmTrackTable.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmUrl.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmVisualAcquire.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmVisualizzazione.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)HTTP.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managment.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MdlSocket.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ModCassVenere.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ModLuna.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ModSGP4.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)NoradBase.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Observer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Predisposizioni.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Proiezione.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Ricevitore.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Ricezione.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SDP4.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SGP4.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Time.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utility.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmAcquire.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmAllarmi.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmAntenne.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmAutoTrackBackPT.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmBackPT.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmBrowse.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmEffemeridi.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmGrafico.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmMemoryTrack.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmNorad.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmOffset.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmPhase.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmPreset.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmProgram.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmRegressione.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmSatelliti.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmSimulazione.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmSplash.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmStampaLog.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)FrmConvAngoli.Designer.vb">
+      <DependentUpon>FrmConvAngoli.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)FrmPolare.Designer.vb">
+      <DependentUpon>FrmPolare.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)FrmPredict.Designer.vb">
+      <DependentUpon>FrmPredict.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)FrmTabSat.Designer.vb">
+      <DependentUpon>FrmTabSat.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)FrmTrackTable.Designer.vb">
+      <DependentUpon>FrmTrackTable.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)FrmUrl.Designer.vb">
+      <DependentUpon>FrmUrl.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)FrmVisualAcquire.Designer.vb">
+      <DependentUpon>FrmVisualAcquire.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)FrmVisualizzazione.Designer.vb">
+      <DependentUpon>FrmVisualizzazione.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)HTTP.Designer.vb">
+      <DependentUpon>HTTP.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmAcquire.Designer.vb">
+      <DependentUpon>frmAcquire.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmAllarmi.Designer.vb">
+      <DependentUpon>frmAllarmi.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmAntenne.Designer.vb">
+      <DependentUpon>frmAntenne.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmAutoTrackBackPT.Designer.vb">
+      <DependentUpon>frmAutoTrackBackPT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmBackPT.Designer.vb">
+      <DependentUpon>frmBackPT.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmBrowse.Designer.vb">
+      <DependentUpon>frmBrowse.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmEffemeridi.Designer.vb">
+      <DependentUpon>frmEffemeridi.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmGrafico.Designer.vb">
+      <DependentUpon>frmGrafico.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmMemoryTrack.Designer.vb">
+      <DependentUpon>frmMemoryTrack.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmNorad.Designer.vb">
+      <DependentUpon>frmNorad.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmOffset.Designer.vb">
+      <DependentUpon>frmOffset.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmPhase.Designer.vb">
+      <DependentUpon>frmPhase.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmPreset.Designer.vb">
+      <DependentUpon>frmPreset.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmProgram.Designer.vb">
+      <DependentUpon>frmProgram.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmRegressione.Designer.vb">
+      <DependentUpon>frmRegressione.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmSatelliti.Designer.vb">
+      <DependentUpon>frmSatelliti.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmSimulazione.Designer.vb">
+      <DependentUpon>frmSimulazione.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmSplash.Designer.vb">
+      <DependentUpon>frmSplash.vb</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmStampaLog.Designer.vb">
+      <DependentUpon>frmStampaLog.vb</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)FrmPolare.resx">
+      <DependentUpon>FrmPolare.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)FrmTabSat.resx">
+      <DependentUpon>FrmTabSat.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)FrmUrl.resx">
+      <DependentUpon>FrmUrl.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)FrmVisualizzazione.resx">
+      <DependentUpon>FrmVisualizzazione.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmAcquire.resx">
+      <DependentUpon>frmAcquire.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmAllarmi.resx">
+      <DependentUpon>frmAllarmi.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmAntenne.resx">
+      <DependentUpon>frmAntenne.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmAutoTrackBackPT.resx">
+      <DependentUpon>frmAutoTrackBackPT.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmEffemeridi.resx">
+      <DependentUpon>frmEffemeridi.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmMemoryTrack.resx">
+      <DependentUpon>frmMemoryTrack.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmNorad.resx">
+      <DependentUpon>frmNorad.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmOffset.resx">
+      <DependentUpon>frmOffset.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmPhase.resx">
+      <DependentUpon>frmPhase.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmPreset.resx">
+      <DependentUpon>frmPreset.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmProgram.resx">
+      <DependentUpon>frmProgram.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmRegressione.resx">
+      <DependentUpon>frmRegressione.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmSatelliti.resx">
+      <DependentUpon>frmSatelliti.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmSimulazione.resx">
+      <DependentUpon>frmSimulazione.vb</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
