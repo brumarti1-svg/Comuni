@@ -222,7 +222,7 @@ Partial Class FrmVisualizzazione
         'FrmVisualizzazione
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(1394, 655)
         Me.Controls.Add(Me.picGrafico)
         Me.Controls.Add(Me.pnlControls)

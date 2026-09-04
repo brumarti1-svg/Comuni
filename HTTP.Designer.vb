@@ -184,7 +184,7 @@ Partial Class HTTP
         '
         ' HTTP
         '
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(800, 442)
         Me.Controls.Add(Me.sbrMain)
         Me.Controls.Add(Me.BtSend)

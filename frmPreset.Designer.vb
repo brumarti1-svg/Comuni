@@ -151,7 +151,7 @@ Partial Class FrmPreset
         'FrmPreset
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(192, 260)
         Me.Controls.Add(Me.LblAzimuth)
         Me.Controls.Add(Me.MskAzimuth)

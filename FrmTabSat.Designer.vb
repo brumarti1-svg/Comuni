@@ -22,6 +22,7 @@ Partial Class FrmTabSat
     'Non modificarla mediante l'editor del codice.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.MnuMemory = New System.Windows.Forms.MenuStrip()
         Me.MnuClose  = New System.Windows.Forms.ToolStripMenuItem()
         Me.MnuLoad   = New System.Windows.Forms.ToolStripMenuItem()

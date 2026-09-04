@@ -17,6 +17,7 @@ Partial Class frmAcquire
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.components    = New System.ComponentModel.Container()
         Me.CmdAnnulla    = New System.Windows.Forms.Button()
         Me.CmdEnd        = New System.Windows.Forms.Button()

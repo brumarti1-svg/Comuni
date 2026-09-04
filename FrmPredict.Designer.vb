@@ -6,6 +6,7 @@ Partial Class FrmPredict
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.components    = New System.ComponentModel.Container()
         Me.tmrSim        = New System.Windows.Forms.Timer(Me.components)
         Me.picGrafico    = New System.Windows.Forms.PictureBox()

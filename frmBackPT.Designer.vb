@@ -19,6 +19,7 @@ Partial Class frmBackPT
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.components  = New System.ComponentModel.Container()
         Me.CmbBackUpPT = New System.Windows.Forms.ComboBox()
         Me.CmdOK       = New System.Windows.Forms.Button()

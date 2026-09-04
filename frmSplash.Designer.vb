@@ -53,7 +53,7 @@ Partial Class FrmSplash
         '
         ' FrmSplash
         '
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.BackColor = System.Drawing.Color.Navy
         Me.ClientSize = New System.Drawing.Size(500, 200)
         Me.Controls.Add(Me.LblProductName)

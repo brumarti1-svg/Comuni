@@ -17,6 +17,7 @@ Partial Class FrmNorad
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.components    = New System.ComponentModel.Container()
         Me.MenuStrip1    = New System.Windows.Forms.MenuStrip()
         Me.MnuSave       = New System.Windows.Forms.ToolStripMenuItem()

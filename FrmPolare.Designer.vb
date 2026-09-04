@@ -51,7 +51,7 @@ Partial Class FrmPolare
         'FrmPolare
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(1040, 483)
         Me.Controls.Add(Me.picGrafico)
         Me.Controls.Add(Me.CmdEsci)

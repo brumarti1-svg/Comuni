@@ -17,6 +17,7 @@ Partial Class FrmSatelliti
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.MenuStrip1 = New System.Windows.Forms.MenuStrip()
         Me.MnuExit = New System.Windows.Forms.ToolStripMenuItem()
         Me.MnuRemove = New System.Windows.Forms.ToolStripMenuItem()

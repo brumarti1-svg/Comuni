@@ -138,7 +138,7 @@ Partial Class FrmStampaLog
         '
         ' FrmStampaLog
         '
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(600, 440)
         Me.Controls.Add(Me.LblDataIni)
         Me.Controls.Add(Me.TxtDataIni)

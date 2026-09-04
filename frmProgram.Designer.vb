@@ -125,7 +125,7 @@ Partial Class FrmProgram
         'FrmProgram
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(476, 268)
         Me.Controls.Add(Me.CmdLoad)
         Me.Controls.Add(Me.grpTime)

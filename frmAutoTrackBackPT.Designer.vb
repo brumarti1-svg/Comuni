@@ -22,6 +22,7 @@ Partial Class frmAutoTrackBackPT
     'Non modificarla mediante l'editor del codice.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.CmbBackUpPT = New System.Windows.Forms.ComboBox()
         Me.CmdOK       = New System.Windows.Forms.Button()
         Me.LblTitle    = New System.Windows.Forms.Label()

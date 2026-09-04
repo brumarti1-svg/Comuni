@@ -22,6 +22,7 @@ Partial Class FrmRegressione
     'Non modificarla mediante l'editor del codice.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.opt1    = New System.Windows.Forms.RadioButton()
         Me.opt2    = New System.Windows.Forms.RadioButton()
         Me.opt3    = New System.Windows.Forms.RadioButton()

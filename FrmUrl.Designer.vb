@@ -64,7 +64,7 @@ Partial Class FrmUrl
         'FrmUrl
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(680, 400)
         Me.Controls.Add(Me.dgvUrl)
         Me.Name = "FrmUrl"

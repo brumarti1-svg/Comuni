@@ -6,6 +6,7 @@ Partial Class FrmVisualAcquire
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.components    = New System.ComponentModel.Container()
         Me.tmrAcquire    = New System.Windows.Forms.Timer(Me.components)
         Me.mskDataIni    = New System.Windows.Forms.MaskedTextBox()

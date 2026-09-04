@@ -119,7 +119,7 @@ Partial Class FrmConvAngoli
         '
         ' FrmConvAngoli
         '
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(440, 192)
         Me.Controls.Add(Me.LblHdrGra)
         Me.Controls.Add(Me.LblHdrPrimi)

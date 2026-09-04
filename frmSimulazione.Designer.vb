@@ -94,7 +94,7 @@ Partial Class FrmSimulazione
         '
         ' Form
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(320, 115)
         Me.Controls.AddRange(New System.Windows.Forms.Control() {
             Me.LblIni, Me.mskDataIni, Me.CmdLoad,

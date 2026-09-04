@@ -68,7 +68,7 @@ Partial Class FrmTrackTable
         '
         ' FrmTrackTable
         '
-        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.ClientSize = New System.Drawing.Size(780, 450)
         Me.Controls.Add(Me.LblSatellite)
         Me.Controls.Add(Me.dgvTrackTable)

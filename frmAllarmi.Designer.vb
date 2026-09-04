@@ -17,6 +17,7 @@ Partial Class frmAllarmi
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.components = New System.ComponentModel.Container()
 
         Me.LblAntenna    = New System.Windows.Forms.Label()

@@ -22,6 +22,7 @@ Partial Class FrmOffset
     'Non modificarla mediante l'editor del codice.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.CmbInc      = New System.Windows.Forms.ComboBox()
         Me.TxtAzOffset = New System.Windows.Forms.TextBox()
         Me.TxtElOffset = New System.Windows.Forms.TextBox()
