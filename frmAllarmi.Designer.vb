@@ -69,7 +69,7 @@ Partial Class frmAllarmi
         Me.mskOraFin.Size     = New System.Drawing.Size(45, 21)
         Me.mskOraFin.Name     = "mskOraFin"
 
-        Me.CmdRicerca.Text     = "Cerca"
+        Me.CmdRicerca.Text     = "Search"
         Me.CmdRicerca.Location = New System.Drawing.Point(335, 35)
         Me.CmdRicerca.Size     = New System.Drawing.Size(70, 25)
         Me.CmdRicerca.Name     = "CmdRicerca"
@@ -79,7 +79,7 @@ Partial Class frmAllarmi
         Me.CmdReset.Size     = New System.Drawing.Size(80, 25)
         Me.CmdReset.Name     = "CmdReset"
 
-        Me.CmdAnnulla.Text     = "Chiudi"
+        Me.CmdAnnulla.Text     = "Close"
         Me.CmdAnnulla.Location = New System.Drawing.Point(505, 35)
         Me.CmdAnnulla.Size     = New System.Drawing.Size(70, 25)
         Me.CmdAnnulla.Name     = "CmdAnnulla"

@@ -42,7 +42,7 @@ Partial Class FrmPolare
         Me.CmdEsci.Name = "CmdEsci"
         Me.CmdEsci.Size = New System.Drawing.Size(68, 23)
         Me.CmdEsci.TabIndex = 1
-        Me.CmdEsci.Text = "Esci"
+        Me.CmdEsci.Text = "Exit"
         '
         'tmrPolare
         '

@@ -56,7 +56,7 @@ Partial Class FrmAntenne
         Me.MnuConvDD.Name = "MnuConvDD"
         Me.MnuConvDD.Text = "Degrees, decimal minutes"
         Me.MnuElimina.Name = "MnuElimina"
-        Me.MnuElimina.Text = "Elimina"
+        Me.MnuElimina.Text = "Delete"
         Me.MnuParametri.Name = "MnuParametri"
         Me.MnuParametri.Text = "Parametri"
         Me.MnuParametri.Enabled = False

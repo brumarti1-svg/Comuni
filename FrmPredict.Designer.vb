@@ -154,7 +154,7 @@ Partial Class FrmPredict
         ' grpPred
         Me.grpPred.Location = New System.Drawing.Point(rx, 176)
         Me.grpPred.Size     = New System.Drawing.Size(490, 110)
-        Me.grpPred.Text     = "Predizione"
+        Me.grpPred.Text     = "Prediction"
         Me.LblPredTP.Location  = New System.Drawing.Point(6, 20)
         Me.LblPredTP.Size      = New System.Drawing.Size(80, 18)
         Me.LblPredTP.Text      = "T pred (min):"
@@ -193,7 +193,7 @@ Partial Class FrmPredict
         ' grpSim
         Me.grpSim.Location = New System.Drawing.Point(rx, 292)
         Me.grpSim.Size     = New System.Drawing.Size(490, 110)
-        Me.grpSim.Text     = "Feed / Simulazione"
+        Me.grpSim.Text     = "Feed / Simulation"
         Me.LblSimTm.Location     = New System.Drawing.Point(6, 20)
         Me.LblSimTm.Size         = New System.Drawing.Size(60, 18)
         Me.LblSimTm.Text         = "Tempo:"
@@ -264,7 +264,7 @@ Partial Class FrmPredict
         Me.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize          = New System.Drawing.Size(886, 604)
         Me.Name = "FrmPredict"
-        Me.Text = "Predict — Predizione Orbita"
+        Me.Text = "Predict — Orbit Prediction"
         Me.Controls.AddRange(New System.Windows.Forms.Control() {
             Me.picGrafico, Me.picOrbita, Me.lvwPredizioni,
             Me.grpBuf, Me.grpMod, Me.grpPred, Me.grpSim,

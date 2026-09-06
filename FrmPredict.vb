@@ -67,7 +67,7 @@ Public Class FrmPredict
         lvwPredizioni.FullRowSelect = True
         lvwPredizioni.GridLines     = True
         lvwPredizioni.Columns.Add("#",        40)
-        lvwPredizioni.Columns.Add("Tempo(s)", 73)
+        lvwPredizioni.Columns.Add("Time(s)", 73)
         lvwPredizioni.Columns.Add("Az (deg)", 67)
         lvwPredizioni.Columns.Add("El (deg)", 67)
         lvwPredizioni.Columns.Add("dAz",      53)
@@ -88,9 +88,9 @@ Public Class FrmPredict
         If bufSize > BUF_MAX Then bufSize = BUF_MAX
         rifitOgni = CInt(ValLong(TxtRifitOgni.Text, 12))
         If rifitOgni < 1 Then rifitOgni = 1
-        LblInfo.Text = "Buffer max: " & bufSize & " punti  (=" &
+        LblInfo.Text = "Max buffer: " & bufSize & " points  (=" &
                        Format(bufOre, "0.0") & "h @ " & Format(decSec / 60, "0") & "min)  " &
-                       "Rifit ogni " & rifitOgni & " punti (~" &
+                       "Refit every " & rifitOgni & " points (~" &
                        Format(rifitOgni * decSec / 60, "0") & " min)"
     End Sub
 
@@ -136,16 +136,16 @@ Public Class FrmPredict
 
     ' ── aggiorna display buffer ──────────────────────────────────────────────────
     Private Sub AggiornaBufDisplay(pt As TPunto)
-        LblBufPunti.Text = "Punti nel buffer: " & bufCount & " / " & bufSize
+        LblBufPunti.Text = "Points in buffer: " & bufCount & " / " & bufSize
         Dim pts() As TPunto = Nothing
         Dim n As Integer
         EstraiBuffer(pts, n)
         If n >= 2 Then
-            LblBufFinestra.Text = "Finestra: " & Format(pts(0).T / 3600, "0.00") & "h" &
+            LblBufFinestra.Text = "Window: " & Format(pts(0).T / 3600, "0.00") & "h" &
                                   " -> " & Format(pts(n - 1).T / 3600, "0.00") & "h" &
                                   "  (" & Format((pts(n - 1).T - pts(0).T) / 3600, "0.1") & "h)"
         End If
-        LblBufUltimo.Text = "Ultima: t=" & Format(pt.T, "0") & "s" &
+        LblBufUltimo.Text = "Last: t=" & Format(pt.T, "0") & "s" &
                             "  Az=" & Format(pt.Az, "0.000") & Chr(176) &
                             "  El=" & Format(pt.El, "0.000") & Chr(176)
     End Sub
@@ -208,7 +208,7 @@ Public Class FrmPredict
                             "   El: "   & Format(rEl, "0.0000") & Chr(176)
         LblModR2.Text     = "R2: " & Format(r2v, "0.0000") &
                             "    T: "  & Format(periodo / 3600, "0.00") & "h"
-        LblModUpdate.Text = "Aggiornato: " & modelTime & "  [" & n & " punti]"
+        LblModUpdate.Text = "Updated: " & modelTime & "  [" & n & " points]"
 
         LogMsg("[RIFIT] n=" & n &
                " RMSEaz=" & Format(rAz, "0.0000") &
@@ -218,7 +218,7 @@ Public Class FrmPredict
 
         DisegnaGrafico()
         DisegnaOrbita()
-        SetStatus("Modello [" & modelTime & "]  Az RMSE=" & Format(rAz, "0.0000") &
+        SetStatus("Model [" & modelTime & "]  Az RMSE=" & Format(rAz, "0.0000") &
                   Chr(176) & "  El RMSE=" & Format(rEl, "0.0000") & Chr(176))
     End Sub
 
@@ -314,12 +314,12 @@ Public Class FrmPredict
     ' ── calcola predizione ────────────────────────────────────────────────────────
     Public Sub BtnPredici_Click(sender As Object, e As EventArgs) Handles BtnPredici.Click
         If Not IsNumeric(TxtTPred.Text) Then
-            MessageBox.Show("Inserire un tempo valido.", "Attenzione",
+            MessageBox.Show("Enter a valid time.", "Warning",
                             MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             Exit Sub
         End If
         If bufCount = 0 Then
-            MessageBox.Show("Nessun dato nel buffer.", "Attenzione",
+            MessageBox.Show("No data in buffer.", "Warning",
                             MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             Exit Sub
         End If
@@ -348,8 +348,8 @@ Public Class FrmPredict
 
         Dim conf As Integer = CalcConf(tPred, tMin, tMax)
         LblPredAz.Text   = "Azimuth:    " & Format(predPts(0).Az, "0.0000")
-        LblPredEl.Text   = "Elevazione: " & Format(predPts(0).El, "0.0000")
-        LblPredConf.Text = "Confidenza: " & conf & "%  " & BarraConf(conf) &
+        LblPredEl.Text   = "Elevation: " & Format(predPts(0).El, "0.0000")
+        LblPredConf.Text = "Confidence: " & conf & "%  " & BarraConf(conf) &
                            "   T=" & Format(modelT / 3600, "0.00") & "h"
 
         ' Popola ListView  (VB6 ListItems.Add / Set li = → VB.NET Items.Add)
@@ -375,7 +375,7 @@ Public Class FrmPredict
         LogMsg("[PRED] t=" & Format(tPred, "0") & "s  Az=" &
                Format(predPts(0).Az, "0.0000") &
                "  El=" & Format(predPts(0).El, "0.0000") & "  Conf=" & conf & "%")
-        SetStatus("Predizione t=" & Format(tPred, "0") & "s  Az=" &
+        SetStatus("Prediction t=" & Format(tPred, "0") & "s  Az=" &
                   Format(predPts(0).Az, "0.0000") & Chr(176) &
                   "  El=" & Format(predPts(0).El, "0.0000") & Chr(176))
     End Sub
@@ -426,15 +426,15 @@ Public Class FrmPredict
         Dim n As Integer
         EstraiBuffer(pts, n)
         If n > 0 Then
-            LblBufUltimo.Text   = "Ultima: t=" & Format(pts(n - 1).T, "0") & "s" &
+            LblBufUltimo.Text   = "Last: t=" & Format(pts(n - 1).T, "0") & "s" &
                                   "  Az=" & Format(pts(n - 1).Az, "0.000") & Chr(176) &
                                   "  El=" & Format(pts(n - 1).El, "0.000") & Chr(176)
-            LblBufFinestra.Text = "Finestra: 0s -> " &
+            LblBufFinestra.Text = "Window: 0s -> " &
                                   Format(pts(n - 1).T / 3600, "0.1") & "h"
         End If
-        LblBufPunti.Text = "Punti nel buffer: " & bufCount & " / " & bufSize
+        LblBufPunti.Text = "Points in buffer: " & bufCount & " / " & bufSize
         LogMsg("[ESEMPIO] Caricati " & bufCount & " punti (24h, passo 5min)")
-        SetStatus("Esempio caricato. Costruzione modello in corso...")
+        SetStatus("Sample loaded. Building model...")
         CostruisciModello()
     End Sub
 
@@ -442,8 +442,8 @@ Public Class FrmPredict
     Private Sub BtnFeed_Click(sender As Object, e As EventArgs) Handles BtnFeed.Click
         If Not (IsNumeric(TxtTempo.Text) AndAlso IsNumeric(TxtAzimuth.Text) AndAlso
                 IsNumeric(TxtElevazione.Text)) Then
-            MessageBox.Show("Inserire valori numerici per Tempo, Azimuth ed Elevazione.",
-                            "Attenzione", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            MessageBox.Show("Enter numeric values for Time, Azimuth and Elevation.",
+                            "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
             Exit Sub
         End If
         FeedMisura(CDbl(TxtTempo.Text), CDbl(TxtAzimuth.Text), CDbl(TxtElevazione.Text), 0)
@@ -489,7 +489,7 @@ Public Class FrmPredict
 
     ' ── reset buffer ─────────────────────────────────────────────────────────────
     Private Sub BtnReset_Click(sender As Object, e As EventArgs) Handles BtnReset.Click
-        If MessageBox.Show("Cancellare buffer e modello?", "Conferma",
+        If MessageBox.Show("Clear buffer and model?", "Confirm",
                            MessageBoxButtons.YesNo,
                            MessageBoxIcon.Question) = DialogResult.Yes Then
             RisetBuffer()
@@ -506,15 +506,15 @@ Public Class FrmPredict
         newPtsSinceRifit = 0
         modelBuilt = False : nPred = 0
 
-        LblBufPunti.Text   = "Punti nel buffer: 0 / " & bufSize
-        LblBufFinestra.Text = "Finestra:  "
+        LblBufPunti.Text   = "Points in buffer: 0 / " & bufSize
+        LblBufFinestra.Text = "Window:  "
         LblBufUltimo.Text   = "Ultima misura:  "
         LblModRMSE.Text     = "RMSE Az:     El:  "
         LblModR2.Text       = "R2:     Periodo:  "
         LblModUpdate.Text   = "Ultimo aggiornamento:  "
         LblPredAz.Text      = "Azimuth:  "
-        LblPredEl.Text      = "Elevazione:  "
-        LblPredConf.Text    = "Confidenza:      Periodo:  "
+        LblPredEl.Text      = "Elevation:  "
+        LblPredConf.Text    = "Confidence:      Period:  "
         lvwPredizioni.Items.Clear()
         picGrafico.Image = Nothing
         picOrbita.Image  = Nothing
@@ -787,7 +787,7 @@ Public Class FrmPredict
             g.DrawLine(gp, 45, 18, 45, H - 28)
         End Using
         Using fnt As New Font("Arial", 7)
-            g.DrawString("Proiezione Az/El (figura 8)",
+            g.DrawString("Az/El Projection (figure-8)",
                          fnt, New SolidBrush(Color.FromArgb(60, 60, 60)),
                          W \ 2 - 50, 4)
             g.DrawString("Azimuth " & Chr(176),

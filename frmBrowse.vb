@@ -57,7 +57,7 @@ Partial Public Class frmBrowse
             Next
             Me.Text = "Parameter List — " & lstMdb.Items.Count & " file"
         Catch ex As Exception
-            LblPreview.Text = "Errore: " & ex.Message
+            LblPreview.Text = "Error: " & ex.Message
         End Try
     End Sub
 

@@ -37,11 +37,11 @@ Partial Class FrmTabSat
         Me.MnuMemory.Name     = "MnuMemory"
         Me.MnuMemory.Size     = New System.Drawing.Size(700, 24)
         Me.MnuClose.Name = "MnuClose"
-        Me.MnuClose.Text = "Chiudi"
+        Me.MnuClose.Text = "Close"
         Me.MnuLoad.Name = "MnuLoad"
-        Me.MnuLoad.Text = "Carica da ACU"
+        Me.MnuLoad.Text = "Load from ACU"
         Me.MnuPrint.Name = "MnuPrint"
-        Me.MnuPrint.Text = "Stampa"
+        Me.MnuPrint.Text = "Print"
         ' dgvSat
         Me.dgvSat.Dock                  = System.Windows.Forms.DockStyle.Fill
         Me.dgvSat.Name                  = "dgvSat"
@@ -58,7 +58,7 @@ Partial Class FrmTabSat
         Me.ClientSize          = New System.Drawing.Size(700, 420)
         Me.MainMenuStrip       = Me.MnuMemory
         Me.Name = "FrmTabSat"
-        Me.Text = "Tabella Satelliti"
+        Me.Text = "Satellite Table"
         Me.Controls.Add(Me.dgvSat)
         Me.Controls.Add(Me.MnuMemory)
         CType(Me.dgvSat, System.ComponentModel.ISupportInitialize).EndInit()

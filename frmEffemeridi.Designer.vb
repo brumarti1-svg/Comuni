@@ -68,16 +68,16 @@ Partial Class FrmEffemeridi
         Me.MnuCalcola.Name       = "MnuCalcola"
         Me.MnuCalcola.Text       = "Calcola"
         Me.MnuInviaTabella.Name    = "MnuInviaTabella"
-        Me.MnuInviaTabella.Text    = "Invia Tabella"
+        Me.MnuInviaTabella.Text    = "Send Table"
         Me.MnuInviaTabella.Enabled = False
         Me.MnuSalva.Name         = "MnuSalva"
-        Me.MnuSalva.Text         = "Salva"
+        Me.MnuSalva.Text         = "Save"
         Me.MnuSalvaFile.Name     = "MnuSalvaFile"
-        Me.MnuSalvaFile.Text     = "Salva come..."
+        Me.MnuSalvaFile.Text     = "Save as..."
         Me.MnuStampa.Name        = "MnuStampa"
-        Me.MnuStampa.Text        = "Stampa"
+        Me.MnuStampa.Text        = "Print"
         Me.MnuChiudi.Name        = "MnuChiudi"
-        Me.MnuChiudi.Text        = "Chiudi"
+        Me.MnuChiudi.Text        = "Close"
         ' ── Row 1: Antenna label (Left=1656/15=110, Top=144/15=10+28=38) ──
         Me.LblAntennaTag.Location = New System.Drawing.Point(26, 42)
         Me.LblAntennaTag.Size     = New System.Drawing.Size(80, 18)

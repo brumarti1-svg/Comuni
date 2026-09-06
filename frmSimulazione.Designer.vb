@@ -74,21 +74,21 @@ Partial Class FrmSimulazione
         Me.CmdAnnulla.Name = "CmdAnnulla"
         Me.CmdAnnulla.Size = New System.Drawing.Size(75, 23)
         Me.CmdAnnulla.TabIndex = 4
-        Me.CmdAnnulla.Text = "Annulla"
+        Me.CmdAnnulla.Text = "Cancel"
         Me.CmdAnnulla.BackColor = System.Drawing.Color.Salmon
 
         ' LblIni
-        Me.LblIni.Text     = "Da:"
+        Me.LblIni.Text     = "From:"
         Me.LblIni.Location = New System.Drawing.Point(14, 17)
         Me.LblIni.AutoSize = True
         '
         ' LblFin
-        Me.LblFin.Text     = "A:"
+        Me.LblFin.Text     = "To:"
         Me.LblFin.Location = New System.Drawing.Point(14, 47)
         Me.LblFin.AutoSize = True
         '
         ' LblDat
-        Me.LblDat.Text     = "Data simulazione:"
+        Me.LblDat.Text     = "Simulation date:"
         Me.LblDat.Location = New System.Drawing.Point(14, 77)
         Me.LblDat.AutoSize = True
         '

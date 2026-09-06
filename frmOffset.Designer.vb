@@ -69,7 +69,7 @@ Partial Class FrmOffset
         ' LblInc / CmbInc
         Me.LblInc.Location = New System.Drawing.Point(8, 92)
         Me.LblInc.Size     = New System.Drawing.Size(80, 20)
-        Me.LblInc.Text     = "Incremento:"
+        Me.LblInc.Text     = "Increment:"
         Me.CmbInc.Location = New System.Drawing.Point(90, 90)
         Me.CmbInc.Name     = "CmbInc"
         Me.CmbInc.Size     = New System.Drawing.Size(80, 24)
@@ -110,13 +110,13 @@ Partial Class FrmOffset
         Me.CmdEnd.Location     = New System.Drawing.Point(8, 244)
         Me.CmdEnd.Name         = "CmdEnd"
         Me.CmdEnd.Size         = New System.Drawing.Size(90, 30)
-        Me.CmdEnd.Text         = "Conferma"
+        Me.CmdEnd.Text         = "Confirm"
         Me.CmdEnd.BackColor    = System.Drawing.Color.LightGreen
         Me.CmdEnd.TabIndex     = 9
         Me.CmdAnnulla.Location = New System.Drawing.Point(110, 244)
         Me.CmdAnnulla.Name     = "CmdAnnulla"
         Me.CmdAnnulla.Size     = New System.Drawing.Size(90, 30)
-        Me.CmdAnnulla.Text     = "Annulla"
+        Me.CmdAnnulla.Text     = "Cancel"
         Me.CmdAnnulla.BackColor = System.Drawing.Color.Salmon
         Me.CmdAnnulla.TabIndex = 10
         ' Form

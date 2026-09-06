@@ -416,7 +416,7 @@ Public Class FrmConvAngoli
                 s_Longitudine = lonDec
             End If
         Catch ex As Exception
-            MessageBox.Show("Valori non validi: " & ex.Message, "Errore", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show("Invalid values: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End Try
     End Sub
 

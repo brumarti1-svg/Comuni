@@ -121,7 +121,7 @@ Partial Class FrmPreset
         Me.CmdAnnulla.Name = "CmdAnnulla"
         Me.CmdAnnulla.Size = New System.Drawing.Size(80, 30)
         Me.CmdAnnulla.TabIndex = 12
-        Me.CmdAnnulla.Text = "Annulla"
+        Me.CmdAnnulla.Text = "Cancel"
         Me.CmdAnnulla.UseVisualStyleBackColor = False
         '
         'LblAzimuth
@@ -138,7 +138,7 @@ Partial Class FrmPreset
         Me.LblElevazione.Name = "LblElevazione"
         Me.LblElevazione.Size = New System.Drawing.Size(70, 20)
         Me.LblElevazione.TabIndex = 2
-        Me.LblElevazione.Text = "Elevazione:"
+        Me.LblElevazione.Text = "Elevation:"
         '
         'LblInc
         '
@@ -146,7 +146,7 @@ Partial Class FrmPreset
         Me.LblInc.Name = "LblInc"
         Me.LblInc.Size = New System.Drawing.Size(70, 20)
         Me.LblInc.TabIndex = 4
-        Me.LblInc.Text = "Incremento:"
+        Me.LblInc.Text = "Increment:"
         '
         'FrmPreset
         '
@@ -171,7 +171,7 @@ Partial Class FrmPreset
         Me.MaximizeBox = False
         Me.Name = "FrmPreset"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.Text = "Preset Posizione"
+        Me.Text = "Preset Position"
         Me.ResumeLayout(False)
         Me.PerformLayout()
 

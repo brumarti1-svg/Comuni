@@ -220,7 +220,7 @@ Partial Class frmAcquire
         Me.CmdAnnulla.Name = "CmdAnnulla"
         Me.CmdAnnulla.Size = New System.Drawing.Size(100, 30)
         Me.CmdAnnulla.TabIndex = 7
-        Me.CmdAnnulla.Text = "Annulla"
+        Me.CmdAnnulla.Text = "Cancel"
         '
         ' frmAcquire
         '

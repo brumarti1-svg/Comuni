@@ -42,26 +42,26 @@ Partial Class FrmConvAngoli
         Me.LblHdrGra.Location = New System.Drawing.Point(85, 12)
         Me.LblHdrGra.Name = "LblHdrGra"
         Me.LblHdrGra.Size = New System.Drawing.Size(60, 20)
-        Me.LblHdrGra.Text = "Gradi"
+        Me.LblHdrGra.Text = "Degrees"
         Me.LblHdrPrimi.Location = New System.Drawing.Point(155, 12)
         Me.LblHdrPrimi.Name = "LblHdrPrimi"
         Me.LblHdrPrimi.Size = New System.Drawing.Size(60, 20)
-        Me.LblHdrPrimi.Text = "Primi"
+        Me.LblHdrPrimi.Text = "Minutes"
         Me.LblHdrSec.Location = New System.Drawing.Point(225, 12)
         Me.LblHdrSec.Name = "LblHdrSec"
         Me.LblHdrSec.Size = New System.Drawing.Size(60, 20)
-        Me.LblHdrSec.Text = "Secondi"
+        Me.LblHdrSec.Text = "Seconds"
         Me.LblHdrResult.Location = New System.Drawing.Point(300, 12)
         Me.LblHdrResult.Name = "LblHdrResult"
         Me.LblHdrResult.Size = New System.Drawing.Size(120, 20)
-        Me.LblHdrResult.Text = "Decimali"
+        Me.LblHdrResult.Text = "Decimal"
         '
         ' Latitudine
         '
         Me.LblHdrLat.Location = New System.Drawing.Point(12, 38)
         Me.LblHdrLat.Name = "LblHdrLat"
         Me.LblHdrLat.Size = New System.Drawing.Size(65, 20)
-        Me.LblHdrLat.Text = "Latitudine"
+        Me.LblHdrLat.Text = "Latitude"
         Me.CmbLat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CmbLat.Items.AddRange(New Object() {"N", "S"})
         Me.CmbLat.Location = New System.Drawing.Point(12, 56)
@@ -86,7 +86,7 @@ Partial Class FrmConvAngoli
         Me.LblHdrLon.Location = New System.Drawing.Point(12, 88)
         Me.LblHdrLon.Name = "LblHdrLon"
         Me.LblHdrLon.Size = New System.Drawing.Size(65, 20)
-        Me.LblHdrLon.Text = "Longitudine"
+        Me.LblHdrLon.Text = "Longitude"
         Me.CmbLong.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CmbLong.Items.AddRange(New Object() {"E", "W"})
         Me.CmbLong.Location = New System.Drawing.Point(12, 106)
@@ -111,11 +111,11 @@ Partial Class FrmConvAngoli
         Me.CmdCalcolo.Location = New System.Drawing.Point(85, 148)
         Me.CmdCalcolo.Name = "CmdCalcolo"
         Me.CmdCalcolo.Size = New System.Drawing.Size(90, 28)
-        Me.CmdCalcolo.Text = "Calcola"
+        Me.CmdCalcolo.Text = "Calculate"
         Me.CmdEsci.Location = New System.Drawing.Point(185, 148)
         Me.CmdEsci.Name = "CmdEsci"
         Me.CmdEsci.Size = New System.Drawing.Size(90, 28)
-        Me.CmdEsci.Text = "Esci"
+        Me.CmdEsci.Text = "Exit"
         '
         ' FrmConvAngoli
         '
@@ -142,7 +142,7 @@ Partial Class FrmConvAngoli
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.Text = "Conversione Angoli"
+        Me.Text = "Angle Conversion"
         Me.ResumeLayout(False)
         Me.PerformLayout()
     End Sub

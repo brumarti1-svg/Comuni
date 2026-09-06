@@ -30,7 +30,7 @@ Partial Class frmAutoTrackBackPT
         ' LblTitle
         Me.LblTitle.Location = New System.Drawing.Point(12, 12)
         Me.LblTitle.Size     = New System.Drawing.Size(260, 20)
-        Me.LblTitle.Text     = "Modalità Back-Up AutoTrack:"
+        Me.LblTitle.Text     = "AutoTrack Back-Up Mode:"
         ' CmbBackUpPT
         Me.CmbBackUpPT.Location      = New System.Drawing.Point(12, 36)
         Me.CmbBackUpPT.Name          = "CmbBackUpPT"

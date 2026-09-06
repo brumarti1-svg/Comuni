@@ -246,7 +246,7 @@ Partial Public Class FrmEffemeridi
             Dim dataIni As Date
             If Not DateTime.TryParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, Globalization.DateTimeStyles.None, dataIni) Then
                 MskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                MessageBox.Show("Data non valida. Inserire nel formato dd/MM/yyyy HH:mm:ss", "EffNORAD", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                MessageBox.Show("Invalid date. Enter it in the format dd/MM/yyyy HH:mm:ss", "EffNORAD", MessageBoxButtons.OK, MessageBoxIcon.Warning)
                 Return False
             End If
             If Minuti >= 0.001 Then
@@ -606,8 +606,8 @@ Partial Public Class FrmEffemeridi
     ' TODO: implementare con ReportViewer RDLC
     ' -------------------------------------------------------
     Private Function Stampa() As Boolean
-        MessageBox.Show("Stampa non ancora implementata. Usare la funzione Salva per esportare i dati.",
-                        "Stampa", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        MessageBox.Show("Print not yet implemented. Use the Save function to export the data.",
+                        "Print", MessageBoxButtons.OK, MessageBoxIcon.Information)
         Return True
     End Function
 

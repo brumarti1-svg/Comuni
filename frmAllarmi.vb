@@ -60,7 +60,7 @@ Public Class frmAllarmi
     End Sub
 
     Private Sub CmdReset_Click(sender As Object, e As EventArgs) Handles CmdReset.Click
-        If MessageBox.Show("Cancellare tutti gli allarmi?", "Conferma",
+        If MessageBox.Show("Delete all alarms?", "Confirm",
                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
             DbExecute("DELETE FROM [Error_Messages]")
             DbExecute("DELETE FROM [tmp_Error_Messages]")

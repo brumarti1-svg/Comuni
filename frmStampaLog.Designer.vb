@@ -39,7 +39,7 @@ Partial Class FrmStampaLog
         Me.LblDataIni.Location = New System.Drawing.Point(12, 18)
         Me.LblDataIni.Name = "LblDataIni"
         Me.LblDataIni.Size = New System.Drawing.Size(80, 20)
-        Me.LblDataIni.Text = "Data Inizio:"
+        Me.LblDataIni.Text = "Start Date:"
         '
         ' TxtDataIni
         '
@@ -52,7 +52,7 @@ Partial Class FrmStampaLog
         Me.LblOraIni.Location = New System.Drawing.Point(200, 18)
         Me.LblOraIni.Name = "LblOraIni"
         Me.LblOraIni.Size = New System.Drawing.Size(70, 20)
-        Me.LblOraIni.Text = "Ora Inizio:"
+        Me.LblOraIni.Text = "Start Time:"
         '
         ' TxtOraIni
         '
@@ -65,7 +65,7 @@ Partial Class FrmStampaLog
         Me.LblDataFin.Location = New System.Drawing.Point(12, 52)
         Me.LblDataFin.Name = "LblDataFin"
         Me.LblDataFin.Size = New System.Drawing.Size(80, 20)
-        Me.LblDataFin.Text = "Data Fine:"
+        Me.LblDataFin.Text = "End Date:"
         '
         ' TxtDataFin
         '
@@ -78,7 +78,7 @@ Partial Class FrmStampaLog
         Me.LblOraFin.Location = New System.Drawing.Point(200, 52)
         Me.LblOraFin.Name = "LblOraFin"
         Me.LblOraFin.Size = New System.Drawing.Size(70, 20)
-        Me.LblOraFin.Text = "Ora Fine:"
+        Me.LblOraFin.Text = "End Time:"
         '
         ' TxtOraFin
         '
@@ -91,35 +91,35 @@ Partial Class FrmStampaLog
         Me.radAll.Location = New System.Drawing.Point(12, 85)
         Me.radAll.Name = "radAll"
         Me.radAll.Size = New System.Drawing.Size(80, 20)
-        Me.radAll.Text = "Tutti"
+        Me.radAll.Text = "All"
         '
         ' rad0
         '
         Me.rad0.Location = New System.Drawing.Point(100, 85)
         Me.rad0.Name = "rad0"
         Me.rad0.Size = New System.Drawing.Size(90, 20)
-        Me.rad0.Text = "Livello 0"
+        Me.rad0.Text = "Level 0"
         '
         ' rad1
         '
         Me.rad1.Location = New System.Drawing.Point(200, 85)
         Me.rad1.Name = "rad1"
         Me.rad1.Size = New System.Drawing.Size(90, 20)
-        Me.rad1.Text = "Livello 1"
+        Me.rad1.Text = "Level 1"
         '
         ' CmdRicerca
         '
         Me.CmdRicerca.Location = New System.Drawing.Point(12, 115)
         Me.CmdRicerca.Name = "CmdRicerca"
         Me.CmdRicerca.Size = New System.Drawing.Size(90, 28)
-        Me.CmdRicerca.Text = "Ricerca"
+        Me.CmdRicerca.Text = "Search"
         '
         ' CmdEsci
         '
         Me.CmdEsci.Location = New System.Drawing.Point(112, 115)
         Me.CmdEsci.Name = "CmdEsci"
         Me.CmdEsci.Size = New System.Drawing.Size(90, 28)
-        Me.CmdEsci.Text = "Esci"
+        Me.CmdEsci.Text = "Exit"
         '
         ' dgvLog
         '
@@ -154,7 +154,7 @@ Partial Class FrmStampaLog
         Me.Controls.Add(Me.CmdRicerca)
         Me.Controls.Add(Me.CmdEsci)
         Me.Controls.Add(Me.dgvLog)
-        Me.Text = "Stampa Log"
+        Me.Text = "Print Log"
         CType(Me.dgvLog, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()

@@ -7,7 +7,7 @@ Public Class FrmProgram
     ' -------------------------------------------------------
     Private Sub FrmProgram_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         If Not b_Calcola Then
-            MessageBox.Show("Nessun satellite caricato. Caricare prima un satellite.", "Program Track",
+            MessageBox.Show("No satellite loaded. Load a satellite first.", "Program Track",
                             MessageBoxButtons.OK, MessageBoxIcon.Warning)
             b_Abort = True
             Me.Close()

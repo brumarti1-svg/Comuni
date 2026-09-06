@@ -50,7 +50,7 @@ Partial Class FrmProgram
         Me.LblDataInizio.Name = "LblDataInizio"
         Me.LblDataInizio.Size = New System.Drawing.Size(110, 20)
         Me.LblDataInizio.TabIndex = 0
-        Me.LblDataInizio.Text = "Data/Ora inizio (UTC):"
+        Me.LblDataInizio.Text = "Start Date/Time (UTC):"
         '
         'MskDataIni
         '

@@ -37,7 +37,7 @@ Public Class FrmSatelliti
         dgvSatelliti.Columns.Add("FileAgg", "File Orbit Parameter")
         dgvSatelliti.Columns.Add("PolAngle", "PolAngle")
         Dim colVerso As New DataGridViewCheckBoxColumn() With {
-            .Name = "Verso", .HeaderText = "Verso",
+            .Name = "Verso", .HeaderText = "Direction",
             .TrueValue = True, .FalseValue = False}
         dgvSatelliti.Columns.Add(colVerso)
         dgvSatelliti.Columns(0).Width = 200

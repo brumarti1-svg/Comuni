@@ -308,13 +308,13 @@ End Function
             InitPar11 = True
         Else
             '        Response = MessageBox.Show("Non sono disponibili i parametri per il Satellite selezionato!", vbOKOnly)
-            FrmMain.stpMessaggio.Text = "There is not parameters for the Satellite: " & Satellite
+            FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & Satellite
             FrmMain.TmrMsg.Enabled = True
         End If
         Exit Function
 Par11Error:
         '    Response = MessageBox.Show("Non sono disponibili i parametri per il Satellite selezionato!", vbOKOnly)
-        FrmMain.stpMessaggio.Text = "There is not parameters for the Satellite: " & Satellite
+        FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & Satellite
         FrmMain.TmrMsg.Enabled = True
     End Function
 

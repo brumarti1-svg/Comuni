@@ -614,7 +614,9 @@ Public Class FrmVisualizzazione
     End Sub
 
     Private Sub Form_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
-        FormResizer.Init(Me)
+        ' 1394x655 = ClientSize di progettazione nel Designer (vedi FrmVisualizzazione.Designer.vb)
+        FormResizer.Init(Me, New Size(1394, 655))
+        FormResizer.Resize(Me)
     End Sub
 
     Private _prevWindowState As FormWindowState = FormWindowState.Normal
@@ -686,16 +688,6 @@ Public Class FrmVisualizzazione
             _Cmd?.Dispose()
         End If
         MyBase.Dispose(disposing)
-    End Sub
-    ' -------------------------------------------------------
-    ' Form Resize
-    ' -------------------------------------------------------
-    Private Sub FrmVisualizzazione_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
-        FormResizer.Init(Me)
-    End Sub
-
-    Private Sub FrmVisializzazione_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
-        FormResizer.Resize(Me)
     End Sub
 
 End Class

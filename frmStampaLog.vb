@@ -75,7 +75,7 @@
             rs.Close()
             dgvLog.DataSource = dtLog
         Catch ex As Exception
-            MessageBox.Show("Errore query: " & ex.Message, "Errore",
+            MessageBox.Show("Query error: " & ex.Message, "Error",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub

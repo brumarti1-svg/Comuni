@@ -37,11 +37,11 @@ Partial Class FrmMemoryTrack
         Me.MnuMem.Name     = "MnuMem"
         Me.MnuMem.Size     = New System.Drawing.Size(600, 24)
         Me.MnuClose.Name = "MnuClose"
-        Me.MnuClose.Text = "Chiudi"
+        Me.MnuClose.Text = "Close"
         Me.MnuLoad.Name = "MnuLoad"
-        Me.MnuLoad.Text = "Carica da ACU"
+        Me.MnuLoad.Text = "Load from ACU"
         Me.MnuPrint.Name = "MnuPrint"
-        Me.MnuPrint.Text = "Stampa"
+        Me.MnuPrint.Text = "Print"
         ' dgvMem
         Me.dgvMem.Dock                  = System.Windows.Forms.DockStyle.Fill
         Me.dgvMem.Name                  = "dgvMem"

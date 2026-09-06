@@ -67,7 +67,7 @@ Public Class FrmTrackTable
                 pd.Print()
             End Using
         Catch ex As Exception
-            MessageBox.Show("Errore della stampante", "Errore",
+            MessageBox.Show("Printer error", "Error",
                             MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub

@@ -244,7 +244,7 @@ Partial Class FrmSatelliti
         Me.chkVerso.Name = "chkVerso"
         Me.chkVerso.Size = New System.Drawing.Size(70, 24)
         Me.chkVerso.TabIndex = 8
-        Me.chkVerso.Text = "Verso"
+        Me.chkVerso.Text = "Direction"
         '
         'LblAlgDesc
         '

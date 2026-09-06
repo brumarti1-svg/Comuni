@@ -34,39 +34,39 @@ Partial Class FrmRegressione
         ' grpGrado
         Me.grpGrado.Location = New System.Drawing.Point(12, 12)
         Me.grpGrado.Size     = New System.Drawing.Size(200, 130)
-        Me.grpGrado.Text     = "Grado regressione"
+        Me.grpGrado.Text     = "Regression degree"
         Me.grpGrado.Controls.AddRange(New Control() {Me.opt1, Me.opt2, Me.opt3, Me.opt4})
         ' opt1
         Me.opt1.Location = New System.Drawing.Point(12, 24)
         Me.opt1.Name     = "opt1"
         Me.opt1.Size     = New System.Drawing.Size(80, 22)
-        Me.opt1.Text     = "Grado 1"
+        Me.opt1.Text     = "Degree 1"
         Me.opt1.TabIndex = 0
         ' opt2
         Me.opt2.Location = New System.Drawing.Point(12, 50)
         Me.opt2.Name     = "opt2"
         Me.opt2.Size     = New System.Drawing.Size(80, 22)
-        Me.opt2.Text     = "Grado 2"
+        Me.opt2.Text     = "Degree 2"
         Me.opt2.TabIndex = 1
         Me.opt2.Checked  = True
         ' opt3
         Me.opt3.Location = New System.Drawing.Point(12, 76)
         Me.opt3.Name     = "opt3"
         Me.opt3.Size     = New System.Drawing.Size(80, 22)
-        Me.opt3.Text     = "Grado 3"
+        Me.opt3.Text     = "Degree 3"
         Me.opt3.TabIndex = 2
         ' opt4
         Me.opt4.Location = New System.Drawing.Point(12, 102)
         Me.opt4.Name     = "opt4"
         Me.opt4.Size     = New System.Drawing.Size(80, 22)
-        Me.opt4.Text     = "Grado 4"
+        Me.opt4.Text     = "Degree 4"
         Me.opt4.TabIndex = 3
         ' CmdExit
         Me.CmdExit.Location  = New System.Drawing.Point(12, 154)
         Me.CmdExit.Name      = "CmdExit"
         Me.CmdExit.Size      = New System.Drawing.Size(200, 30)
         Me.CmdExit.TabIndex  = 4
-        Me.CmdExit.Text      = "Chiudi"
+        Me.CmdExit.Text      = "Close"
         Me.CmdExit.BackColor = System.Drawing.Color.Salmon
         ' Form
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
@@ -76,7 +76,7 @@ Partial Class FrmRegressione
         Me.MaximizeBox         = False
         Me.StartPosition       = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Name = "FrmRegressione"
-        Me.Text = "Grado Regressione"
+        Me.Text = "Regression Degree"
         Me.Controls.Add(Me.grpGrado)
         Me.Controls.Add(Me.CmdExit)
         Me.grpGrado.ResumeLayout(False)

@@ -59,12 +59,12 @@ Partial Class FrmTrackTable
         ' tsmiEsci
         '
         Me.tsmiEsci.Name = "tsmiEsci"
-        Me.tsmiEsci.Text = "Esci"
+        Me.tsmiEsci.Text = "Exit"
         '
         ' tsmiStampa
         '
         Me.tsmiStampa.Name = "tsmiStampa"
-        Me.tsmiStampa.Text = "Stampa"
+        Me.tsmiStampa.Text = "Print"
         '
         ' FrmTrackTable
         '

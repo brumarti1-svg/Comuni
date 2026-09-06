@@ -120,7 +120,7 @@ Partial Class FrmVisualizzazione
         Me.optDatiSi.Name = "optDatiSi"
         Me.optDatiSi.Size = New System.Drawing.Size(50, 20)
         Me.optDatiSi.TabIndex = 16
-        Me.optDatiSi.Text = "Sì"
+        Me.optDatiSi.Text = "Yes"
         '
         'optDatiNo  (default: selezionato)
         '
@@ -148,7 +148,7 @@ Partial Class FrmVisualizzazione
         Me.CmdStampa.Name = "CmdStampa"
         Me.CmdStampa.Size = New System.Drawing.Size(90, 24)
         Me.CmdStampa.TabIndex = 12
-        Me.CmdStampa.Text = "Stampa"
+        Me.CmdStampa.Text = "Print"
         Me.CmdStampa.UseVisualStyleBackColor = False
         '
         'CmdEsci
@@ -158,7 +158,7 @@ Partial Class FrmVisualizzazione
         Me.CmdEsci.Name = "CmdEsci"
         Me.CmdEsci.Size = New System.Drawing.Size(90, 24)
         Me.CmdEsci.TabIndex = 11
-        Me.CmdEsci.Text = "Chiudi"
+        Me.CmdEsci.Text = "Close"
         Me.CmdEsci.UseVisualStyleBackColor = False
         '
         'pnlControls
