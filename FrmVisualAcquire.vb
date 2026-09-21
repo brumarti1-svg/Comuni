@@ -1,12 +1,12 @@
 Imports System.Drawing
 Imports System.Drawing.Drawing2D
-Imports System.Data.OleDb
+Imports System.Data.SQLite
 
 Public Class FrmVisualAcquire
 
     ' ── campi dati ─────────────────────────────────────────────────────────────
-    Private DyVisual As OleDbDataReader
-    Private _Cmd As OleDbCommand
+    Private DyVisual As SQLiteDataReader
+    Private _Cmd As SQLiteCommand
     Private tmpSql As String
     Private Const MaxPunti As Integer = 6000
     Private NPAsseY As Single
@@ -194,10 +194,9 @@ Public Class FrmVisualAcquire
 
         tmpSql = "SELECT * FROM tmpEffemeridi ORDER BY date, time"
 
-        ' TODO: dbOrbite è OleDbConnection definita nel modulo di progetto
         _Cmd?.Dispose()
         DyVisual?.Close()
-        _Cmd = New OleDbCommand(tmpSql, dbOrbite)
+        _Cmd = New SQLiteCommand(tmpSql, CType(dbOrbite, DAODatabase).Connection)
         DyVisual = _Cmd.ExecuteReader()
 
         If Not DyVisual.Read() Then Return False
@@ -584,9 +583,8 @@ Public Class FrmVisualAcquire
     Private Sub Form_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
             tmpSql = "SELECT * FROM tmpEffemeridi ORDER BY date, time"
-            ' TODO: dbOrbite = OleDbConnection definita nel modulo globale
-            Using Cmd As New OleDbCommand(tmpSql, dbOrbite)
-                Using reader As OleDbDataReader = Cmd.ExecuteReader()
+            Using Cmd As New SQLiteCommand(tmpSql, CType(dbOrbite, DAODatabase).Connection)
+                Using reader As SQLiteDataReader = Cmd.ExecuteReader()
                     If reader.Read() Then
                         If IsDate(reader("date")) Then
                             mskDataIni.Text = CDate(reader("date")).ToString("dd/MM/yy")

@@ -29,14 +29,14 @@ Public Class FrmVisualizzazione
     Private i As Integer, j As Integer, n As Integer
     Private tmpData As Date, tmpAz As Single
     Private PassoX As Single, PassoY As Single
-    Private XPrec As Single, YPrec As Single, DataPrec As String
+    Private XPrec As Single, YPrec As Single, DataPrec As Date
     Private tmpX As Single, tmpY As Single, tmp2x As Single, tmp2y As Single
-    Private YProv As Single, XProv As Single, DataProv As String
+    Private YProv As Single, XProv As Single, DataProv As Date
     Private flgGrafico As Integer
     Private diffX As Single
     Private tmpSelezione As Boolean
     Private diff As Single, i_Intervallo As Single
-    Private d_Calcolo As String, OraPrec As Integer, OraProv As Integer
+    Private OraPrec As Integer, OraProv As Integer
     Private InvertiScala As Boolean
     Private i_Size1 As Integer, i_Size2 As Integer, i_Size3 As Integer
 
@@ -237,7 +237,12 @@ Public Class FrmVisualizzazione
             Dim _sTime = DyVisual("Time").ToString()                  ' "08:45"
             Dim _dtRow As Date = Date.MinValue
             Date.TryParse(_sDate, _dtRow)
-            Punti(1, 1, 1, NPunti).data = _dtRow.Date + OraToTimeSpan(_sTime)
+            Dim _dtFull As Date = _dtRow.Date + OraToTimeSpan(_sTime)
+            ' Filtro per l'intervallo scelto dall'utente: la query non ha WHERE
+            ' (il formato testuale "dd/mm/yyyy" di "date" non è ordinabile/filtrabile
+            ' correttamente in SQL), quindi va applicato qui riga per riga.
+            If _dtFull < tmpDataIni OrElse _dtFull > tmpDataFin Then Continue Do
+            Punti(1, 1, 1, NPunti).data = _dtFull
             Punti(1, 1, 1, NPunti).y = CSng(DyVisual("Elevation"))
             Punti(1, 1, 1, NPunti).X = CSng(DyVisual("Azimuth"))
             XProv = CSng(DyVisual("Azimuth"))
@@ -317,7 +322,7 @@ Public Class FrmVisualizzazione
                     tmpAz1 = tmpAz
                     If tmpAz1 >= 360 Then tmpAz1 -= 360
                     If chkPrincipale.Checked Then
-                        _penWidth = 2 : _penColor = Color.Black
+                        _penWidth = 1 : _penColor = Color.Gray
                         LineStep(0, -(PicH - DimCornice - MB))
                         _penWidth = 1 : _penColor = Color.Red
                     End If
@@ -414,7 +419,7 @@ Public Class FrmVisualizzazione
                 MoveTo(ML, tmpY)
                 Dim showValY = tmp2y <> MinY
                 If chkPrincipale.Checked AndAlso showValY Then
-                    _penWidth = 2 : _penColor = Color.Black
+                    _penWidth = 1 : _penColor = Color.Gray
                     LineStep(PicW - ML - DimCornice, 0)
                     _penWidth = 1 : _penColor = Color.Black
                 End If
@@ -501,7 +506,7 @@ Public Class FrmVisualizzazione
             XPrec = Punti(1, 1, 1, n).X
             If InvertiScala AndAlso XPrec < MinX Then XPrec += 360
             YPrec = Punti(1, 1, 1, n).y
-            DataPrec = CDate(Punti(1, 1, 1, n).data).ToString("mm.ss")
+            DataPrec = CDate(Punti(1, 1, 1, n).data)
             OraPrec = CInt(CDate(Punti(1, 1, 1, n).data).ToString("HH"))
             YProv = Punti(1, 1, 1, n).y
             XProv = Punti(1, 1, 1, n).X
@@ -523,16 +528,20 @@ Public Class FrmVisualizzazione
                     _penColor = If(Punti(1, 1, 1, i).c Mod 2 = 1, Color.Black, Color.Red)
                     YProv = Punti(1, 1, 1, i).y
                     XProv = Punti(1, 1, 1, i).X
-                    DataProv = CDate(Punti(1, 1, 1, i).data).ToString("mm.ss")
+                    DataProv = CDate(Punti(1, 1, 1, i).data)
                     If InvertiScala AndAlso XProv < MinX Then XProv += 360
                     OraProv = CInt(CDate(Punti(1, 1, 1, i).data).ToString("HH"))
                     tmpX = (XProv - MinX) / ScalaX + ML
                     tmpY = (PicH - MB) - (YProv - MinY) / ScalaY
-                    d_Calcolo = DataProv
-                    If Val(d_Calcolo) < Val(DataPrec) Then
-                        d_Calcolo = Format(Val(DataProv) + 60, "##0.00")
-                    End If
-                    If Math.Abs(Val(d_Calcolo) - Val(DataPrec)) < i_Intervallo + 1 Then
+                    ' Distanza reale in secondi tra punti consecutivi (sostituisce il
+                    ' vecchio calcolo su "mm.ss" formattato come numero decimale, che
+                    ' trattava i secondi come frazione dei minuti invece che in base 60
+                    ' e non gestiva il cambio d'ora: quasi ogni coppia di punti risultava
+                    ' "troppo distante" e veniva disegnata come pallino da 0.2px invece
+                    ' che collegata da una linea, rendendo invisibili tutti i punti
+                    ' intermedi.
+                    Dim diffSecondi As Double = Math.Abs((DataProv - DataPrec).TotalSeconds)
+                    If diffSecondi < i_Intervallo + 1 Then
                         If optLinee.Checked Then
                             LineTo(tmpX, tmpY)          ' linea continua, nessun punto
                         Else                            ' optPunti: punto singolo pieno 1px
@@ -555,7 +564,7 @@ Public Class FrmVisualizzazione
                     XPrec = Punti(1, 1, 1, i).X
                     If InvertiScala AndAlso XPrec < MinX Then XPrec += 360
                     YPrec = Punti(1, 1, 1, i).y
-                    DataPrec = CDate(Punti(1, 1, 1, i).data).ToString("mm.ss")
+                    DataPrec = CDate(Punti(1, 1, 1, i).data)
                     OraPrec = CInt(CDate(Punti(1, 1, 1, i).data).ToString("HH"))
                 End If
             Next i
