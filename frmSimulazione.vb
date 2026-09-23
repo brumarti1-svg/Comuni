@@ -43,7 +43,7 @@ Public Class FrmSimulazione
         frmRicezione.LblCommand.Text = "Simulation"
         If IsDate(mskDataIni.Text) And IsDate(mskDataFin.Text) Then
             DataEsegui = CDate(mskDataIni.Text)
-            LblDateSimul.Text = Format(DataEsegui, "dd/mm/yyyy hh:mm:ss")
+            LblDateSimul.Text = DataEsegui.ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
             tmrSimulation.Interval = i_Simulation * 1000
             tmrSimulation.Enabled = True
         End If
@@ -83,7 +83,7 @@ Public Class FrmSimulazione
         DataEsegui = DataEsegui.AddSeconds(i_Simulation)
         If DataEsegui <= CDate(mskDataFin.Text) Then
             Calcolo_Coordinate(DataEsegui, 0)
-            LblDateSimul.Text = Format(DataEsegui, "dd/mm/yyyy hh:mm:ss")
+            LblDateSimul.Text = DataEsegui.ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
         Else
             LblDateSimul.BackColor = Color.Yellow
             PTK = 0

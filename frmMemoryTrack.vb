@@ -23,7 +23,7 @@
         Dim t_Memory As Date, TabAz As String, TabEl As String, Port As Integer
         On Error Resume Next
         ValoreMemory = True
-        frmRicezione.TmrTimeoutMSG(ACU).Interval = Port_Control(ACU).Time_out * 1000
+        frmRicezione.TmrTimeoutMSG(ACU).Interval = If(Port_Control(ACU).Time_out * 1000 > 0, Port_Control(ACU).Time_out * 1000, 30000)
         i_Cont = 0
         Campo = Mid$(Messaggio, 6, 1)
         i = 1
@@ -34,14 +34,14 @@
         ' leggo i campi solo per lo status
         '07/06/2016
         pos = 2
-        t_Memory = Format$(CDate("0000"), "hh:mm")
+        t_Memory = CDate("0000").ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
         For i = 1 To 96
             rs_ValMem.AddNew
             pos += 5
             TabAz = Mid$(Messaggio, pos, 6)
             pos += 6
             TabEl = Mid$(Messaggio, pos, 5)
-            rs_ValMem!ora = Format$(CDate(t_Memory), "hh:mm")
+            rs_ValMem!ora = t_Memory.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
             If IsNumeric(TabAz) Then rs_ValMem!az = Format$(TabAz / 1000, "000.000")
             If IsNumeric(TabEl) Then rs_ValMem!el = Format$(TabEl / 1000, "00.000")
             t_Memory = DateAdd("n", 15, t_Memory)

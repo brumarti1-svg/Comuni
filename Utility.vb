@@ -423,7 +423,7 @@ Module Utility
     Public Function WriteError(ByVal Messaggio As String, Routine As String) As Boolean
         Dim Buffer As String
         On Error Resume Next
-        Buffer = Format(DateAdd("h", -i_Off, Now), "dd/mm/yy hh:mm:ss") & ", " & ", " & Routine
+        Buffer = CDate(DateAdd("h", -i_Off, Now)).ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) & ", " & ", " & Routine
         Dim filePath As String = Application.StartupPath & "\" & f_Log4
         System.IO.File.AppendAllText(filePath, Buffer & Environment.NewLine)
         Return True

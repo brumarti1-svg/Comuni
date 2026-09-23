@@ -1828,11 +1828,11 @@ Rangeout:
                 Exit Function
             Case "T", "TIME"        'modificato 19/04
                 AnalisiOrdini = True
-                Ordine = "TIME " & Format$(NowUTC(), "hh:mm:ss")
+                Ordine = "TIME " & NowUTC().ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
                 Exit Function
             Case "DATE"
                 AnalisiOrdini = True
-                Ordine = "DATE " & Format$(NowUTC(), "dd/mm/yy")
+                Ordine = "DATE " & NowUTC().ToString("dd/MM/yy", System.Globalization.CultureInfo.InvariantCulture)
                 Exit Function
             Case "MRY", "MRN", "SLY", "SLN", "SSY", "SSN", "RES", "MKA"
                 AnalisiOrdini = True
@@ -2013,7 +2013,7 @@ esci:
                     EpochDate = rs_Ricez!EpochDate
                     PTK = &H10         'Elementi validi
                     d_nonvalido = DateAdd("d", g_ValTLE - 1, EpochDate)
-                    If Format$(d_nonvalido, "dd/mm/yyyy") = Format$(Now, "dd/mm/yyyy") Then
+                    If CDate(d_nonvalido).ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
                         PTK = &H20     'Elementi non validi < 24 ore
                         If Algoritmo = 1 Then
                             frmNorad.AggNorad

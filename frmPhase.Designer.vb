@@ -63,10 +63,10 @@ Partial Class FrmPhase
         Me.dgvPhase.Name = "dgvPhase"
         Me.dgvPhase.Size = New System.Drawing.Size(760, 440)
         Me.dgvPhase.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right Or AnchorStyles.Bottom
-        Me.dgvPhase.AllowUserToAddRows = False
+        Me.dgvPhase.AllowUserToAddRows = True
         Me.dgvPhase.MultiSelect = False
         Me.dgvPhase.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-        Me.dgvPhase.ReadOnly = True
+        Me.dgvPhase.ReadOnly = False
         Me.dgvPhase.RowHeadersVisible = False
         Me.dgvPhase.TabIndex = 0
 

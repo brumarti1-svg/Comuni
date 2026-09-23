@@ -1,3 +1,5 @@
+Imports System.Data.SQLite
+
 Public Class FrmPhase
     ' Stubs VB6 non migrati
     Friend datPhase    As Object
@@ -12,10 +14,108 @@ Public Class FrmPhase
     ' -------------------------------------------------------
     ' Form Load — carica Fasi nel DataGridView
     ' -------------------------------------------------------
+    ' -------------------------------------------------------
+    ' Incolla multi-cella (Ctrl+V) — DataGridView non lo gestisce da solo:
+    ' senza questo, il testo copiato (con Tab tra le colonne e a-capo tra le
+    ' righe) finisce interamente nella sola cella corrente invece di
+    ' distribuirsi sulle colonne/righe di destinazione.
+    ' -------------------------------------------------------
+    Private Sub DgvPhase_KeyDown(sender As Object, e As KeyEventArgs) Handles dgvPhase.KeyDown
+        If e.Control AndAlso e.KeyCode = Keys.V Then
+            IncollaDaClipboard()
+            e.Handled = True
+            e.SuppressKeyPress = True
+        End If
+    End Sub
+
+    Private Sub IncollaDaClipboard()
+        If Not Clipboard.ContainsText() Then Exit Sub
+        If dgvPhase.CurrentCell Is Nothing Then Exit Sub
+
+        Dim testo As String = Clipboard.GetText()
+        Dim righe() As String = testo.Replace(vbCrLf, vbLf).TrimEnd(ControlChars.Lf).Split(ControlChars.Lf)
+        If righe.Length = 0 Then Exit Sub
+
+        Dim startRow As Integer = dgvPhase.CurrentCell.RowIndex
+        Dim startCol As Integer = dgvPhase.CurrentCell.ColumnIndex
+
+        For r As Integer = 0 To righe.Length - 1
+            Dim targetRow As Integer = startRow + r
+            ' Aggiunge righe se servono oltre l'ultima riga vuota di inserimento.
+            While targetRow >= dgvPhase.Rows.Count - 1 AndAlso dgvPhase.AllowUserToAddRows
+                dgvPhase.Rows.Add()
+            End While
+            If targetRow >= dgvPhase.Rows.Count OrElse dgvPhase.Rows(targetRow).IsNewRow Then Continue For
+
+            Dim celle() As String = righe(r).Split(ControlChars.Tab)
+            For c As Integer = 0 To celle.Length - 1
+                Dim targetCol As Integer = startCol + c
+                If targetCol >= dgvPhase.Columns.Count Then Continue For
+                dgvPhase.Rows(targetRow).Cells(targetCol).Value = celle(c)
+            Next
+        Next
+    End Sub
+
     Private Sub FrmPhase_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         On Error Resume Next
         Response = 0
         LoadFasi()
+    End Sub
+
+    ' -------------------------------------------------------
+    ' Form Closing — salva le modifiche fatte nella griglia (celle
+    ' corrette, righe nuove) prima di chiudere, qualunque sia il
+    ' pulsante che ha innescato la chiusura (Exit o Apply).
+    ' Le cancellazioni fatte con "Remove" sono già immediate e non
+    ' rientrano in questo salvataggio.
+    ' -------------------------------------------------------
+    Private Sub FrmPhase_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+        SalvaFasi()
+    End Sub
+
+    Private Sub SalvaFasi()
+        Try
+            Dim conn As SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
+            Dim colNames = (From c As DataGridViewColumn In dgvPhase.Columns Select c.Name).ToArray()
+            If colNames.Length = 0 Then Exit Sub
+
+            Using tx As SQLiteTransaction = conn.BeginTransaction()
+                ' Ambito coerente con LoadFasi(): se la finestra è filtrata su un
+                ' satellite (b_Scelta = False) si toccano solo le sue fasi, altrimenti
+                ' l'intera tabella (come già fa LoadFasi con "WHERE Sat=..." / tutte).
+                Dim delSql As String = If(b_Scelta,
+                    "DELETE FROM [Fasi]",
+                    "DELETE FROM [Fasi] WHERE Sat=@sat")
+                Using CmdDel As New SQLiteCommand(delSql, conn)
+                    CmdDel.Transaction = tx
+                    If Not b_Scelta Then CmdDel.Parameters.AddWithValue("@sat", s_Satellite)
+                    CmdDel.ExecuteNonQuery()
+                End Using
+
+                Dim placeholders = String.Join(",", colNames.Select(Function(n) "@" & n))
+                Dim insSql As String = "INSERT INTO [Fasi] (" & String.Join(",", colNames) & ") VALUES (" & placeholders & ")"
+                Using CmdIns As New SQLiteCommand(insSql, conn)
+                    CmdIns.Transaction = tx
+                    For Each row As DataGridViewRow In dgvPhase.Rows
+                        If row.IsNewRow Then Continue For
+                        ' Riga senza satellite indicato: la si ignora invece di
+                        ' salvarla vuota (evita righe "fantasma" da un Enter di troppo
+                        ' sulla riga vuota di inserimento).
+                        If CellVal(row, "sat") = "" Then Continue For
+                        CmdIns.Parameters.Clear()
+                        For Each colName In colNames
+                            Dim v As Object = row.Cells(colName).Value
+                            Dim isEmpty = v Is Nothing OrElse IsDBNull(v) OrElse v.ToString() = ""
+                            CmdIns.Parameters.AddWithValue("@" & colName, If(isEmpty, CType(DBNull.Value, Object), v))
+                        Next
+                        CmdIns.ExecuteNonQuery()
+                    Next
+                End Using
+                tx.Commit()
+            End Using
+        Catch ex As Exception
+            WriteError(0, "FrmPhase.SalvaFasi: " & ex.Message)
+        End Try
     End Sub
 
     Private Sub LoadFasi()
@@ -52,6 +152,12 @@ Public Class FrmPhase
                 Case "lna"        : col.Width = 40
                 Case "ultima"     : col.Width = 45
                 Case Else         : col.Width = 60
+            End Select
+            ' Colonne numeriche: valori allineati a destra (Fasi: Frequenza REAL,
+            ' le altre INTEGER; il resto è testo e resta allineato a sinistra).
+            Select Case col.Name.ToLower()
+                Case "frequenza", "faseel", "faseaz", "polangle", "lna", "offsetaz", "offsetel"
+                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
             End Select
         Next
 

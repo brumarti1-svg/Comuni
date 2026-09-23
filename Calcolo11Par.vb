@@ -103,7 +103,7 @@ Module Calcolo11Par
         With NowPar11
             d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + V + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
             d_nonvalido = d_partenza.AddDays(g_Validi - 1)
-            If Format$(d_nonvalido, "dd/mm/yyyy") = Format$(NowUTC(), "dd/mm/yyyy") Then
+            If d_nonvalido.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = NowUTC().ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
                 '               FrmMain.StbMain1.ProgressBar("messaggio") = "File data not valid 24 hour"
                 MainForm.stpMessaggio.Text = "File data not valid 24 hour"
                 FrmMain.TmrMsg.Enabled = True
@@ -239,13 +239,13 @@ Module Calcolo11Par
             LATSAT = Int(LATSAT * 10000 + 0.5) / 10000
             data = d_partenza.AddDays(T)
             'LPRINT Count, AZ, EL, LONSAT, LATSAT
-            Buffer = Format$(data, "dd/mm/yyyy hh mm ss") + V + Str(az) + V + Str(el) + V + Str(LONSAT) + V + Str(LATSAT) + Chr(13) + Chr(10)
+            Buffer = data.ToString("dd/MM/yyyy HH mm ss", System.Globalization.CultureInfo.InvariantCulture) + V + Str(az) + V + Str(el) + V + Str(LONSAT) + V + Str(LATSAT) + Chr(13) + Chr(10)
             FileOpen(hFile, Application.StartupPath & Orbita, OpenMode.Append)
             PrintLine(hFile, Buffer)
             FileClose(hFile)
             rs_11Par.AddNew
-            rs_11Par!date = Format$(data, "dd/mm/yyyy")
-            rs_11Par!Time = Format$(data, "hh:mm")
+            rs_11Par!date = data.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
+            rs_11Par!Time = data.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
             rs_11Par!Azimuth = az
             rs_11Par!Elevation = el
             rs_11Par!Long = LONSAT
@@ -266,7 +266,7 @@ Module Calcolo11Par
             PTK = &H10         'Elementi validi
             d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + " " + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
             d_nonvalido = d_partenza.AddDays(g_Validi - 1)
-            If Format$(d_nonvalido, "dd/mm/yyyy") = Format$(NowUTC(), "dd/mm/yyyy") Then
+            If d_nonvalido.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = NowUTC().ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
                 PTK = &H20     'Elementi non validi < 24 ore
             ElseIf DateAdd("d", 1, d_nonvalido) <= Now Then
                 PTK = &H30 'elementi non validi > 24 ore
@@ -552,7 +552,7 @@ Module Calcolo11Par
             LATSAT = Int(LATSAT * 10000 + 0.5) / 10000
             data = d_partenza.AddDays(T)
             rs3.AddNew
-            rs3!date = Format$(data, "dd/mm/yyyy hh:mm")
+            rs3!date = data.ToString("dd/MM/yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture)
             rs3!Azimuth = az
             rs3!Elevation = el
             rs3.Update
@@ -755,7 +755,7 @@ Module Calcolo11Par
 
         d_partenza = (CDate(rs_11Par!day + "/" + rs_11Par!mounth + "/" + rs_11Par!year + " " + rs_11Par!hour + ":" + rs_11Par!Minute + ":" + rs_11Par!second))
         d_nonvalido = d_partenza.AddDays(g_Validi - 1)
-        If Format$(d_nonvalido, "dd/mm/yyyy") = Format$(NowUTC(), "dd/mm/yyyy") Then
+        If d_nonvalido.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = NowUTC().ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
             FrmMain.stpMessaggio.Text = "File data not valid 24 hour"
             FrmMain.TmrMsg.Enabled = True
         ElseIf DateAdd("d", 1, d_nonvalido) <= Now Then

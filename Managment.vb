@@ -295,7 +295,7 @@ End Function
                 d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + " " + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
             End With
             d_nonvalido = d_partenza.AddDays(g_Validi - 1)
-            If Format$(d_nonvalido, "dd/mm/yyyy") = Format$(NowUTC(), "dd/mm/yyyy") Then
+            If d_nonvalido.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = NowUTC().ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
                 FrmMain.stpMessaggio.Text = "File data not valid 24 hour"
                 FrmMain.TmrMsg.Enabled = True
                 '            Exit Function
@@ -469,7 +469,12 @@ Par11Error:
         On Error Resume Next
         ' preparo il buffer per la scrittura
         If Level = 1 Then FrmMain.TmrBeep.Enabled = True
-        d_data = Format$(NowUTC(), "dd/mm/yy hh:mm:ss")
+        ' Assegnazione diretta del valore Date, senza passare per una stringa
+        ' formattata: Format$("dd/mm/yy...") con "mm" minuscolo viene letto da
+        ' VB.NET come minuti anche nella parte data (non come mese), producendo
+        ' stringhe come "23/46/26" (46 = minuti al posto del mese) che poi
+        ' fallivano nella riconversione implicita a Date.
+        d_data = NowUTC()
         '    Buffer = "*** " + Format$(Now, "dd-mm-yy hh.nn.ss") + "  " + Messaggio
         rs_ScriviAlarm = dbOrbite.OpenRecordset("Error_Messages", dbOpenDynaset)
         ' scrivo sulla tabella di log
@@ -524,11 +529,11 @@ Par11Error:
 
         ' preparo il buffer per la scrittura
         If Tipo = 0 Then
-            Buffer = Format$(NowUTC(), "dd/mm/yy ") & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
+            Buffer = NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
         Else
             '08/01/2019 Controlla che l'orario della ACU non sia successivo a quello del PC
             If s_MsgAcu <> "" Then Ind1 = CDbl(s_msg) - CDbl(s_MsgAcu)
-            Buffer = "D " & Format$(NowUTC(), "dd/mm/yy ") & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
+            Buffer = "D " & NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
         End If
         ' scrivo il messaggio sul file di log
         ' apro il file di log se non esiste lo creo
@@ -578,9 +583,9 @@ End Sub
         hFile = FreeFile()
         ' preparo il buffer per la scrittura
         If Tipo = 0 Then
-            Buffer = Format$(NowUTC(), "dd/mm/yy hh:mm:ss") + "  " + Messaggio
+            Buffer = NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "  " + Messaggio
         Else
-            Buffer = "D " & Format$(NowUTC(), "dd/mm/yy hh:mm:ss") + "  " + Messaggio
+            Buffer = "D " & NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "  " + Messaggio
         End If
         ' scrivo il messaggio sul file di log
         ' apro il file di log se non esiste lo creo
@@ -632,7 +637,7 @@ End Sub
             If IsNumeric(frmRicezione.LblElError.Text) Then Messaggio &= "El.Off " & frmRicezione.LblElError.Text & " "
             ' TxtAzEr/TxtElEr not migrated
         End If
-        Buffer = Format$(NowUTC(), "dd/mm/yy hh:mm:ss") & "   " & Messaggio
+        Buffer = NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) & "   " & Messaggio
         ' scrivo il messaggio sul file di log
         ' apro il file di log se non esiste lo creo
         FileOpen(hFile, Application.StartupPath + "\" + f_Log, OpenMode.Append)
@@ -761,7 +766,7 @@ End Function
             g_ValTLE = CInt(Val(LeggiFileIni("Default", "ValTLE")))
             If g_ValTLE > 0 Then
                 d_nonvalido = EpochDate.AddDays(g_ValTLE - 1)
-                If Format$(d_nonvalido, "dd/mm/yyyy") = Format$(Now, "dd/mm/yyyy") Then
+                If d_nonvalido.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = Now.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
                     PTK = &H20     'Elementi non validi < 24 ore
                 ElseIf DateAdd("d", 1, d_nonvalido) <= Now Then
                     PTK = &H30 'elementi non validi > 24 ore
@@ -847,7 +852,7 @@ End Sub
         Dim s_Data As String
         b_Ricezione(ACU) = False
         b_int(ACU) = True
-        s_Data = Format$(NowUTC(), "dd/mm/yy")
+        s_Data = NowUTC().ToString("dd/MM/yy", System.Globalization.CultureInfo.InvariantCulture)
         SEND_ACU = CheckSum("19DATE " & s_Data)
         InvioACU(SEND_ACU)
 
@@ -859,7 +864,7 @@ End Sub
         b_Ricezione(ACU) = False
         b_int(ACU) = True
         s_Time =
-    Format$(NowUTC(), "hh:mm:ss")
+    NowUTC().ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
         SEND_ACU = CheckSum("19TIME " & s_Time)
         InvioACU(SEND_ACU)
 End Sub
@@ -900,7 +905,7 @@ End Sub
             If Not rs_RiempiMemory.BOF Then
                 rs_RiempiMemory.MoveFirst
                 UltimoGiorno = rs_RiempiMemory!day
-                UltimoTime = Format$(rs_RiempiMemory!ora, "hh:mm")
+                UltimoTime = CDate(rs_RiempiMemory!ora).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
                 Aggiungi = False
             Else
                 Aggiungi = True
@@ -914,10 +919,10 @@ End Sub
                         If Aggiungi Then
                             rs_RiempiMemory.AddNew
                         Else
-                            If CDate(DayInseg) = UltimoGiorno And UltimoTime <= Format$(CDate(Dato), "hh:mm:ss") _
+                            If CDate(DayInseg) = UltimoGiorno And UltimoTime <= CDate(Dato).ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) _
                             Or CDate(DayInseg) > UltimoGiorno Then
                                 rs_RiempiMemory.FindFirst("day =#" & CDate(DayInseg) &
-                                   "# and ora = #" & CDate(Format$(CDate(Dato), "hh:mm:ss")) & "#")
+                                   "# and ora = #" & CDate(CDate(Dato).ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)) & "#")
                                 If Not rs_RiempiMemory.NoMatch Then
                                     rs_RiempiMemory.Edit
                                 Else
@@ -929,7 +934,7 @@ End Sub
                         End If
                         If Not salta Then
                             rs_RiempiMemory!day = DayInseg
-                            rs_RiempiMemory!ora = Format$(CDate(Dato), "hh:mm:ss")
+                            rs_RiempiMemory!ora = CDate(Dato).ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
                             lun = Len(sReadBuffer)
                             sReadBuffer = Mid$(sReadBuffer, i_Scelta + 1, lun - i_Scelta)
                             i_Scelta = InStr(1, sReadBuffer, ";", 1)
@@ -945,14 +950,14 @@ End Sub
                     End If
                 Else
                     Dato = RTrim(sReadBuffer)
-                    If IsDate(Dato) Then DayInseg = Format$(Dato, "dd/mm/yyyy")
+                    If IsDate(Dato) Then DayInseg = CDate(Dato).ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
                 End If
             Loop
         ElseIf FN = "Txt" Then
             If Not rs_RiempiMemory.BOF Then
                 rs_RiempiMemory.MoveFirst
                 UltimoGiorno = rs_RiempiMemory!day
-                UltimoTime = Format$(rs_RiempiMemory!ora, "hh:mm")
+                UltimoTime = CDate(rs_RiempiMemory!ora).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
                 Aggiungi = False
             Else
                 Aggiungi = True
@@ -962,7 +967,7 @@ End Sub
                 i_Scelta = InStr(1, sReadBuffer, " ", 1)
                 Dato = Mid$(sReadBuffer, 1, i_Scelta - 1)
                 If IsDate(Dato) Then
-                    DayInseg = Format$(Dato, "dd/mm/yyyy")
+                    DayInseg = CDate(Dato).ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
                     lun = Len(sReadBuffer)
                     sReadBuffer = Mid$(sReadBuffer, i_Scelta + 1, lun - i_Scelta + 1)
                     Dato = Mid$(sReadBuffer, 1, 8)
@@ -970,10 +975,10 @@ End Sub
                     If Aggiungi Then
                         rs_RiempiMemory.AddNew
                     Else
-                        If CDate(DayInseg) = UltimoGiorno And UltimoTime <= Format$(CDate(Dato), "hh:mm") _
+                        If CDate(DayInseg) = UltimoGiorno And UltimoTime <= CDate(Dato).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture) _
                             Or CDate(DayInseg) > UltimoGiorno Then
                             rs_RiempiMemory.FindFirst("day =#" & DayInseg &
-                                   "# and ora = #" & CDate(Format$(CDate(Dato), "hh:mm")) & "#")
+                                   "# and ora = #" & CDate(CDate(Dato).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)) & "#")
                                 If Not rs_RiempiMemory.NoMatch Then
                                 rs_RiempiMemory.Edit
                             Else
@@ -985,7 +990,7 @@ End Sub
                     End If
                     If Not salta Then
                         rs_RiempiMemory!day = DayInseg
-                        rs_RiempiMemory!ora = Format$(CDate(Dato), "hh:mm:ss")
+                        rs_RiempiMemory!ora = CDate(Dato).ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
                         i_Scelta = InStr(1, sReadBuffer, " ", 1)
                         lun = Len(sReadBuffer)
                         sReadBuffer = Mid$(sReadBuffer, i_Scelta, lun - i_Scelta + 1)
@@ -1185,7 +1190,7 @@ ERRFILE:
             mSec = .wMilliseconds
         End With
         ' preparo il buffer per la scrittura
-        Buffer = Format$(NowUTC(), "dd/mm/yy ") & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & " " & Messaggio
+        Buffer = NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & " " & Messaggio
         ' scrivo il messaggio sul file di log
         ' apro il file di log se non esiste lo creo
         s_msg = f_Log3
