@@ -71,7 +71,7 @@ Partial Class FrmVisualAcquire
         Me.mskOraIni.Location = New System.Drawing.Point(194, 6)
         Me.mskOraIni.Name     = "mskOraIni"
         Me.mskOraIni.Size     = New System.Drawing.Size(60, 22)
-        Me.mskOraIni.Mask     = "00.00.00"
+        Me.mskOraIni.Mask     = "00\.00"
         ' LblDF2
         Me.LblDF2.Location = New System.Drawing.Point(4, 34)
         Me.LblDF2.Size     = New System.Drawing.Size(60, 18)
@@ -89,7 +89,7 @@ Partial Class FrmVisualAcquire
         Me.mskOraFin.Location = New System.Drawing.Point(194, 32)
         Me.mskOraFin.Name     = "mskOraFin"
         Me.mskOraFin.Size     = New System.Drawing.Size(60, 22)
-        Me.mskOraFin.Mask     = "00.00.00"
+        Me.mskOraFin.Mask     = "00\.00"
         ' chkPrincipale
         Me.chkPrincipale.Location = New System.Drawing.Point(264, 8)
         Me.chkPrincipale.Name     = "chkPrincipale"

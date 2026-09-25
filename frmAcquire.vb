@@ -140,6 +140,12 @@ Partial Public Class frmAcquire
         i_Quadrati = 1
         i_ConStato = 0
 
+        ' tmpEffemeridi va azzerata qui, all'avvio effettivo dell'acquire,
+        ' non solo all'apertura del dialogo (frmAcquire_Activated): altrimenti
+        ' righe residue di un run precedente restano visibili nel grafico
+        ' "Acquire Trace" fin dal primo redraw, sembrando già completo.
+        DbExecute("DELETE FROM tmpEffemeridi")
+
         Dim oraNow As Date = Now.AddHours(-i_Offset / 24)
 
         If InizProg <= oraNow Then
@@ -256,9 +262,11 @@ Partial Public Class frmAcquire
                         frmRicezioneRef.LblAzError.Text = ""
                         frmRicezioneRef.LblElError.Text = ""
                         AzOffset = 0 : ElOffset = 0
-                    Else
-                        Exit Sub
                     End If
+                    ' Se LblElevazione non è ancora numerico (nessun calcolo
+                    ' fatto finora) si salta solo la copia della posizione:
+                    ' il pannello parametri va comunque mostrato più sotto,
+                    ' non deve dipendere da una lettura live già disponibile.
                 End If
             End If
             grpAcqPar.Visible = True

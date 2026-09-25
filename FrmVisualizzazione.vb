@@ -194,6 +194,10 @@ Public Class FrmVisualizzazione
     End Function
 
     Private Function SelezionaSingoliDati() As Boolean
+        ' VisualizzaGrafico() viene richiamato anche da Form_Resize/ResizeEnd:
+        ' se nel frattempo l'utente ha lasciato una maschera data incompleta,
+        ' IsDate evita il CDate che altrimenti solleverebbe InvalidCastException.
+        If Not IsDate(mskDataIni.Text) OrElse Not IsDate(mskDataFin.Text) Then Return False
         InvertiScala = False
         MaxY = -99999 : MinY = 99999
         MaxX = -99999 : MinX = 99999

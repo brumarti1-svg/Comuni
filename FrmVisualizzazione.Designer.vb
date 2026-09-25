@@ -49,7 +49,7 @@ Partial Class FrmVisualizzazione
         'mskOraIni
         '
         Me.mskOraIni.Location = New System.Drawing.Point(194, 6)
-        Me.mskOraIni.Mask = "00.00.00"
+        Me.mskOraIni.Mask = "00\.00\.00"
         Me.mskOraIni.Name = "mskOraIni"
         Me.mskOraIni.Size = New System.Drawing.Size(60, 22)
         Me.mskOraIni.TabIndex = 3
@@ -57,7 +57,7 @@ Partial Class FrmVisualizzazione
         'mskOraFin
         '
         Me.mskOraFin.Location = New System.Drawing.Point(194, 32)
-        Me.mskOraFin.Mask = "00.00.00"
+        Me.mskOraFin.Mask = "00\.00\.00"
         Me.mskOraFin.Name = "mskOraFin"
         Me.mskOraFin.Size = New System.Drawing.Size(60, 22)
         Me.mskOraFin.TabIndex = 7

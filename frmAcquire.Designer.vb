@@ -224,7 +224,7 @@ Partial Class frmAcquire
         '
         ' frmAcquire
         '
-        Me.ClientSize = New System.Drawing.Size(1378, 321)
+        Me.ClientSize = New System.Drawing.Size(780, 321)
         Me.Controls.AddRange(New System.Windows.Forms.Control() {
             Me.optPreset, Me.optProgram,
             LblDataIni, Me.mskDataIni,

@@ -723,8 +723,8 @@ Rangeout:
             If i_ConStato < 8 Then
                 If IsNumeric(frmRicezione.LblAzimuth.Text) And IsNumeric(frmRicezione.LblElevazione.Text) Then
                     rs_Acq.AddNew
-                    rs_Acq!date = Mid$(Data1, 1, 10)
-                    rs_Acq!Time = Mid$(Data1, 12, 8)
+                    rs_Acq!date = Data1.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
+                    rs_Acq!Time = Data1.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
                     rs_Acq!Azimuth = Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000")
                     rs_Acq!Elevation = Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000")
                     rs_Acq!Long = i_AzOffsetLock

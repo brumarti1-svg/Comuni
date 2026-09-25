@@ -182,6 +182,12 @@ Public Class FrmVisualAcquire
     End Function
 
     Private Function SelezionaSingoliDati() As Boolean
+        ' tmrAcquire scatta anche mentre l'utente sta ancora scrivendo la data
+        ' o l'ora nelle maschere (__/__/____, __.__): finché non sono
+        ' complete, IsDate/MaskCompleted sono False, evitando il CDate/
+        ' TimeSpan.Parse che altrimenti solleverebbero un'eccezione.
+        If Not IsDate(mskDataIni.Text) OrElse Not IsDate(mskDataFin.Text) Then Return False
+        If Not mskOraIni.MaskCompleted OrElse Not mskOraFin.MaskCompleted Then Return False
         InvertiScala = False
         MaxY = -99999 : MinY = 99999
         MaxX = -99999 : MinX = 99999
@@ -189,9 +195,27 @@ Public Class FrmVisualAcquire
         OraFin = mskOraFin.Text
         DataIni = CDate(mskDataIni.Text)
         DataFin = CDate(mskDataFin.Text)
-        tmpDataIni = DataIni.Add(TimeSpan.Parse(mskOraIni.Text & ":00"))
-        tmpDataFin = DataFin.Add(TimeSpan.Parse(mskOraFin.Text & ":00"))
+        ' Il "." della maschera HH.mm è solo un separatore visivo: per
+        ' TimeSpan.Parse il punto indica invece i giorni, quindi "12.30:00"
+        ' verrebbe letto come "12 giorni, ore 30" (non valido se i minuti
+        ' superano 23) invece di "12 ore e 30 minuti". Va convertito in ":".
+        ' MaskCompleted garantisce solo che le caselle siano piene, non che i
+        ' numeri siano nel range valido (es. "23.75": la maschera "00.00"
+        ' accetta minuti fino a 99) — può capitare per un istante mentre
+        ' l'utente sta ancora correggendo il campo. TryParse evita il crash.
+        Dim tsIni, tsFin As TimeSpan
+        If Not TimeSpan.TryParse(mskOraIni.Text.Replace("."c, ":"c) & ":00", tsIni) Then Return False
+        If Not TimeSpan.TryParse(mskOraFin.Text.Replace("."c, ":"c) & ":00", tsFin) Then Return False
+        tmpDataIni = DataIni.Add(tsIni)
+        tmpDataFin = DataFin.Add(tsFin)
 
+        ' tmpEffemeridi è una tabella "scratch" condivisa anche da altre
+        ' funzioni (calcolo effemeridi/orbita, grafici polari/cartesiani):
+        ' senza filtro per l'intervallo Dal/Al impostato dall'operatore, se
+        ' contiene ancora righe residue di un altro calcolo (es. una traccia
+        ' satellite di un giorno intero) vengono disegnate quelle invece
+        ' della spirale di ricerca, producendo una curva che non c'entra
+        ' nulla con lo Spiral Acquire.
         tmpSql = "SELECT * FROM tmpEffemeridi ORDER BY date, time"
 
         _Cmd?.Dispose()
@@ -199,18 +223,21 @@ Public Class FrmVisualAcquire
         _Cmd = New SQLiteCommand(tmpSql, CType(dbOrbite, DAODatabase).Connection)
         DyVisual = _Cmd.ExecuteReader()
 
-        If Not DyVisual.Read() Then Return False
-
-        i_Intervallo = CSng(DyVisual("Intervallo"))
         NPunti = 1
-        XPrec = CSng(DyVisual("Azimuth"))
-
-        ' Riapre per leggere dall'inizio
-        DyVisual.Close()
-        DyVisual = _Cmd.ExecuteReader()
-
+        Dim primoPunto As Boolean = True
         Do While DyVisual.Read()
-            Punti(0, 0, 0, NPunti).data = DyVisual("date").ToString() & " " & DyVisual("Time").ToString()
+            Dim rawData As String = DyVisual("date").ToString() & " " & DyVisual("Time").ToString()
+            If Not IsDate(rawData) Then Continue Do
+            Dim rigaData As Date = CDate(rawData)
+            If rigaData < tmpDataIni OrElse rigaData > tmpDataFin Then Continue Do
+
+            If primoPunto Then
+                i_Intervallo = CSng(DyVisual("Intervallo"))
+                XPrec = CSng(DyVisual("Azimuth"))
+                primoPunto = False
+            End If
+
+            Punti(0, 0, 0, NPunti).data = rawData
             Punti(0, 0, 0, NPunti).Y = CSng(DyVisual("Elevation"))
             Punti(0, 0, 0, NPunti).X = CSng(DyVisual("Azimuth"))
             Punti(0, 0, 0, NPunti).C = CInt(DyVisual("Orbite"))
@@ -225,6 +252,8 @@ Public Class FrmVisualAcquire
             NPunti += 1
             If NPunti > MaxPunti Then Exit Do
         Loop
+
+        If primoPunto Then Return False
 
         If InvertiScala Then
             MaxX = -99999 : MinX = 99999
@@ -582,31 +611,68 @@ Public Class FrmVisualAcquire
 
     Private Sub Form_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Try
-            tmpSql = "SELECT * FROM tmpEffemeridi ORDER BY date, time"
-            Using Cmd As New SQLiteCommand(tmpSql, CType(dbOrbite, DAODatabase).Connection)
-                Using reader As SQLiteDataReader = Cmd.ExecuteReader()
-                    If reader.Read() Then
-                        If IsDate(reader("date")) Then
-                            mskDataIni.Text = CDate(reader("date")).ToString("dd/MM/yy")
+            ' Questa form si apre anche da un menu indipendente (Acquire
+            ' Trace), senza essere passati da frmAcquire: se non è mai stato
+            ' configurato uno Spiral Acquire in questa sessione, le variabili
+            ' globali di range/step/intervallo sono ancora a zero. Le legge
+            ' qui direttamente dal file ini (stesse chiavi/schema di
+            ' frmAcquire.ImpostaValori), invece di lasciarle a 0 (che
+            ' produrrebbe un Timer.Interval/ScalaX invalidi).
+            If i_InterAcq <= 0 Then
+                Dim s As String = "Acquire"
+                i_AzRange = CSng(Val(LeggiFileIni(s, "RangeAz")))
+                i_ElRange = CSng(Val(LeggiFileIni(s, "RangeEl")))
+                i_AzStep = CSng(Val(LeggiFileIni(s, "StepAz")))
+                i_ElStep = CSng(Val(LeggiFileIni(s, "StepEl")))
+                i_AzStepLock = CSng(Val(LeggiFileIni(s, "StepAzLock")))
+                i_ElStepLock = CSng(Val(LeggiFileIni(s, "StepElLock")))
+                i_InterAcq = CSng(Val(LeggiFileIni(s, "IntAcq")))
+                CoorAcq = CSng(Val(LeggiFileIni(s, "CoorAcq")))
+                i_LockThr = CInt(Val(LeggiFileIni(s, "LockThr")))
+            End If
+            ' Risoluzione() imposta m_sizeX1/m_sizeY1 (usati più sotto come
+            ' divisori per ScalaX/ScalaY): senza Spiral Acquire già avviato
+            ' restano a 0.
+            If m_sizeX1 <= 0 OrElse m_sizeY1 <= 0 Then Risoluzione()
+            If Not IsDate(d_DataFineProg) Then d_DataFineProg = "31/12/2999 23:59"
+
+            ' La data di partenza del grafico è quella di inizio dell'Acquire
+            ' (d_DataInizioProg, impostata da frmAcquire quando l'operatore
+            ' avvia lo Spiral Acquire), non una riga qualsiasi rimasta in
+            ' tmpEffemeridi — la tabella viene azzerata e ripopolata dai
+            ' calcoli effemeridi a partire da quella data.
+            If IsDate(d_DataInizioProg) Then
+                Dim dtIni As Date = CDate(d_DataInizioProg)
+                mskDataIni.Text = dtIni.ToString("dd/MM/yyyy")
+                mskOraIni.Text = dtIni.ToString("HH.mm")
+            Else
+                ' Nessun Acquire configurato in questa sessione (form aperta
+                ' da menu indipendente): come ultima risorsa prova a leggere
+                ' la prima riga disponibile in tmpEffemeridi.
+                tmpSql = "SELECT * FROM tmpEffemeridi ORDER BY date, time"
+                Using Cmd As New SQLiteCommand(tmpSql, CType(dbOrbite, DAODatabase).Connection)
+                    Using reader As SQLiteDataReader = Cmd.ExecuteReader()
+                        If reader.Read() Then
+                            If IsDate(reader("date")) Then
+                                mskDataIni.Text = CDate(reader("date")).ToString("dd/MM/yyyy")
+                            End If
+                            If IsDate(reader("Time")) Then
+                                mskOraIni.Text = CDate(reader("Time")).ToString("HH.mm")
+                            End If
                         End If
-                        If IsDate(reader("Time")) Then
-                            mskOraIni.Text = CDate(reader("Time")).ToString("HH.mm")
-                        End If
-                    End If
+                    End Using
                 End Using
-            End Using
-            ' TODO: d_DataFineProg, m_sizeX1, m_sizeY1, i_InterAcq, i_AzRange ecc.
-            '       sono variabili globali definite nel modulo di progetto
+            End If
             If IsDate(d_DataFineProg) Then
                 Dim dtFin As Date = CDate(d_DataFineProg)
-                mskDataFin.Text = dtFin.ToString("dd/MM/yy")
+                mskDataFin.Text = dtFin.ToString("dd/MM/yyyy")
                 mskOraFin.Text  = dtFin.ToString("HH.mm")
             End If
             ScalaX = picGrafico.Width / m_sizeX1
             ScalaY = picGrafico.Height / m_sizeY1
             NPAsseX = picGrafico.ClientSize.Width / ScalaX
             NPAsseY = picGrafico.ClientSize.Height / ScalaY
-            tmrAcquire.Interval = CInt(i_InterAcq * 1000)
+            tmrAcquire.Interval = If(CInt(i_InterAcq * 1000) > 0, CInt(i_InterAcq * 1000), 30000)
             tmrAcquire.Enabled = True
             TxtAzRange.Text = i_AzRange.ToString()
             TxtElRange.Text = i_ElRange.ToString()
@@ -617,7 +683,8 @@ Public Class FrmVisualAcquire
             TxtDeltaTime.Text = i_InterAcq.ToString()
             TxtCoorAcq.Text = CoorAcq.ToString()
             TxtLockThr.Text = i_LockThr.ToString()
-        Catch
+        Catch ex As Exception
+            WriteError(0, "FrmVisualAcquire.Form_Load: " & ex.Message)
             Me.Close()
         End Try
     End Sub
@@ -717,7 +784,11 @@ Public Class FrmVisualAcquire
     End Sub
 
     Private Sub TmrAcquire_Tick(sender As Object, e As EventArgs) Handles tmrAcquire.Tick
-        VisualizzaGrafico()
+        Try
+            VisualizzaGrafico()
+        Catch ex As Exception
+            WriteError(0, "FrmVisualAcquire.TmrAcquire_Tick: " & ex.Message)
+        End Try
         tmrAcquire.Enabled = True
     End Sub
 

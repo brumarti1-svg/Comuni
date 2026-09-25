@@ -80,6 +80,9 @@ Public Class FrmSimulazione
     End Sub
 
     Private Sub TmrSimulation_Tick(sender As Object, e As EventArgs) Handles tmrSimulation.Tick
+        ' mskDataFin resta modificabile durante la simulazione: se l'utente la
+        ' sta modificando quando scatta il tick, IsDate evita il crash del CDate.
+        If Not IsDate(mskDataFin.Text) Then Exit Sub
         DataEsegui = DataEsegui.AddSeconds(i_Simulation)
         If DataEsegui <= CDate(mskDataFin.Text) Then
             Calcolo_Coordinate(DataEsegui, 0)
