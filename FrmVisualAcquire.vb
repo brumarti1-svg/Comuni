@@ -144,8 +144,8 @@ Public Class FrmVisualAcquire
         If Val(mskOraFin.Text) < 0 OrElse Val(mskOraFin.Text) >= 24 Then
             mskOraFin.Focus() : Return False
         End If
-        If CDate(mskDataIni.Text & " " & mskOraIni.Text & ".00") >
-           CDate(mskDataFin.Text & " " & mskOraFin.Text & ".00") Then
+        If CDate(mskDataIni.Text & " " & mskOraIni.Text.Replace("."c, ":"c) & ":00") >
+           CDate(mskDataFin.Text & " " & mskOraFin.Text.Replace("."c, ":"c) & ":00") Then
             mskDataIni.Focus() : Return False
         End If
         If Val(mskDataIni.Text) = Val(mskDataFin.Text) AndAlso
@@ -693,72 +693,11 @@ Public Class FrmVisualAcquire
         ' disabilito gli altri pulsanti della toolBar (da implementare)
     End Sub
 
-    Private Sub Form_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
-        Static vetDim(,) As Long
-        Static ok As Boolean
-        Static m_SizeXAcq As Integer
-        Static m_SizeYAcq As Integer
-        Dim szX As Double, szY As Double
-        Dim ctrl As Control
-
-        If Not ok Then
-            m_SizeXAcq = Me.Width
-            m_SizeYAcq = Me.Height
-            ReDim vetDim(Me.Controls.Count, 5)
-            For i = 0 To Me.Controls.Count - 1
-                ctrl = Me.Controls(i)
-                If TypeOf ctrl Is Button OrElse TypeOf ctrl Is Label OrElse
-                   TypeOf ctrl Is PictureBox OrElse TypeOf ctrl Is StatusStrip OrElse
-                   TypeOf ctrl Is TextBox OrElse TypeOf ctrl Is MaskedTextBox OrElse
-                   TypeOf ctrl Is CheckBox OrElse TypeOf ctrl Is RadioButton OrElse
-                   TypeOf ctrl Is GroupBox OrElse TypeOf ctrl Is ComboBox OrElse
-                   TypeOf ctrl Is DataGridView OrElse TypeOf ctrl Is ToolStrip OrElse
-                   TypeOf ctrl Is ProgressBar OrElse TypeOf ctrl Is Panel Then
-                    vetDim(i + 1, 1) = ctrl.Top
-                    vetDim(i + 1, 2) = ctrl.Left
-                    vetDim(i + 1, 3) = ctrl.Height
-                    vetDim(i + 1, 4) = ctrl.Width
-                    vetDim(i + 1, 5) = CLng(ctrl.Font.Size)
-                End If
-            Next
-            ok = True
-            Exit Sub
-        End If
-
-        szX = Me.Width / m_SizeXAcq
-        szY = Me.Height / m_SizeYAcq
-        If Math.Abs(szX - 1) < 0.1 Then Exit Sub
-
-        If Math.Abs(1 - szX) > 0.5 Then
-            szX = 0.5 : Me.Width = CInt(m_sizeX1 * 0.5)
-        End If
-        If Math.Abs(1 - szY) > 0.5 Then
-            szY = 0.5 : Me.Height = CInt(m_sizeY1 * 0.6)
-        End If
-
-        For i = 0 To Me.Controls.Count - 1
-            ctrl = Me.Controls(i)
-            If TypeOf ctrl Is Button OrElse TypeOf ctrl Is Label OrElse
-               TypeOf ctrl Is PictureBox OrElse TypeOf ctrl Is TextBox OrElse
-               TypeOf ctrl Is MaskedTextBox OrElse TypeOf ctrl Is CheckBox OrElse
-               TypeOf ctrl Is RadioButton OrElse TypeOf ctrl Is GroupBox OrElse
-               TypeOf ctrl Is ComboBox OrElse TypeOf ctrl Is DataGridView OrElse
-               TypeOf ctrl Is ProgressBar OrElse TypeOf ctrl Is Panel Then
-                ctrl.Top = CInt(vetDim(i + 1, 1) * szY)
-                ctrl.Left = CInt(vetDim(i + 1, 2) * szX)
-                ctrl.Height = CInt(vetDim(i + 1, 3) * szY)
-                ctrl.Width = CInt(vetDim(i + 1, 4) * szX)
-                If vetDim(i + 1, 5) > 0 Then
-                    Dim fs As Single = CSng(vetDim(i + 1, 5)) * CSng(Math.Min(szX, szY))
-                    If fs > 0 Then ctrl.Font = New Font(ctrl.Font.FontFamily, fs)
-                End If
-            ElseIf TypeOf ctrl Is StatusStrip OrElse TypeOf ctrl Is ToolStrip Then
-                ctrl.Top = CInt(vetDim(i + 1, 1) * szY)
-                ctrl.Height = CInt(vetDim(i + 1, 3) * szY)
-                ctrl.Width = CInt(vetDim(i + 1, 4) * szX)
-            End If
-        Next
-    End Sub
+    ' Nessun ridimensionamento/riscalatura dei controlli sul resize: form non
+    ' a schermo intero, non serve. La vecchia logica ad-hoc usava m_sizeX1/
+    ' m_sizeY1 (unità legacy VB6, non pixel) direttamente come larghezza/
+    ' altezza in un ramo "di emergenza", producendo una finestra di ~8000px
+    ' di fatto invisibile quando scattava (es. per scaling DPI).
 
     ' ── eventi controlli ────────────────────────────────────────────────────────
 

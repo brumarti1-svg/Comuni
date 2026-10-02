@@ -626,16 +626,12 @@ Public Class FrmVisualizzazione
         End Try
     End Sub
 
-    Private Sub Form_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
-        ' 1394x655 = ClientSize di progettazione nel Designer (vedi FrmVisualizzazione.Designer.vb)
-        FormResizer.Init(Me, New Size(1394, 655))
-        FormResizer.Resize(Me)
-    End Sub
-
     Private _prevWindowState As FormWindowState = FormWindowState.Normal
 
     Private Sub Form_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
-        FormResizer.Resize(Me)
+        ' Nessun ridimensionamento/riscalatura dei controlli qui: form non a
+        ' schermo intero, non serve (e la riscalatura automatica ha causato
+        ' problemi altrove, es. FrmVisualAcquire con scaling DPI).
         If Me.WindowState = FormWindowState.Minimized Then Return
         If Me.WindowState <> _prevWindowState Then
             _prevWindowState = Me.WindowState

@@ -420,13 +420,25 @@ Module Utility
         Return True
     End Function
 
+    Private ReadOnly LogLock As New Object()
+
     Public Function WriteError(ByVal Messaggio As String, Routine As String) As Boolean
-        Dim Buffer As String
-        On Error Resume Next
-        Buffer = CDate(DateAdd("h", -i_Off, Now)).ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) & ", " & ", " & Routine
-        Dim filePath As String = Application.StartupPath & "\" & f_Log4
-        System.IO.File.AppendAllText(filePath, Buffer & Environment.NewLine)
-        Return True
+        ' Prima era "On Error Resume Next": qualunque eccezione (es. file
+        ' bloccato da una scrittura concorrente di un altro thread, come i
+        ' retry di SocketManager su Task.Run) veniva inghiottita in silenzio
+        ' e la riga andava persa, senza nessuna traccia. Ora si usa un lock
+        ' per serializzare le scritture tra thread diversi, e il Messaggio
+        ' (prima scartato: restava solo ", ," vuoto) viene scritto davvero.
+        Try
+            Dim Buffer As String = CDate(DateAdd("h", -i_Off, Now)).ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) & ", " & Messaggio & ", " & Routine
+            Dim filePath As String = Application.StartupPath & "\" & f_Log4
+            SyncLock LogLock
+                System.IO.File.AppendAllText(filePath, Buffer & Environment.NewLine)
+            End SyncLock
+            Return True
+        Catch
+            Return False
+        End Try
     End Function
 
     Private Function Rev(Ang As Double) As Double

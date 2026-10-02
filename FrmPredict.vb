@@ -901,20 +901,8 @@ Public Class FrmPredict
         If e.KeyCode = Keys.Return Then BtnFeed_Click(sender, EventArgs.Empty)
     End Sub
 
-    ' ── ridimensionamento (VB6 ScaleWidth twips → ClientSize pixels) ──────────────
-    Private Sub Form_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
-        If Me.WindowState = FormWindowState.Minimized Then Exit Sub
-        Dim cw As Integer = Me.ClientSize.Width
-        Dim ch As Integer = Me.ClientSize.Height
-        ' Soglia ~8000×7000 twips convertita in pixel (1 twip ≈ 1/15 px a 96dpi)
-        If cw < 533 OrElse ch < 467 Then Exit Sub
-        picGrafico.Width = CInt(cw * 0.655) - 8
-        picOrbita.Left   = CInt(cw * 0.655)
-        picOrbita.Width  = cw - CInt(cw * 0.655) - 4
-        fraLog.Width     = cw - 8
-        LblStatus.Width  = cw
-        LblStatus.Top    = ch - 20
-    End Sub
+    ' Nessun ridimensionamento/riscalatura dei controlli sul resize: form non
+    ' a schermo intero, non serve.
 
     ' ── cleanup ──────────────────────────────────────────────────────────────────
     Protected Overrides Sub Dispose(disposing As Boolean)

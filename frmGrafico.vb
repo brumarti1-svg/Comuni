@@ -82,18 +82,8 @@ Partial Public Class frmGrafico
         Inizio()
     End Sub
 
-    ' -------------------------------------------------------
-    ' Form Resize — scala proporzionale
-    ' -------------------------------------------------------
-    Private Sub frmGrafico_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
-        If m_SizeXGra = 0 OrElse m_SizeYGra = 0 Then Exit Sub
-        Dim scX As System.Single = Me.Width / m_SizeXGra
-        Dim scY As System.Single = Me.Height / m_SizeYGra
-        If Math.Abs(1 - scX) < 0.1 Then Exit Sub
-        ' In WinForms il resize dei controlli è gestito con Anchor/Dock
-        ' picGrafico usa Anchor = All per adattarsi automaticamente
-        Inizio()
-    End Sub
+    ' Nessuna riscalatura proporzionale sul resize: form non a schermo
+    ' intero. picGrafico usa Anchor = All per adattarsi automaticamente.
 
     ' -------------------------------------------------------
     ' Bottone Esci
