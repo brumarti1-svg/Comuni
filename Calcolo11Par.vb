@@ -310,7 +310,7 @@ Module Calcolo11Par
         '       CALCOLO DEL TEMPO
         '       -----------------
         '
-        Dim oraNow As Date = Now.AddHours(-i_Off / 24)
+        Dim oraNow As Date = Now.AddHours(-i_Off)
         T = (oraNow - d_partenza).TotalHours
         'T = (NowUTC() - d_partenza)
         X1 = W * T * k2

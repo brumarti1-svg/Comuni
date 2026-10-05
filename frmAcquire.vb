@@ -30,7 +30,7 @@ Partial Public Class frmAcquire
             frmRicezioneRef.TmrSpiralAcquire.Enabled = False
         End If
         DbExecute("DELETE FROM tmpEffemeridi")
-        mskDataIni.Text = Now.AddHours(-i_Offset / 24).ToString("dd/MM/yyyy HH:mm:ss")
+        mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
         mskDataIni.Focus()
         optPreset.Checked = False
         optProgram.Checked = False
@@ -119,12 +119,17 @@ Partial Public Class frmAcquire
         If Not ValidaRange(TxtLockThr, -110, -40, i_LockThr) Then Exit Sub
 
         ' Coordinate antenna
-        If IsNumeric(mskAzimuth.Text) Then g_AzTable = CDbl(mskAzimuth.Text)
-        If IsNumeric(mskElevazione.Text) Then g_ElTable = CDbl(mskElevazione.Text)
+        ' CDbl(mskAzimuth.Text) sotto locale italiano legge il "." come
+        ' separatore delle migliaia (non decimale): "180.373" diventava
+        ' 180373 invece di 180,373. Val() usa sempre il punto come
+        ' decimale, indipendentemente dal locale (stesso bug già noto
+        ' altrove in questo progetto, es. CLAUDE.md).
+        If IsNumeric(mskAzimuth.Text) Then g_AzTable = CDbl(Val(mskAzimuth.Text))
+        If IsNumeric(mskElevazione.Text) Then g_ElTable = CDbl(Val(mskElevazione.Text))
 
         ' Timeout programma
         If IsNumeric(TxtTout.Text) Then
-            Dim tout As Double = CDbl(TxtTout.Text)
+            Dim tout As Double = CDbl(Val(TxtTout.Text))
             If tout >= 10 AndAlso tout <= 480 Then
                 d_DataFineProg = InizProg.AddMinutes(tout).ToString()
             Else
@@ -136,6 +141,7 @@ Partial Public Class frmAcquire
         End If
 
         b_Acquire = optPreset.Checked
+        Debug.WriteLine("frmAcquire.CmdEnd_Click: optPreset.Checked=" & optPreset.Checked & " optProgram.Checked=" & optProgram.Checked & " b_Acquire=" & b_Acquire & " Algoritmo=" & Algoritmo) ' TEMPORANEO: da rimuovere dopo la diagnosi
         If Not b_Acquire Then i_ProgTrack = 1
         i_Quadrati = 1
         i_ConStato = 0
@@ -146,14 +152,19 @@ Partial Public Class frmAcquire
         ' "Acquire Trace" fin dal primo redraw, sembrando già completo.
         DbExecute("DELETE FROM tmpEffemeridi")
 
-        Dim oraNow As Date = Now.AddHours(-i_Offset / 24)
+        ' VB6: Now - CDate(i_Offset/24) — i_Offset è intero in ore, /24
+        ' convertiva in giorni OLE (stesso bug già corretto altrove, es.
+        ' frmSimulazione.vb): qui era rimasto "/24" anche con AddHours, che
+        ' si aspetta già le ore, riducendo lo scarto a pochi minuti invece
+        ' delle ore corrette.
+        Dim oraNow As Date = Now.AddHours(-i_Offset)
 
         If InizProg <= oraNow Then
             ' Inserisce coordinata di partenza in tmpEffemeridi
             Try
                 Using Cmd As New SQLiteCommand(
                     "INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, orbite, intervallo) " &
-                    "VALUES (@d, @t, @az, @el, 0, 0, 1, 0)", dbOrbite)
+                    "VALUES (@d, @t, @az, @el, 0, 0, 1, 0)", CType(dbOrbite, DAODatabase).Connection)
                     Cmd.Parameters.AddWithValue("@d", Mid(d_DataInizioProg, 1, 10))
                     Cmd.Parameters.AddWithValue("@t", Mid(d_DataInizioProg, 12, 8))
                     Cmd.Parameters.AddWithValue("@az", Format(g_AzTable, "000.000"))
@@ -201,17 +212,33 @@ Partial Public Class frmAcquire
     ' -------------------------------------------------------
     ' Helper — valida un campo numerico in un range
     ' -------------------------------------------------------
+    ' TEMPORANEO (test): il controllo di range (minVal/maxVal) è disattivato
+    ' per poter avviare lo Spiral Acquire anche con valori fuori soglia o
+    ' "sporchi", così da testare il comportamento di Calcolo_Aquire/Visual
+    ' Acquire senza dover rispettare i vincoli reali. Resta il solo
+    ' controllo IsNumeric, altrimenti CDbl più sotto crasherebbe. Da
+    ' ripristinare (basta decommentare il blocco originale) a test finito.
     Private Function ValidaRange(Txt As TextBox, minVal As Double, maxVal As Double,
                                   ByRef target As Double) As Boolean
+        ' CDbl(Txt.Text) sotto locale italiano legge il "." come separatore
+        ' delle migliaia, non decimale (es. "0.5" diventa 5): Val() usa
+        ' sempre il punto come decimale, indipendentemente dal locale.
         If IsNumeric(Txt.Text) Then
-            Dim v As Double = CDbl(Txt.Text)
-            If v >= minVal AndAlso v <= maxVal Then
-                target = v
-                Return True
-            End If
+            target = CDbl(Val(Txt.Text))
+            Return True
         End If
         Txt.Focus()
         Return False
+        ' --- controllo originale, da ripristinare a test finito ---
+        'If IsNumeric(Txt.Text) Then
+        '    Dim v As Double = CDbl(Val(Txt.Text))
+        '    If v >= minVal AndAlso v <= maxVal Then
+        '        target = v
+        '        Return True
+        '    End If
+        'End If
+        'Txt.Focus()
+        'Return False
     End Function
 
     ' -------------------------------------------------------
@@ -242,15 +269,20 @@ Partial Public Class frmAcquire
     Private Sub optProgram_CheckedChanged(sender As Object, e As EventArgs) Handles optProgram.CheckedChanged
         If Not optProgram.Checked Then Exit Sub
         Try
-            mskDataIni.Text = Now.AddHours(-i_Offset / 24).ToString("dd/MM/yyyy HH:mm:ss")
+            mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
             If IsDate(mskDataIni.Text) Then
                 AzOffset = 0 : ElOffset = 0
                 i_AzOffsetLock = 0 : i_ElOffsetLock = 0
                 Calcolo_Coordinate1(mskDataIni.Text)
                 If frmRicezioneRef IsNot Nothing Then
-                    If IsNumeric(frmRicezioneRef.LblElevazione.Text) Then
-                        g_AzTable = CDbl(frmRicezioneRef.LblAzimuth.Text)
-                        g_ElTable = CDbl(frmRicezioneRef.LblElevazione.Text)
+                    ' Calcolo_Coordinate1 scrive il risultato in LblAzimuthC/
+                    ' LblElevazioneC (colonna "Program"), non in LblAzimuth/
+                    ' LblElevazione (colonna "Command", valorizzata solo
+                    ' durante il comando vero e proprio) — leggere da qui
+                    ' lasciava i campi sempre vuoti.
+                    If IsNumeric(frmRicezioneRef.LblElevazioneC.Text) Then
+                        g_AzTable = CDbl(frmRicezioneRef.LblAzimuthC.Text)
+                        g_ElTable = CDbl(frmRicezioneRef.LblElevazioneC.Text)
                         If g_ElTable < g_ElMin Then g_ElTable = g_ElMin
                         mskAzimuth.Text = Format(g_AzTable, "000.000")
                         mskElevazione.Text = Format(g_ElTable, "00.000")
@@ -263,10 +295,12 @@ Partial Public Class frmAcquire
                         frmRicezioneRef.LblElError.Text = ""
                         AzOffset = 0 : ElOffset = 0
                     End If
-                    ' Se LblElevazione non è ancora numerico (nessun calcolo
-                    ' fatto finora) si salta solo la copia della posizione:
-                    ' il pannello parametri va comunque mostrato più sotto,
-                    ' non deve dipendere da una lettura live già disponibile.
+                    ' Se LblElevazioneC non è ancora numerico (nessun calcolo
+                    ' fatto finora, es. Algoritmo non impostato o nessun
+                    ' satellite/TLE caricato) si salta solo la copia della
+                    ' posizione: il pannello parametri va comunque mostrato
+                    ' più sotto, non deve dipendere da una lettura live già
+                    ' disponibile.
                 End If
             End If
             grpAcqPar.Visible = True

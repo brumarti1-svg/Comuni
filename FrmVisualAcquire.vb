@@ -712,10 +712,19 @@ Public Class FrmVisualAcquire
     End Sub
 
     Private Sub CmdElabora_Click(sender As Object, e As EventArgs) Handles CmdElabora.Click
+        ' Il cursore di attesa restava impostato per sempre: la chiamata che
+        ' fa davvero il lavoro (VisualizzaGrafico, per il redraw immediato
+        ' senza aspettare il prossimo tick di tmrAcquire) mancava del tutto.
         If ControllaDati() Then
-            Cursor = Cursors.Default
+            Cursor = Cursors.WaitCursor
+            Try
+                VisualizzaGrafico()
+            Catch ex As Exception
+                WriteError(0, "FrmVisualAcquire.CmdElabora_Click: " & ex.Message)
+            Finally
+                Cursor = Cursors.Default
+            End Try
         End If
-        Cursor = Cursors.WaitCursor
     End Sub
 
     Private Sub CmdEsci_Click(sender As Object, e As EventArgs) Handles CmdEsci.Click

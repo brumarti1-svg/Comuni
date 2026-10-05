@@ -324,13 +324,15 @@ Module Ricezione
         Dim s_program As String = "", i_lun As Integer, d_FineProg As Date
         '06/06/2022
         Dim tmpErrAz As System.Single, tmpErrEl As System.Single
+        Debug.WriteLine("Calcolo_Aquire ENTRATA: i_ConStato=" & i_ConStato & " i_Step=" & i_Step & " i_Status=" & i_Status & " i_AzStep=" & i_AzStep & " i_ElStep=" & i_ElStep & " i_AzRange=" & i_AzRange & " i_ElRange=" & i_ElRange & " b_Acquire=" & b_Acquire) ' TEMPORANEO: da rimuovere dopo la diagnosi
         On Error Resume Next
         If IsDate(d_DataFineProg) Then
             d_FineProg = CDate(d_DataFineProg)
         End If
         i_ProgTrack = 1
         '09/06/2022
-        If b_Lock Then
+        ' TEMPORANEO (test): controllo segnale/lock disattivato per poter testare lo Spiral Acquire senza un segnale reale agganciato. Da ripristinare (basta togliere "False AndAlso") a test finito.
+        If False AndAlso b_Lock Then
             If Val(s_Lev1) > g_ThrAuto And RTrim(frmRicezione.LblLock.Text) = "LOCK" And Math.Abs(Val(s_LevAz1)) < g_ThrAz And Math.Abs(Val(s_LevEl1)) < g_ThrEl Then     '26/10/2022
                 'controllo se è stato ricevuto il segnale
                 d_DataInizioProg = ""
@@ -529,7 +531,8 @@ Module Ricezione
                     frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                     i_ElOffsetLock = Format$(i_ElOffsetLock - i_ElStep, "#0.0#")
                     frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    If CDbl(frmRicezione.LblElevazione.Text) >= g_ElMin Then
+                    ' TEMPORANEO (test): controllo elevazione minima disattivato. Da ripristinare rimettendo ">= g_ElMin" al posto di "True".
+                    If True Then
                         s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                         Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                         i = Len(s_program) + 6
@@ -711,7 +714,8 @@ Module Ricezione
             If i_ConStato < 7 Then i_ConStato = 7
         End If
 Rangeout:
-        If CDbl(frmRicezione.LblElevazione.Text) >= g_ElMin Then
+        ' TEMPORANEO (test): controllo elevazione minima disattivato. Da ripristinare rimettendo ">= g_ElMin" al posto di "True".
+        If True Then
             rs_Acq = dbOrbite.OpenRecordset("tmpEffemeridi", dbOpenDynaset)
             If i_Spiral > 2 Then                          'Cancella anche se in Lock
                 If i_Spiral - rs_Acq!Orbite >= 2 Then
@@ -2091,6 +2095,7 @@ esci:
             End If
         End If
         Calcolo_Coordinate = True
+        Debug.WriteLine("Calcolo_Coordinate: Algoritmo=" & Algoritmo & " b_Sat=" & b_Sat & " s_Satellite=" & s_Satellite & " Az_prov=" & Az_prov & " El_Prov=" & El_Prov & " g_ElMin=" & g_ElMin & " i_ProgTrack=" & i_ProgTrack & " AzInibhit=" & AzInibhit & " ElInibhit=" & ElInibhit) ' TEMPORANEO: da rimuovere dopo la diagnosi
         If i_ProgTrack = 1 Or i_ProgTrack = 4 Then
             Az_prov = Format$(Az_prov + i_AzOffsetLock, "0.000")
             El_Prov = Format$(El_Prov + i_ElOffsetLock, "0.000")

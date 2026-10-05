@@ -179,7 +179,7 @@ Partial Public Class frmGrafico
                         End If
                     Next
                 End If
-                Punti(MaxPunti).data = Now.AddHours(-i_Offset / 24).ToString("HH.mm.ss")
+                Punti(MaxPunti).data = Now.AddHours(-i_Offset).ToString("HH.mm.ss")
                 Punti(MaxPunti).X = MaxX
                 Punti(MaxPunti).y = ValBeacon
                 VisualizzaGrafico()
@@ -191,7 +191,7 @@ Partial Public Class frmGrafico
                         Punti(i).X = Punti(i + 1).X - (1.0F / (6 * i_AsseXGrafico))
                     End If
                 Next
-                Punti(MaxPunti).data = Now.AddHours(-i_Offset / 24).ToString("HH.mm.ss")
+                Punti(MaxPunti).data = Now.AddHours(-i_Offset).ToString("HH.mm.ss")
                 Punti(MaxPunti).X = i_AsseXGrafico
                 Punti(MaxPunti).y = ValBeacon
             End If
