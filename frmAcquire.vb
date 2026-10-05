@@ -162,11 +162,18 @@ Partial Public Class frmAcquire
         If InizProg <= oraNow Then
             ' Inserisce coordinata di partenza in tmpEffemeridi
             Try
+                ' d_DataInizioProg è in ora locale (da mskDataIni/Now), mentre
+                ' tutte le righe successive inserite da Calcolo_Aquire usano
+                ' NowUTC() (Ricezione.vb): usare d_DataInizioProg qui creava
+                ' un salto di fuso orario tra la prima riga e tutte le altre
+                ' in tmpEffemeridi. Si usa NowUTC() anche per il seed, stesso
+                ' formato "dd/MM/yyyy"/"HH:mm:ss" di Calcolo_Aquire.
+                Dim oraInizioUtc As Date = NowUTC()
                 Using Cmd As New SQLiteCommand(
                     "INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, orbite, intervallo) " &
                     "VALUES (@d, @t, @az, @el, 0, 0, 1, 0)", CType(dbOrbite, DAODatabase).Connection)
-                    Cmd.Parameters.AddWithValue("@d", Mid(d_DataInizioProg, 1, 10))
-                    Cmd.Parameters.AddWithValue("@t", Mid(d_DataInizioProg, 12, 8))
+                    Cmd.Parameters.AddWithValue("@d", oraInizioUtc.ToString("dd/MM/yyyy", Globalization.CultureInfo.InvariantCulture))
+                    Cmd.Parameters.AddWithValue("@t", oraInizioUtc.ToString("HH:mm:ss", Globalization.CultureInfo.InvariantCulture))
                     Cmd.Parameters.AddWithValue("@az", Format(g_AzTable, "000.000"))
                     Cmd.Parameters.AddWithValue("@el", Format(g_ElTable, "00.000"))
                     Cmd.ExecuteNonQuery()
