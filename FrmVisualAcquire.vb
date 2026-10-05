@@ -266,6 +266,25 @@ Public Class FrmVisualAcquire
             Next
         End If
 
+        ' Con pochi punti il range reale è quasi zero (es. un solo punto =
+        ' range 0,1°): la griglia esplode in righe fitte perché PassoX/ScalaX
+        ' diventa enorme rispetto a una scala così fine. Il VB6 originale
+        ' parte invece con tratti grandi che si "restringono" man mano che
+        ' la spirale avanza — si allarga quindi la finestra fino al range
+        ' Az/El configurato (centrata sui dati), così il primo disegno
+        ' mostra già l'intera area di ricerca prevista; quando i dati reali
+        ' superano quel range, prende il sopravvento il range reale.
+        If (MaxX - MinX) < i_AzRange Then
+            Dim centerX As Single = (MaxX + MinX) / 2
+            MinX = centerX - i_AzRange / 2
+            MaxX = centerX + i_AzRange / 2
+        End If
+        If (MaxY - MinY) < i_ElRange Then
+            Dim centerY As Single = (MaxY + MinY) / 2
+            MinY = centerY - i_ElRange / 2
+            MaxY = centerY + i_ElRange / 2
+        End If
+
         PassoX = Int((MaxX - MinX) / NPAsseX)
         If Int(MaxX - MinX) > 1 Then
             MinX = Int(MinX) : MaxX = Int(MaxX) + 1
@@ -542,6 +561,7 @@ Public Class FrmVisualAcquire
 
         ScalaX = (MaxX - MinX) / (PicW - 2 * DimCornice)
         ScalaY = (MaxY - MinY) / (PicH - 2 * DimCornice)
+        Debug.WriteLine("VisualizzaGrafico: NPunti=" & NPunti & " MinX=" & MinX & " MaxX=" & MaxX & " MinY=" & MinY & " MaxY=" & MaxY & " ScalaX=" & ScalaX & " ScalaY=" & ScalaY & " PassoX=" & PassoX & " PassoY=" & PassoY & " NPAsseX=" & NPAsseX & " NPAsseY=" & NPAsseY & " PicW=" & PicW & " PicH=" & PicH) ' TEMPORANEO: da rimuovere dopo la diagnosi
         VisualizzaAsseX()
         VisualizzaAsseY()
 
@@ -668,10 +688,14 @@ Public Class FrmVisualAcquire
                 mskDataFin.Text = dtFin.ToString("dd/MM/yyyy")
                 mskOraFin.Text  = dtFin.ToString("HH.mm")
             End If
-            ScalaX = picGrafico.Width / m_sizeX1
-            ScalaY = picGrafico.Height / m_sizeY1
-            NPAsseX = picGrafico.ClientSize.Width / ScalaX
-            NPAsseY = picGrafico.ClientSize.Height / ScalaY
+            ' VB6: ScalaX = picGrafico.Width(twips) / m_sizeX1(twips), poi
+            ' NPAsseX = picGrafico.ScaleWidth(pixel, ScaleMode diverso) / ScalaX
+            ' — un doppio passaggio per convertire unità diverse (Width in
+            ' twips, ScaleWidth in pixel). In WinForms è già tutto in pixel,
+            ' quindi il calcolo letterale produceva un numero assurdo
+            ' (NPAsseX~16000 invece di ~740, la larghezza reale in pixel).
+            NPAsseX = picGrafico.ClientSize.Width
+            NPAsseY = picGrafico.ClientSize.Height
             tmrAcquire.Interval = If(CInt(i_InterAcq * 1000) > 0, CInt(i_InterAcq * 1000), 30000)
             tmrAcquire.Enabled = True
             TxtAzRange.Text = i_AzRange.ToString()

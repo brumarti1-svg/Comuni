@@ -202,7 +202,11 @@ Partial Public Class frmAcquire
             frmRicezioneRef.LblElErrEn.Visible = True
             frmRicezioneRef.CmdOffset.Enabled = True
             frmRicezioneRef.CmdOffset.Visible = True
-            frmRicezioneRef.TmrSpiralAcquire.Interval = CInt(i_InterAcq * 1000)
+            ' Timer.Interval=0 (o negativo) è illegale e lancia eccezione:
+            ' con ValidaRange bypassato per i test, DeltaT potrebbe non
+            ' essere nel range 1-5 originale. Minimo di sicurezza 1000ms.
+            Dim intervalMs As Integer = CInt(i_InterAcq * 1000)
+            frmRicezioneRef.TmrSpiralAcquire.Interval = If(intervalMs > 0, intervalMs, 1000)
             frmRicezioneRef.TmrSpiralAcquire.Enabled = True
         End If
 

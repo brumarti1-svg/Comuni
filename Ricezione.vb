@@ -734,6 +734,12 @@ Rangeout:
                     rs_Acq!Long = i_AzOffsetLock
                     rs_Acq!lat = i_ElOffsetLock
                     rs_Acq!Orbite = i_Spiral
+                    ' Mai valorizzata: la colonna restava NULL, e
+                    ' SelezionaSingoliDati (FrmVisualAcquire) la legge con
+                    ' CSng(DyVisual("Intervallo")) sul primo punto —
+                    ' CSng(DBNull) lancia InvalidCastException, interrompendo
+                    ' l'intero ridisegno del grafico ad ogni redraw.
+                    rs_Acq!Intervallo = i_InterAcq
                     rs_Acq.Update
                     rs_Acq.Close
                 End If
