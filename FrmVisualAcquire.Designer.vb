@@ -95,12 +95,12 @@ Partial Class FrmVisualAcquire
         Me.chkPrincipale.Name     = "chkPrincipale"
         Me.chkPrincipale.Size     = New System.Drawing.Size(90, 20)
         Me.chkPrincipale.Text     = "Principale"
-        Me.chkPrincipale.Checked  = True
         ' chkSecondaria
         Me.chkSecondaria.Location = New System.Drawing.Point(264, 32)
         Me.chkSecondaria.Name     = "chkSecondaria"
         Me.chkSecondaria.Size     = New System.Drawing.Size(90, 20)
         Me.chkSecondaria.Text     = "Secondaria"
+        Me.chkSecondaria.Enabled  = False
         ' CmdElabora
         Me.CmdElabora.Location  = New System.Drawing.Point(364, 8)
         Me.CmdElabora.Name      = "CmdElabora"
@@ -127,54 +127,67 @@ Partial Class FrmVisualAcquire
         Me.LblAzRange.Size     = New System.Drawing.Size(80, 18)
         Me.TxtAzRange.Location = New System.Drawing.Point(86, 8)
         Me.TxtAzRange.Size     = New System.Drawing.Size(68, 21)
+        Me.TxtAzRange.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         ' El Range
         Me.LblElRange.Text     = "El Range:"
         Me.LblElRange.Location = New System.Drawing.Point(4, 34)
         Me.LblElRange.Size     = New System.Drawing.Size(80, 18)
         Me.TxtElRange.Location = New System.Drawing.Point(86, 34)
         Me.TxtElRange.Size     = New System.Drawing.Size(68, 21)
+        Me.TxtElRange.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         ' Az Step
         Me.LblAzStep.Text     = "Az Step:"
         Me.LblAzStep.Location = New System.Drawing.Point(4, 60)
         Me.LblAzStep.Size     = New System.Drawing.Size(80, 18)
         Me.TxtAzStep.Location = New System.Drawing.Point(86, 60)
         Me.TxtAzStep.Size     = New System.Drawing.Size(68, 21)
+        Me.TxtAzStep.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         ' El Step
         Me.LblElStep.Text     = "El Step:"
         Me.LblElStep.Location = New System.Drawing.Point(4, 86)
         Me.LblElStep.Size     = New System.Drawing.Size(80, 18)
         Me.TxtElStep.Location = New System.Drawing.Point(86, 86)
         Me.TxtElStep.Size     = New System.Drawing.Size(68, 21)
+        Me.TxtElStep.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         ' Az Lock
         Me.LblAzLock.Text        = "Az Lock:"
         Me.LblAzLock.Location    = New System.Drawing.Point(4, 112)
         Me.LblAzLock.Size        = New System.Drawing.Size(80, 18)
         Me.TxtAzStepLock.Location = New System.Drawing.Point(86, 112)
         Me.TxtAzStepLock.Size    = New System.Drawing.Size(68, 21)
+        Me.TxtAzStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.TxtAzStepLock.ReadOnly = True
+        Me.TxtAzStepLock.BackColor = System.Drawing.SystemColors.Control
         ' El Lock
         Me.LblElLock.Text        = "El Lock:"
         Me.LblElLock.Location    = New System.Drawing.Point(4, 138)
         Me.LblElLock.Size        = New System.Drawing.Size(80, 18)
         Me.TxtElStepLock.Location = New System.Drawing.Point(86, 138)
         Me.TxtElStepLock.Size    = New System.Drawing.Size(68, 21)
+        Me.TxtElStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.TxtElStepLock.ReadOnly = True
+        Me.TxtElStepLock.BackColor = System.Drawing.SystemColors.Control
         ' DeltaT
         Me.LblDeltaTime.Text     = "DeltaT:"
         Me.LblDeltaTime.Location = New System.Drawing.Point(4, 164)
         Me.LblDeltaTime.Size     = New System.Drawing.Size(80, 18)
         Me.TxtDeltaTime.Location = New System.Drawing.Point(86, 164)
         Me.TxtDeltaTime.Size     = New System.Drawing.Size(68, 21)
+        Me.TxtDeltaTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         ' Coor Acq
         Me.LblCoorAcq.Text     = "Coor Acq:"
         Me.LblCoorAcq.Location = New System.Drawing.Point(4, 190)
         Me.LblCoorAcq.Size     = New System.Drawing.Size(80, 18)
         Me.TxtCoorAcq.Location = New System.Drawing.Point(86, 190)
         Me.TxtCoorAcq.Size     = New System.Drawing.Size(68, 21)
+        Me.TxtCoorAcq.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         ' Lock Thr
         Me.LblLockThr.Text     = "Lock Thr:"
         Me.LblLockThr.Location = New System.Drawing.Point(4, 216)
         Me.LblLockThr.Size     = New System.Drawing.Size(80, 18)
         Me.TxtLockThr.Location = New System.Drawing.Point(86, 216)
         Me.TxtLockThr.Size     = New System.Drawing.Size(68, 21)
+        Me.TxtLockThr.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.pnlAcq.Controls.AddRange(New System.Windows.Forms.Control() {
             Me.LblAzRange,   Me.TxtAzRange,
             Me.LblElRange,   Me.TxtElRange,
@@ -188,7 +201,7 @@ Partial Class FrmVisualAcquire
         ' picGrafico
         Me.picGrafico.Dock      = System.Windows.Forms.DockStyle.Fill
         Me.picGrafico.Name      = "picGrafico"
-        Me.picGrafico.BackColor = System.Drawing.Color.Black
+        Me.picGrafico.BackColor = System.Drawing.Color.White
         ' Form
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font

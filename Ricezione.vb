@@ -483,7 +483,7 @@ Module Ricezione
                     frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                     Calcolo_Coordinate(Data1, mSec)
         End If
-                i_Step += 1
+                i_Step -= 1
                 If i_Step = 0 Then
                     i_ConStato += 1
                     If b_RangeAz Then
@@ -513,7 +513,7 @@ Module Ricezione
                     frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                     Calcolo_Coordinate(Data1, mSec)
         End If
-                i_Step += 1
+                i_Step -= 1
                 If i_Step = 0 Then
                     i_ConStato += 1
                     If b_RangeEl Then
@@ -568,7 +568,7 @@ Module Ricezione
         End If
                 i_Step -= 1
                 If i_Step = 0 Then
-                    i_ConStato += i_ConStato
+                    i_ConStato += 1
                     If b_RangeAz Then
                         i_Step = i_AzRange / i_AzStep * 2
                     Else

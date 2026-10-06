@@ -11,7 +11,11 @@ Public Class FrmVisualAcquire
     Private Const MaxPunti As Integer = 6000
     Private NPAsseY As Single
     Private NPAsseX As Single
-    Private Const DimCornice As Integer = 9
+    ' Margine attorno al grafico: 9px era troppo stretto, le etichette
+    ' Elevation (disegnate a X=2, vicino al bordo sinistro) e Azimuth
+    ' (disegnate appena sotto l'asse) restavano schiacciate contro il bordo
+    ' e sovrapposte al tracciato. Aumentato per dare respiro.
+    Private Const DimCornice As Integer = 35
 
     Private OraIni As String, OraFin As String
     Private DataIni As Date, DataFin As Date
@@ -188,6 +192,10 @@ Public Class FrmVisualAcquire
         ' TimeSpan.Parse che altrimenti solleverebbero un'eccezione.
         If Not IsDate(mskDataIni.Text) OrElse Not IsDate(mskDataFin.Text) Then Return False
         If Not mskOraIni.MaskCompleted OrElse Not mskOraFin.MaskCompleted Then Return False
+        ' Calcolato qui (non in Form_Load) perché PicW/PicH riflettono già
+        ' la dimensione reale del grafico a questo punto.
+        NPAsseX = PicW
+        NPAsseY = PicH
         InvertiScala = False
         MaxY = -99999 : MinY = 99999
         MaxX = -99999 : MinX = 99999
@@ -266,24 +274,14 @@ Public Class FrmVisualAcquire
             Next
         End If
 
-        ' Con pochi punti il range reale è quasi zero (es. un solo punto =
-        ' range 0,1°): la griglia esplode in righe fitte perché PassoX/ScalaX
-        ' diventa enorme rispetto a una scala così fine. Il VB6 originale
-        ' parte invece con tratti grandi che si "restringono" man mano che
-        ' la spirale avanza — si allarga quindi la finestra fino al range
-        ' Az/El configurato (centrata sui dati), così il primo disegno
-        ' mostra già l'intera area di ricerca prevista; quando i dati reali
-        ' superano quel range, prende il sopravvento il range reale.
-        If (MaxX - MinX) < i_AzRange Then
-            Dim centerX As Single = (MaxX + MinX) / 2
-            MinX = centerX - i_AzRange / 2
-            MaxX = centerX + i_AzRange / 2
-        End If
-        If (MaxY - MinY) < i_ElRange Then
-            Dim centerY As Single = (MaxY + MinY) / 2
-            MinY = centerY - i_ElRange / 2
-            MaxY = centerY + i_ElRange / 2
-        End If
+        ' NON seminare MinX/MaxX/MinY/MaxY sul range configurato: il grafico
+        ' deve partire "zoomato" sui pochi punti reali (tratti grandi) e
+        ' allargarsi mano a mano che la spirale avanza (tratti che sembrano
+        ' rimpicciolire) — esattamente l'effetto richiesto. Il problema della
+        ' griglia che esplodeva con un range quasi zero è stato risolto alla
+        ' radice (un solo livello di griglia attivo alla volta, colore
+        ' grigio, livello Centesimi rimosso), quindi questo seeding non
+        ' serve più e anzi impediva l'effetto di zoom atteso.
 
         PassoX = Int((MaxX - MinX) / NPAsseX)
         If Int(MaxX - MinX) > 1 Then
@@ -313,6 +311,16 @@ Public Class FrmVisualAcquire
         PassoProv = PassoX
         If ScalaX = 0 Then Return
 
+        ' I tre livelli di griglia sotto (Interi/Decimi/Centesimi) controllavano
+        ' ciascuno per conto proprio se il proprio passo era abbastanza fitto
+        ' da meritare una riga nera a piena altezza (PassoX/ScalaX >= 4): con
+        ' uno zoom intermedio più livelli superavano la soglia insieme,
+        ' sovrapponendo righe piene a passi diversi in un pettine fitto.
+        ' Questo flag fa sì che solo il primo livello (il più grossolano) che
+        ' soddisfa la soglia disegni righe piene; i livelli più fini sotto
+        ' continuano a disegnare solo le tacche corte e le etichette.
+        Dim giaDisegnataPrincipale As Boolean = False
+
         diff = 0
         _dashStyle = DashStyle.Solid
         _penWidth = 1
@@ -324,6 +332,10 @@ Public Class FrmVisualAcquire
         tmpAz = MinX
 
         If PassoX / ScalaX >= 1 Then
+            ' Livello "Interi": disegna sempre le righe piene se Principale è
+            ' spuntato (per ogni tacca di questo loop) — è il livello di
+            ' griglia più grossolano attivo, quindi "vince" sempre lui.
+            If chkPrincipale.Checked Then giaDisegnataPrincipale = True
             Do While tmpAz <= MaxX
                 If (tmpAz - MinX) >= 0 Then
                     tmpX = (tmpAz - MinX) / ScalaX + DimCornice
@@ -333,7 +345,7 @@ Public Class FrmVisualAcquire
 
                     If PassoX / ScalaX >= 4 Then
                         If chkPrincipale.Checked Then
-                            _penColor = Color.Black : LineStep(0, -(PicH - 2 * DimCornice))
+                            _penColor = Color.Gray : LineStep(0, -(PicH - 2 * DimCornice))
                             _penColor = Color.Red
                         End If
                         tmpX = (tmpAz - MinX) / ScalaX + DimCornice - 1.5F
@@ -352,7 +364,7 @@ Public Class FrmVisualAcquire
                             _penColor = Color.Red
                         End If
                         If chkPrincipale.Checked Then
-                            _penColor = Color.Black : LineStep(0, -(PicH - 2 * DimCornice))
+                            _penColor = Color.Gray : LineStep(0, -(PicH - 2 * DimCornice))
                             _penColor = Color.Red
                         End If
                         tmpX = (tmpAz - MinX) / ScalaX + DimCornice - 1.5F
@@ -404,16 +416,20 @@ Public Class FrmVisualAcquire
                     MoveTo(tmpX, tmpY) : LineStep(0, 2)
                     MoveTo(tmpX, tmpY)
                     If PassoX / ScalaX >= 4 Then
-                        If chkPrincipale.Checked Then
-                            _penColor = Color.Black : LineStep(0, -(PicH - 2 * DimCornice))
+                        If chkPrincipale.Checked AndAlso Not giaDisegnataPrincipale Then
+                            _penColor = Color.Gray : LineStep(0, -(PicH - 2 * DimCornice))
                             _penColor = Color.Blue
+                            giaDisegnataPrincipale = True
                         End If
                         MoveTo((tmpAz - MinX) / ScalaX + DimCornice - 1.5F, PicH - DimCornice + 2)
                         If Int(MaxX - MinX) > 1 Then
-                            If IX < 1 Then DrawStr(IX.ToString("G"), i_Size1)
+                            ' "G" mostrava gli errori di arrotondamento binario
+                            ' dell'accumulo di 0.1 (es. "0,30000001"): formato
+                            ' fisso con al massimo 2 decimali.
+                            If IX < 1 Then DrawStr(IX.ToString("0.##"), i_Size1)
                             IX += 0.1 : If IX > 1 Then IX = 0.1
                         Else
-                            If IX <= 0.09 Then DrawStr(IX.ToString("G"), i_Size1)
+                            If IX <= 0.09 Then DrawStr(IX.ToString("0.##"), i_Size1)
                             IX += 0.01 : If IX > 0.1 Then IX = 0.01
                         End If
                     ElseIf chkSecondaria.Checked Then
@@ -425,36 +441,13 @@ Public Class FrmVisualAcquire
             Loop
         End If
 
-        ' Centesimi
-        _penColor = Color.Blue
-        PassoX = PassoProv / 100
-        tmpAz = MinX
-        If PassoX / ScalaX >= 1 Then
-            Do While tmpAz < MaxX
-                If (tmpAz - MinX) >= 0 Then
-                    tmpX = (tmpAz - MinX) / ScalaX + DimCornice
-                    tmpY = PicH - DimCornice
-                    MoveTo(tmpX, tmpY) : LineStep(0, 2)
-                    MoveTo(tmpX, tmpY)
-                    If PassoX / ScalaX >= 4 Then
-                        If chkPrincipale.Checked Then
-                            _penColor = Color.Black : LineStep(0, -(PicH - 2 * DimCornice))
-                            _penColor = Color.Blue
-                        End If
-                        MoveTo((tmpAz - MinX) / ScalaX + DimCornice - 1.5F, PicH - DimCornice + 2)
-                    ElseIf chkSecondaria.Checked Then
-                        _penColor = Color.Silver : LineStep(0, -(PicH - 2 * DimCornice))
-                        _penColor = Color.Blue
-                    End If
-                End If
-                tmpAz = CSng(Format(tmpAz + PassoX, "##0.###"))
-            Loop
-        End If
+        ' Livello "Centesimi" rimosso su richiesta: troppo fitto, non
+        ' aggiungeva leggibilità alla griglia.
 
-        ' Estremi intervallo
+        ' Etichette "dal/al" rimosse: le due DrawStr erano a 3px di distanza
+        ' (Y=1 e Y=4), sovrapposte e illeggibili. L'intervallo è già
+        ' visibile nei campi Dal/Al della maschera, non serve ripeterlo qui.
         _penColor = Color.Black
-        MoveTo(140, 1) : DrawStr("dal: " & tmpDataIni.ToString("dd/MM/yy HH.mm"), i_Size3)
-        MoveTo(140, 4) : DrawStr("  al: " & tmpDataFin.ToString("dd/MM/yy HH.mm"), i_Size3)
         LineAbs(DimCornice, PicH - DimCornice - diff, PicW - DimCornice, PicH - DimCornice - diff)
         MoveTo(DimCornice, PicH - DimCornice) : LineStep(0, -(PicH - 2 * DimCornice))
     End Sub
@@ -483,7 +476,7 @@ Public Class FrmVisualAcquire
                 tmpY = (PicH - DimCornice) - (tmp2y - MinY) / ScalaY
                 MoveTo(tmp2x, tmpY)
                 If chkPrincipale.Checked AndAlso tmp2y <> MinY Then
-                    _penColor = Color.Black : LineStep(PicW - 2 * DimCornice, 0)
+                    _penColor = Color.Gray : LineStep(PicW - 2 * DimCornice, 0)
                 End If
                 MoveTo(2, (PicH - DimCornice) - (tmp2y - MinY) / ScalaY - 1.7F)
                 _penColor = Color.Black
@@ -529,10 +522,13 @@ Public Class FrmVisualAcquire
                     MoveTo(DimCornice - 6, tmpY - 2)
                     If PassoY / ScalaY >= 4 Then
                         If Int(MaxY - MinY) > 1 Then
-                            If IX < 1 Then DrawStr(IX.ToString("G"), i_Size1)
+                            ' "G" mostrava gli errori di arrotondamento binario
+                            ' dell'accumulo di 0.1 (es. "0,30000001"): formato
+                            ' fisso con al massimo 2 decimali.
+                            If IX < 1 Then DrawStr(IX.ToString("0.##"), i_Size1)
                             IX += 0.1F : If IX > 1 Then IX = 0.1F
                         Else
-                            If IX <= 0.09F Then DrawStr(IX.ToString("G"), i_Size1)
+                            If IX <= 0.09F Then DrawStr(IX.ToString("0.##"), i_Size1)
                             IX += 0.01F : If IX > 0.1F Then IX = 0.01F
                         End If
                     End If
@@ -553,10 +549,12 @@ Public Class FrmVisualAcquire
         InitBitmap()
         tmpSelezione = SelezionaSingoliDati()
 
+        ' Caratteri ingranditi: con le dimensioni originali (2/4/5 px nel
+        ' caso con pochi punti) le etichette erano praticamente illeggibili.
         If tmpSelezione AndAlso NPunti > 1 Then
-            i_Size1 = 4 : i_Size2 = 8 : i_Size3 = 10
+            i_Size1 = 7 : i_Size2 = 11 : i_Size3 = 13
         Else
-            i_Size1 = 2 : i_Size2 = 4 : i_Size3 = 5
+            i_Size1 = 6 : i_Size2 = 9 : i_Size3 = 10
         End If
 
         ScalaX = (MaxX - MinX) / (PicW - 2 * DimCornice)
@@ -586,7 +584,7 @@ Public Class FrmVisualAcquire
                 MoveTo(tmpX, tmpY)
             End If
 
-            _dashStyle = DashStyle.Dot
+            _dashStyle = DashStyle.Solid
             _penWidth = 2
             _penColor = Color.Black
 
@@ -662,7 +660,14 @@ Public Class FrmVisualAcquire
             ' tmpEffemeridi — la tabella viene azzerata e ripopolata dai
             ' calcoli effemeridi a partire da quella data.
             If IsDate(d_DataInizioProg) Then
+                ' d_DataInizioProg è in ora locale (Now), ma le righe in
+                ' tmpEffemeridi sono in UTC (NowUTC, vedi Calcolo_Aquire):
+                ' senza questa conversione la finestra Dal/Al non si
+                ' sovrapponeva mai ai dati reali, SelezionaSingoliDati non
+                ' trovava nessuna riga e il grafico restava vuoto (MinX/MaxX
+                ' restavano ai valori sentinella iniziali).
                 Dim dtIni As Date = CDate(d_DataInizioProg)
+                dtIni = dtIni.Subtract(TimeZoneInfo.Local.GetUtcOffset(dtIni))
                 mskDataIni.Text = dtIni.ToString("dd/MM/yyyy")
                 mskOraIni.Text = dtIni.ToString("HH.mm")
             Else
@@ -684,18 +689,17 @@ Public Class FrmVisualAcquire
                 End Using
             End If
             If IsDate(d_DataFineProg) Then
+                ' Stessa conversione di d_DataInizioProg sopra: ora locale -> UTC.
                 Dim dtFin As Date = CDate(d_DataFineProg)
+                dtFin = dtFin.Subtract(TimeZoneInfo.Local.GetUtcOffset(dtFin))
                 mskDataFin.Text = dtFin.ToString("dd/MM/yyyy")
                 mskOraFin.Text  = dtFin.ToString("HH.mm")
             End If
-            ' VB6: ScalaX = picGrafico.Width(twips) / m_sizeX1(twips), poi
-            ' NPAsseX = picGrafico.ScaleWidth(pixel, ScaleMode diverso) / ScalaX
-            ' — un doppio passaggio per convertire unità diverse (Width in
-            ' twips, ScaleWidth in pixel). In WinForms è già tutto in pixel,
-            ' quindi il calcolo letterale produceva un numero assurdo
-            ' (NPAsseX~16000 invece di ~740, la larghezza reale in pixel).
-            NPAsseX = picGrafico.ClientSize.Width
-            NPAsseY = picGrafico.ClientSize.Height
+            ' NPAsseX/NPAsseY vengono calcolati in SelezionaSingoliDati() ad
+            ' ogni ridisegno (serve PicW/PicH, non ancora affidabili qui: con
+            ' picGrafico Dock=Fill il layout non è ancora completato in
+            ' Form_Load, quindi ClientSize restituirebbe ancora la misura di
+            ' default della PictureBox, 100x50, non quella reale ~740x540).
             tmrAcquire.Interval = If(CInt(i_InterAcq * 1000) > 0, CInt(i_InterAcq * 1000), 30000)
             tmrAcquire.Enabled = True
             TxtAzRange.Text = i_AzRange.ToString()
@@ -726,13 +730,18 @@ Public Class FrmVisualAcquire
     ' ── eventi controlli ────────────────────────────────────────────────────────
 
     Private Sub ChkPrincipale_CheckedChanged(sender As Object, e As EventArgs) Handles chkPrincipale.CheckedChanged
-        If chkPrincipale.Checked Then
-            chkSecondaria.Checked = False
-            chkSecondaria.Visible = True
-        Else
-            chkSecondaria.Checked = False
-            chkSecondaria.Visible = False
-        End If
+        ' Secondaria è selezionabile solo dopo aver abilitato Principale
+        ' (come nel VB6 originale): se Principale si spegne, Secondaria si
+        ' spegne e si disabilita con lui. Non forza più lo "spegni e
+        ' nascondi" di prima: qui Secondaria resta visibile, solo non
+        ' selezionabile finché Principale è spento.
+        chkSecondaria.Enabled = chkPrincipale.Checked
+        If Not chkPrincipale.Checked Then chkSecondaria.Checked = False
+        If _bmp IsNot Nothing Then VisualizzaGrafico()
+    End Sub
+
+    Private Sub ChkSecondaria_CheckedChanged(sender As Object, e As EventArgs) Handles chkSecondaria.CheckedChanged
+        If _bmp IsNot Nothing Then VisualizzaGrafico()
     End Sub
 
     Private Sub CmdElabora_Click(sender As Object, e As EventArgs) Handles CmdElabora.Click

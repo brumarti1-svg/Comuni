@@ -95,6 +95,7 @@ Partial Class frmAcquire
         Me.mskAzimuth.Name = "mskAzimuth"
         Me.mskAzimuth.Size = New System.Drawing.Size(80, 23)
         Me.mskAzimuth.TabIndex = 3
+        Me.mskAzimuth.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         '
         ' LblEl
         '
@@ -108,6 +109,7 @@ Partial Class frmAcquire
         Me.mskElevazione.Name = "mskElevazione"
         Me.mskElevazione.Size = New System.Drawing.Size(80, 23)
         Me.mskElevazione.TabIndex = 4
+        Me.mskElevazione.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         '
         ' grpAcqPar
         '
@@ -125,6 +127,7 @@ Partial Class frmAcquire
         Me.TxtAzRange.Name = "TxtAzRange"
         Me.TxtAzRange.Size = New System.Drawing.Size(60, 23)
         Me.TxtAzRange.TabIndex = 0
+        Me.TxtAzRange.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         LblElRange.Location = New System.Drawing.Point(164, 24)
         LblElRange.Size = New System.Drawing.Size(80, 20)
@@ -133,6 +136,7 @@ Partial Class frmAcquire
         Me.TxtElRange.Name = "TxtElRange"
         Me.TxtElRange.Size = New System.Drawing.Size(60, 23)
         Me.TxtElRange.TabIndex = 1
+        Me.TxtElRange.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         LblAzStep.Location = New System.Drawing.Point(8, 54)
         LblAzStep.Size = New System.Drawing.Size(80, 20)
@@ -141,6 +145,7 @@ Partial Class frmAcquire
         Me.TxtAzStep.Name = "TxtAzStep"
         Me.TxtAzStep.Size = New System.Drawing.Size(60, 23)
         Me.TxtAzStep.TabIndex = 2
+        Me.TxtAzStep.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         LblElStep.Location = New System.Drawing.Point(164, 54)
         LblElStep.Size = New System.Drawing.Size(80, 20)
@@ -149,6 +154,7 @@ Partial Class frmAcquire
         Me.TxtElStep.Name = "TxtElStep"
         Me.TxtElStep.Size = New System.Drawing.Size(60, 23)
         Me.TxtElStep.TabIndex = 3
+        Me.TxtElStep.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         LblAzLock.Location = New System.Drawing.Point(8, 84)
         LblAzLock.Size = New System.Drawing.Size(88, 20)
@@ -157,6 +163,9 @@ Partial Class frmAcquire
         Me.TxtAzStepLock.Name = "TxtAzStepLock"
         Me.TxtAzStepLock.Size = New System.Drawing.Size(60, 23)
         Me.TxtAzStepLock.TabIndex = 4
+        Me.TxtAzStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.TxtAzStepLock.ReadOnly = True
+        Me.TxtAzStepLock.BackColor = System.Drawing.SystemColors.Control
 
         LblElLock.Location = New System.Drawing.Point(164, 84)
         LblElLock.Size = New System.Drawing.Size(88, 20)
@@ -165,6 +174,9 @@ Partial Class frmAcquire
         Me.TxtElStepLock.Name = "TxtElStepLock"
         Me.TxtElStepLock.Size = New System.Drawing.Size(60, 23)
         Me.TxtElStepLock.TabIndex = 5
+        Me.TxtElStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.TxtElStepLock.ReadOnly = True
+        Me.TxtElStepLock.BackColor = System.Drawing.SystemColors.Control
 
         LblDelta.Location = New System.Drawing.Point(328, 24)
         LblDelta.Size = New System.Drawing.Size(80, 20)
@@ -173,6 +185,7 @@ Partial Class frmAcquire
         Me.TxtDeltaTime.Name = "TxtDeltaTime"
         Me.TxtDeltaTime.Size = New System.Drawing.Size(60, 23)
         Me.TxtDeltaTime.TabIndex = 6
+        Me.TxtDeltaTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         LblTout.Location = New System.Drawing.Point(328, 54)
         LblTout.Size = New System.Drawing.Size(80, 20)
@@ -181,6 +194,7 @@ Partial Class frmAcquire
         Me.TxtTout.Name = "TxtTout"
         Me.TxtTout.Size = New System.Drawing.Size(60, 23)
         Me.TxtTout.TabIndex = 7
+        Me.TxtTout.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         LblCoor.Location = New System.Drawing.Point(328, 84)
         LblCoor.Size = New System.Drawing.Size(80, 20)
@@ -189,6 +203,7 @@ Partial Class frmAcquire
         Me.TxtCoorAcq.Name = "TxtCoorAcq"
         Me.TxtCoorAcq.Size = New System.Drawing.Size(60, 23)
         Me.TxtCoorAcq.TabIndex = 8
+        Me.TxtCoorAcq.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         LblLock.Location = New System.Drawing.Point(484, 24)
         LblLock.Size = New System.Drawing.Size(80, 20)
@@ -197,6 +212,7 @@ Partial Class frmAcquire
         Me.TxtLockThr.Name = "TxtLockThr"
         Me.TxtLockThr.Size = New System.Drawing.Size(60, 23)
         Me.TxtLockThr.TabIndex = 9
+        Me.TxtLockThr.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
         Me.grpAcqPar.Controls.AddRange(New System.Windows.Forms.Control() {
             LblAzRange, Me.TxtAzRange, LblElRange, Me.TxtElRange,

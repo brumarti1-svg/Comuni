@@ -118,6 +118,24 @@ Partial Public Class frmAcquire
         If Not ValidaRange(TxtCoorAcq, 0.05, 1, CoorAcq) Then Exit Sub
         If Not ValidaRange(TxtLockThr, -110, -40, i_LockThr) Then Exit Sub
 
+        ' In Program, mskAzimuth/mskElevazione sono stati valorizzati al
+        ' momento della selezione del radio button "Program" (chiamata a
+        ' Calcolo_Coordinate1), non a quello di avvio effettivo — tra i due
+        ' momenti possono passare minuti durante la configurazione dei
+        ' parametri. Si ricalcola qui, "ora", la posizione satellite fresca,
+        ' cosi la spirale parte dal punto corretto calcolato all'istante di
+        ' avvio (ignorando la posizione fisica attuale dell'antenna), invece
+        ' di un valore datato — coerente con quello che Calcolo_Aquire
+        ' calcolerà al primo ciclo subito dopo.
+        If optProgram.Checked Then
+            If Calcolo_Coordinate1(NowUTC()) Then
+                If frmRicezioneRef IsNot Nothing AndAlso IsNumeric(frmRicezioneRef.LblElevazioneC.Text) Then
+                    mskAzimuth.Text = frmRicezioneRef.LblAzimuthC.Text
+                    mskElevazione.Text = frmRicezioneRef.LblElevazioneC.Text
+                End If
+            End If
+        End If
+
         ' Coordinate antenna
         ' CDbl(mskAzimuth.Text) sotto locale italiano legge il "." come
         ' separatore delle migliaia (non decimale): "180.373" diventava
