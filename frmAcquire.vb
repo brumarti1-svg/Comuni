@@ -163,6 +163,7 @@ Partial Public Class frmAcquire
         If Not b_Acquire Then i_ProgTrack = 1
         i_Quadrati = 1
         i_ConStato = 0
+        d_SpiralAngolo = 0
 
         ' tmpEffemeridi va azzerata qui, all'avvio effettivo dell'acquire,
         ' non solo all'apertura del dialogo (frmAcquire_Activated): altrimenti

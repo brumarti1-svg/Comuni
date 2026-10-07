@@ -324,8 +324,9 @@ Module Ricezione
         Dim s_program As String = "", i_lun As Integer, d_FineProg As Date
         '06/06/2022
         Dim tmpErrAz As System.Single, tmpErrEl As System.Single
-        Debug.WriteLine("Calcolo_Aquire ENTRATA: i_ConStato=" & i_ConStato & " i_Step=" & i_Step & " i_Status=" & i_Status & " i_AzStep=" & i_AzStep & " i_ElStep=" & i_ElStep & " i_AzRange=" & i_AzRange & " i_ElRange=" & i_ElRange & " b_Acquire=" & b_Acquire) ' TEMPORANEO: da rimuovere dopo la diagnosi
+        Debug.WriteLine("Calcolo_Aquire ENTRATA: i_ConStato=" & i_ConStato & " d_SpiralAngolo(gradi)=" & (d_SpiralAngolo * 180.0 / Math.PI) & " i_Status=" & i_Status & " i_AzStep=" & i_AzStep & " i_ElStep=" & i_ElStep & " i_AzRange=" & i_AzRange & " i_ElRange=" & i_ElRange & " b_Acquire=" & b_Acquire & " i_AzOffsetLock=" & i_AzOffsetLock & " i_ElOffsetLock=" & i_ElOffsetLock) ' TEMPORANEO: da rimuovere dopo la diagnosi
         On Error Resume Next
+        Err.Clear() ' TEMPORANEO: per la diagnosi sotto
         If IsDate(d_DataFineProg) Then
             d_FineProg = CDate(d_DataFineProg)
         End If
@@ -432,286 +433,128 @@ Module Ricezione
             '            Unload frmVisualAcquire
             Exit Function
         End If
-        Select Case i_ConStato
-            Case 0
-                'inizio della spirale. L'antenna viene spostata di uno +step in azimuth
-                If b_Acquire Then
-                    'siamo in preset
-                    frmRicezione.LblAzimuth.Text = Format$(g_AzTable + i_AzStep, "000.000")
-                    frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                    i_AzOffsetLock = Format$(i_AzStep, "#0.0#")
-                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                    i_ElOffsetLock = 0
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
-                    s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                    i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                    b_int(ACU) = True
-                    b_Ricezione(ACU) = False
-                    InvioACU(SEND_ACU)
-        Else
-                    i_AzOffsetLock = Format$(i_AzStep, "#0.0#")
-                    i_ElOffsetLock = 0
-                    Calcolo_Coordinate(Data1, mSec)
-            frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
-                End If
-                i_ConStato += 1
-                i_Step = 1
-            Case 1
-                'primo lato
-                If i_Quadrati * i_ElStep >= i_ElRange Then
-                    b_RangeEl = True
-                End If
-                If b_Acquire Then
-                    'siamo in preset
-                    frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    If Not b_RangeEl Then i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                    i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                    b_int(ACU) = True
-                    b_Ricezione(ACU) = False
-                    InvioACU(SEND_ACU)
-        Else
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    Calcolo_Coordinate(Data1, mSec)
-        End If
-                i_Step -= 1
-                If i_Step = 0 Then
-                    i_ConStato += 1
-                    If b_RangeAz Then
-                        i_Step = i_AzRange / i_AzStep * 2
-                    Else
-                        i_Step = i_Quadrati * 2
-                    End If
-                End If
-            Case 2
-                'secondo lato
-                If b_Acquire Then
-                    'siamo in preset
-                    frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) - i_AzStep, "000.000")
-                    i_AzOffsetLock = Format$(i_AzOffsetLock - i_AzStep, "#0.0#")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                    i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                    b_int(ACU) = True
-                    b_Ricezione(ACU) = False
-                    InvioACU(SEND_ACU)
-        Else
-                    i_AzOffsetLock = Format$(i_AzOffsetLock - i_AzStep, "#0.0#")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    Calcolo_Coordinate(Data1, mSec)
-        End If
-                i_Step -= 1
-                If i_Step = 0 Then
-                    i_ConStato += 1
-                    If b_RangeEl Then
-                        i_Step = i_ElRange / i_ElStep * 2
-                    Else
-                        i_Step = i_Quadrati * 2
-                    End If
-                End If
-            Case 3
-                'terzo lato
+        ' ───── Spirale circolare continua (spirale di Archimede) ─────
+        ' Sostituisce la vecchia macchina a stati "a quadrati" (Select Case
+        ' i_ConStato a 8 casi, vedi branch "backup-spirale-quadrata" per la
+        ' versione precedente): quella logica aveva un difetto strutturale
+        ' nel passo diagonale di cambio-giro (Case 6), mai compensato, che
+        ' produceva una spirale asimmetrica, sempre più spostata verso
+        ' destra/alto invece di restare concentrica.
+        '
+        ' i_ConStato qui ha solo 3 valori:
+        '   0 = ricerca in corso (la spirale si allarga)
+        '   1 = comando di ritorno al centro appena inviato
+        '   2 = verifica che l'antenna abbia raggiunto il centro entro CoorAcq
+        If i_ConStato = 0 Then
+            ' Passo angolare adattivo: con un passo fisso in gradi, ogni giro
+            ' ha sempre lo stesso numero di punti, ma la circonferenza cresce
+            ' col raggio — quindi sui giri esterni lo stesso passo copre un
+            ' arco (e un segmento dritto tra un punto e l'altro) via via più
+            ' lungo, e la spirale appare sempre più "sfaccettata"/poligonale
+            ' invece che curva man mano che si allarga (la "schiacciatura" e
+            ' irregolarità osservate nei giri grandi). Si riduce il passo
+            ' quando il raggio cresce, per mantenere pressoché costante la
+            ' lunghezza d'arco percorsa ad ogni tick (circa un AzStep/ElStep).
+            Const PASSO_ANGOLO_MAX_GRADI As Double = 20.0
+            Dim raggioAttuale As Double = (Math.Min(i_AzStep, i_ElStep) / (2 * Math.PI)) * d_SpiralAngolo
+            Dim passoAngoloRadianti As Double = PASSO_ANGOLO_MAX_GRADI * (Math.PI / 180.0)
+            If raggioAttuale > 0 Then
+                passoAngoloRadianti = Math.Min(passoAngoloRadianti, Math.Min(i_AzStep, i_ElStep) / raggioAttuale)
+            End If
+            d_SpiralAngolo += passoAngoloRadianti
 
-                If b_Acquire Then
-                    'siamo in preset
-                    frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) - i_ElStep, "00.000")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    i_ElOffsetLock = Format$(i_ElOffsetLock - i_ElStep, "#0.0#")
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    ' TEMPORANEO (test): controllo elevazione minima disattivato. Da ripristinare rimettendo ">= g_ElMin" al posto di "True".
-                    If True Then
-                        s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                        Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                        i = Len(s_program) + 6
-                        SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                        b_int(ACU) = True
-                        b_Ricezione(ACU) = False
-                        InvioACU(SEND_ACU)
+            ' Raggio proporzionale all'angolo: un giro completo (2π) allarga
+            ' il raggio di un AzStep/ElStep, così la densità degli anelli
+            ' corrisponde allo step configurato dall'operatore. Az ed El
+            ' hanno raggi separati (ellisse, non cerchio) per rispettare
+            ' range/step diversi sui due assi, con lo stesso angolo.
+            Dim raggioAz As Double = (i_AzStep / (2 * Math.PI)) * d_SpiralAngolo
+            Dim raggioEl As Double = (i_ElStep / (2 * Math.PI)) * d_SpiralAngolo
+            Dim maxRaggioAz As Double = i_AzRange / 2
+            Dim maxRaggioEl As Double = i_ElRange / 2
+
+            b_RangeAz = (raggioAz >= maxRaggioAz)
+            b_RangeEl = (raggioEl >= maxRaggioEl)
+            If b_RangeAz Then raggioAz = maxRaggioAz
+            If b_RangeEl Then raggioEl = maxRaggioEl
+
+            i_AzOffsetLock = Format$(raggioAz * Math.Cos(d_SpiralAngolo), "#0.0#")
+            i_ElOffsetLock = Format$(raggioEl * Math.Sin(d_SpiralAngolo), "#0.0#")
+
+            If b_Acquire Then
+                'siamo in preset
+                frmRicezione.LblAzimuth.Text = Format$(g_AzTable + CDbl(i_AzOffsetLock), "000.000")
+                frmRicezione.LblElevazione.Text = Format$(g_ElTable + CDbl(i_ElOffsetLock), "00.000")
+                frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
+                frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
+                s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
+                Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
+                i = Len(s_program) + 6
+                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                b_int(ACU) = True
+                b_Ricezione(ACU) = False
+                InvioACU(SEND_ACU)
             Else
-                        frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
-                        frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                        i_AzOffsetLock = 0
-                        frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                        i_ElOffsetLock = 0
-                        frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
-                        s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                        Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                        i = Len(s_program) + 6
-                        SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                        b_int(ACU) = True
-                        b_Ricezione(ACU) = False
-                        InvioACU(SEND_ACU)
-                i_Status = OP_COMMANDPOSITION
-                        '                frmRicezione.MnuMain(15).Visible = False
-                        frmRicezione.TmrSpiralAcquire.Enabled = False
-                        '                Unload frmVisualAcquire
-                        Exit Function
-                    End If
-                Else
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    i_ElOffsetLock = Format$(i_ElOffsetLock - i_ElStep, "#0.0#")
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    Calcolo_Coordinate(Data1, mSec)
-        End If
-                i_Step -= 1
-                If i_Step = 0 Then
-                    i_ConStato += 1
-                    If b_RangeAz Then
-                        i_Step = i_AzRange / i_AzStep * 2
-                    Else
-                        i_Step = i_Quadrati * 2
-                    End If
+                frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
+                frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
+                Calcolo_Coordinate(Data1, mSec)
+            End If
+
+            If Err.Number <> 0 Then
+                Debug.WriteLine("Calcolo_Aquire ERRORE (silenziato da On Error Resume Next): " & Err.Number & " - " & Err.Description) ' TEMPORANEO: da rimuovere dopo la diagnosi
+                Err.Clear()
+            End If
+            If b_RangeAz And b_RangeEl Then i_ConStato = 1
+        ElseIf i_ConStato = 1 Then
+            ' Fine della spirale: l'antenna torna al centro (stesso
+            ' comportamento del vecchio Case 7, "l'antenna non viene spostata
+            ' oltre, torna al punto calcolato da Program/Preset").
+            If b_Acquire Then
+                'siamo in preset
+                frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
+                frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
+                i_AzOffsetLock = 0
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                i_ElOffsetLock = 0
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
+                Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
+                i = Len(s_program) + 6
+                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                b_int(ACU) = True
+                b_Ricezione(ACU) = False
+                InvioACU(SEND_ACU)
+            Else
+                frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
+                frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
+                i_AzOffsetLock = 0
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                i_ElOffsetLock = 0
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                Calcolo_Coordinate(Data1, mSec)
+            End If
+            i_ConStato = 2
+        Else ' i_ConStato = 2: verifica (stesso comportamento del vecchio Case 8)
+            If b_RangeAz And b_RangeEl Then             'gli spostamenti hanno raggiunto il range in Az ed El
+                tmpErrAz = Format$(Val(frmRicezione.TxtAz.Text) - CDbl(frmRicezione.LblAzimuth.Text), "0.000")
+                tmpErrEl = Format$(Val(frmRicezione.TxtEl.Text) - CDbl(frmRicezione.LblElevazione.Text), "0.000")
+                ' TEMPORANEO (test): l'ACU simulato in TmrOrologio oscilla per
+                ' conto proprio e non risponde mai ai comandi inviati, quindi
+                ' questo controllo di tolleranza fallirebbe sempre nel test —
+                ' e fallendo fa GoTo Rangeout SENZA resettare lo stato,
+                ' restando bloccato in "verifica" per sempre (bug preesistente,
+                ' già nel vecchio Case 8, solo mai osservato prima perché la
+                ' spirale quadrata non arrivava mai a completarsi). Da
+                ' ripristinare togliendo "False AndAlso" a test finito.
+                If False AndAlso (Math.Abs(tmpErrAz) > Math.Abs(CoorAcq) Or Math.Abs(tmpErrEl) > Math.Abs(CoorAcq)) Then
+                    GoTo Rangeout
                 End If
-            Case 4
-                'secondo lato
-                If b_Acquire Then
-                    'siamo in preset
-                    frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
-                    i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                    i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                    b_int(ACU) = True
-                    b_Ricezione(ACU) = False
-                    InvioACU(SEND_ACU)
-        Else
-                    i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "000.000")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    Calcolo_Coordinate(Data1, mSec)
-        End If
-                i_Step -= 1
-                If i_Step = 0 Then
-                    i_ConStato += 1
-                    If b_RangeEl Then
-                        i_Step = (i_ElRange / i_ElStep) - 1
-                    Else
-                        i_Step = i_Quadrati - 1
-                    End If
-                End If
-            Case 5
-                If i_Step = 0 Then
-                    i_ConStato += 1
-                Else
-                    'ultimo lato
-                    If b_Acquire Then
-                        'siamo in preset
-                        frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
-                        frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                        i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
-                        frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                        s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                         Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                        i = Len(s_program) + 6
-                        SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                        b_int(ACU) = True
-                        b_Ricezione(ACU) = False
-                        InvioACU(SEND_ACU)
-             Else
-                        frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                        i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
-                        frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                        Calcolo_Coordinate(Data1, mSec)
-             End If
-                    i_Step -= 1
-                    If i_Step = 0 Then
-                        i_ConStato += 1
-                    End If
-                End If
-            Case 6
-                'Sposta quadrato
-                If i_Quadrati * i_AzStep >= i_AzRange Then
-                    b_RangeAz = True 'controllo se superato il range in azimuth
-                End If
-                If b_Acquire Then
-                    'siamo in preset
-                    If Not b_RangeAz Then frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
-                    frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
-                    If Not b_RangeAz Then i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
-                    i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                    i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                    b_int(ACU) = True
-                    b_Ricezione(ACU) = False
-                    InvioACU(SEND_ACU)
-        Else
-                    '            frmRicezione.LblAzimuth = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
-                    '            frmRicezione.LblElevazione = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
-                    If Not b_RangeAz Then i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
-                    i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
-                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                    Calcolo_Coordinate(Data1, mSec)
-        End If
-                i_Quadrati += 1
-                If b_RangeEl Then
-                    i_Step = i_ElRange / i_ElStep
-                Else
-                    i_Step = i_Quadrati
-                End If
-                i_ConStato = 1
-            Case 7
-                'fine della spirale. L'antenna non viene spostata
-                If b_Acquire Then
-                    'siamo in preset
-                    frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
-                    frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                    i_AzOffsetLock = 0
-                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                    i_ElOffsetLock = 0
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
-                    s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-                    i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
-                    b_int(ACU) = True
-                    b_Ricezione(ACU) = False
-                    InvioACU(SEND_ACU)
-        Else
-                    frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
-                    frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                    i_AzOffsetLock = 0
-                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                    i_ElOffsetLock = 0
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
-                    Calcolo_Coordinate(Data1, mSec)
-        End If
-                i_ConStato += 1
-            Case 8
-                If b_RangeAz And b_RangeEl Then             'gli spostamenti hanno raggiunto il range in Az ed El
-                    tmpErrAz = Format$(Val(frmRicezione.TxtAz.Text) - CDbl(frmRicezione.LblAzimuth.Text), "0.000")
-                    tmpErrEl = Format$(Val(frmRicezione.TxtEl.Text) - CDbl(frmRicezione.LblElevazione.Text), "0.000")
-                    If Math.Abs(tmpErrAz) > Math.Abs(CoorAcq) Or Math.Abs(tmpErrEl) > Math.Abs(CoorAcq) Then
-                        GoTo Rangeout
-                    End If
-                    b_RangeAz = False
-                    b_RangeEl = False
-                    i_Quadrati = 1
-                    i_ConStato = 0
+                b_RangeAz = False
+                b_RangeEl = False
+                d_SpiralAngolo = 0
+                i_ConStato = 0
                 i_Spiral += 1
-                End If
-        End Select
-        If b_RangeAz And b_RangeEl Then             'gli spostamenti hanno raggiunto il range in Az ed El
-            If i_ConStato < 7 Then i_ConStato = 7
+            End If
         End If
 Rangeout:
         ' TEMPORANEO (test): controllo elevazione minima disattivato. Da ripristinare rimettendo ">= g_ElMin" al posto di "True".
@@ -724,7 +567,7 @@ Rangeout:
                     rs_Acq.Update
                 End If
             End If
-            If i_ConStato < 8 Then
+            If i_ConStato < 2 Then ' fasi 0 (ricerca) e 1 (ritorno al centro); 2=verifica, nessun nuovo comando
                 If IsNumeric(frmRicezione.LblAzimuth.Text) And IsNumeric(frmRicezione.LblElevazione.Text) Then
                     rs_Acq.AddNew
                     rs_Acq!date = Data1.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)

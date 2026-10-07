@@ -31,6 +31,7 @@ Public Class FrmVisualAcquire
     Private tmpAz As Single
     Private PassoX As Single, PassoY As Single
     Private XPrec As Single, YPrec As Single, DataPrec As String
+    Private CPrec As Integer
     Private tmpX As Single, tmpY As Single, tmp2x As Single, tmp2y As Single
     Private YProv As Single, XProv As Single, DataProv As String
     Private diffX As Single
@@ -407,7 +408,7 @@ Public Class FrmVisualAcquire
         _penColor = Color.Blue
         PassoX = PassoProv / 10
         tmpAz = MinX
-        IX = If(Int(MaxX - MinX) > 1, 0.1, 0.01)
+        IX = 0.1
         If PassoX / ScalaX >= 1 Then
             Do While tmpAz < MaxX
                 If (tmpAz - MinX) > 0 Then
@@ -422,16 +423,13 @@ Public Class FrmVisualAcquire
                             giaDisegnataPrincipale = True
                         End If
                         MoveTo((tmpAz - MinX) / ScalaX + DimCornice - 1.5F, PicH - DimCornice + 2)
-                        If Int(MaxX - MinX) > 1 Then
-                            ' "G" mostrava gli errori di arrotondamento binario
-                            ' dell'accumulo di 0.1 (es. "0,30000001"): formato
-                            ' fisso con al massimo 2 decimali.
-                            If IX < 1 Then DrawStr(IX.ToString("0.##"), i_Size1)
-                            IX += 0.1 : If IX > 1 Then IX = 0.1
-                        Else
-                            If IX <= 0.09 Then DrawStr(IX.ToString("0.##"), i_Size1)
-                            IX += 0.01 : If IX > 0.1 Then IX = 0.01
-                        End If
+                        ' Niente centesimi, qualsiasi sia la scala/range
+                        ' visualizzato: il livello più fine resta sempre ai
+                        ' decimi (0.1). "0.#" evita anche eventuali errori di
+                        ' arrotondamento binario dell'accumulo di 0.1 (es.
+                        ' "0,30000001").
+                        If IX < 1 Then DrawStr(IX.ToString("0.#"), i_Size1)
+                        IX += 0.1 : If IX > 1 Then IX = 0.1
                     ElseIf chkSecondaria.Checked Then
                         _penColor = Color.Silver : LineStep(0, -(PicH - 2 * DimCornice))
                         _penColor = Color.Blue
@@ -513,7 +511,7 @@ Public Class FrmVisualAcquire
         _penColor = Color.Blue
         PassoY = PassoProv / 10
         tmp2y = MinY
-        IX = If(Int(MaxY - MinY) > 1, 0.1F, 0.01F)
+        IX = 0.1F
         If PassoY / ScalaY >= 1 Then
             Do While tmp2y < MaxY
                 If (tmp2y - MinY) > 0 Then
@@ -521,16 +519,13 @@ Public Class FrmVisualAcquire
                     MoveTo(DimCornice - 2, tmpY) : LineStep(2, 0)
                     MoveTo(DimCornice - 6, tmpY - 2)
                     If PassoY / ScalaY >= 4 Then
-                        If Int(MaxY - MinY) > 1 Then
-                            ' "G" mostrava gli errori di arrotondamento binario
-                            ' dell'accumulo di 0.1 (es. "0,30000001"): formato
-                            ' fisso con al massimo 2 decimali.
-                            If IX < 1 Then DrawStr(IX.ToString("0.##"), i_Size1)
-                            IX += 0.1F : If IX > 1 Then IX = 0.1F
-                        Else
-                            If IX <= 0.09F Then DrawStr(IX.ToString("0.##"), i_Size1)
-                            IX += 0.01F : If IX > 0.1F Then IX = 0.01F
-                        End If
+                        ' Niente centesimi, qualsiasi sia la scala/range
+                        ' visualizzato: il livello più fine resta sempre ai
+                        ' decimi (0.1). "0.#" evita anche eventuali errori di
+                        ' arrotondamento binario dell'accumulo di 0.1 (es.
+                        ' "0,30000001").
+                        If IX < 1 Then DrawStr(IX.ToString("0.#"), i_Size1)
+                        IX += 0.1F : If IX > 1 Then IX = 0.1F
                     End If
                 End If
                 If chkSecondaria.Checked Then
@@ -546,6 +541,12 @@ Public Class FrmVisualAcquire
     ' ── disegno grafico principale ───────────────────────────────────────────────
 
     Public Sub VisualizzaGrafico()
+        ' Form minimizzata: ClientSize diventa (0,0) ma Visible resta True,
+        ' quindi il chiamante (TmrSpiralAcquire_Tick) continua a invocare il
+        ' ridisegno — New Bitmap(0,0) lancia ArgumentException. Non c'è nulla
+        ' da disegnare finché la finestra non torna visibile con una
+        ' dimensione reale.
+        If picGrafico.ClientSize.Width <= 0 OrElse picGrafico.ClientSize.Height <= 0 Then Exit Sub
         InitBitmap()
         tmpSelezione = SelezionaSingoliDati()
 
@@ -573,6 +574,7 @@ Public Class FrmVisualAcquire
             YPrec = Punti(0, 0, 0, n).Y
             DataPrec = CDate(Punti(0, 0, 0, n).data).ToString("mm.ss")
             OraPrec = CInt(CDate(Punti(0, 0, 0, n).data).ToString("HH"))
+            CPrec = Punti(0, 0, 0, n).C
             YProv = Punti(0, 0, 0, n).Y
             XProv = Punti(0, 0, 0, n).X
             If InvertiScala AndAlso XProv < MinX Then XProv += 360
@@ -603,7 +605,19 @@ Public Class FrmVisualAcquire
                     If Val(d_Calcolo) < Val(DataPrec) Then
                         d_Calcolo = Format(Val(DataProv) + 60, "##0.00")
                     End If
-                    If Math.Abs(Val(d_Calcolo) - Val(DataPrec)) < i_Intervallo + 1 Then
+                    ' Cambio di giro (Orbite): tra la fine di un giro (ritorno
+                    ' al centro) e l'inizio del successivo si interrompe
+                    ' sempre la linea (MoveTo) invece di congiungerla, sia in
+                    ' Program che in Preset — in Program il punto di
+                    ' ripartenza viene ricalcolato (il satellite si è
+                    ' spostato), in Preset si riprendono le coordinate
+                    ' iniziali: in entrambi i casi la linea retta tra i due
+                    ' punti non rappresenterebbe un reale movimento continuo
+                    ' dell'antenna da tracciare.
+                    If Punti(0, 0, 0, i).C <> CPrec Then
+                        _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
+                        MoveTo(tmpX, tmpY)
+                    ElseIf Math.Abs(Val(d_Calcolo) - Val(DataPrec)) < i_Intervallo + 1 Then
                         LineTo(tmpX, tmpY)
                         _fillSolid = True : DrawCircle(tmpX, tmpY, 0.6F) : _fillSolid = False
                     Else
@@ -615,6 +629,7 @@ Public Class FrmVisualAcquire
                     YPrec = Punti(0, 0, 0, i).Y
                     DataPrec = CDate(Punti(0, 0, 0, i).data).ToString("mm.ss")
                     OraPrec = CInt(CDate(Punti(0, 0, 0, i).data).ToString("HH"))
+                    CPrec = Punti(0, 0, 0, i).C
                 End If
             Next i
 
