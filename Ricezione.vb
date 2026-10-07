@@ -332,8 +332,25 @@ Module Ricezione
         End If
         i_ProgTrack = 1
         '09/06/2022
-        ' TEMPORANEO (test): controllo segnale/lock disattivato per poter testare lo Spiral Acquire senza un segnale reale agganciato. Da ripristinare (basta togliere "False AndAlso") a test finito.
-        If False AndAlso b_Lock Then
+        ' TEMPORANEO (test): simulazione del ricevitore che trova il beacon
+        ' del satellite, in assenza di hardware reale collegato — per poter
+        ' testare anche il ramo "Lock"/Augmented dello Spiral Acquire. Dopo
+        ' un paio di giri di ricerca grossolana (i_Spiral >= 2) si simula il
+        ' segnale trovato: l'errore Az/El "misurato dal ricevitore" viene
+        ' preso uguale all'offset corrente della spirale rispetto al centro
+        ' (fisicamente corretto se si assume che il segnale sia proprio nel
+        ' punto di ricentraggio) — quando la spirale fine ripassa vicino al
+        ' centro l'errore scende sotto soglia e si ottiene un aggancio pieno
+        ' (OP_AUGMENTED), come avverrebbe con un segnale reale. Da rimuovere
+        ' a test finito.
+        If i_Spiral >= 2 Then
+            b_Lock = True
+            s_Lev1 = CStr(g_ThrAuto + 5)
+            frmRicezione.LblLock.Text = "LOCK"
+            s_LevAz1 = CStr(i_AzOffsetLock)
+            s_LevEl1 = CStr(i_ElOffsetLock)
+        End If
+        If b_Lock Then
             If Val(s_Lev1) > g_ThrAuto And RTrim(frmRicezione.LblLock.Text) = "LOCK" And Math.Abs(Val(s_LevAz1)) < g_ThrAz And Math.Abs(Val(s_LevEl1)) < g_ThrEl Then     '26/10/2022
                 'controllo se è stato ricevuto il segnale
                 d_DataInizioProg = ""

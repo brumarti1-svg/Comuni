@@ -404,12 +404,16 @@ Public Class FrmVisualAcquire
             Loop
         End If
 
-        ' Decimi
+        ' Decimi: ha senso solo se il livello Principale lavora a risoluzione
+        ' intera (range visualizzato > 1°). Se il range è già sotto 1°, il
+        ' Principale stesso disegna già ai decimi (es. "31.4") — un
+        ' sotto-livello che lo suddivide ulteriormente in decimi mostrerebbe
+        ' "decimi dei decimi" (di fatto centesimi), troppo fitto.
         _penColor = Color.Blue
         PassoX = PassoProv / 10
         tmpAz = MinX
         IX = 0.1
-        If PassoX / ScalaX >= 1 Then
+        If Int(MaxX - MinX) > 1 AndAlso PassoX / ScalaX >= 1 Then
             Do While tmpAz < MaxX
                 If (tmpAz - MinX) > 0 Then
                     tmpX = (tmpAz - MinX) / ScalaX + DimCornice
@@ -507,12 +511,16 @@ Public Class FrmVisualAcquire
             Loop
         End If
 
-        ' Decimi
+        ' Decimi: ha senso solo se il livello Principale lavora a risoluzione
+        ' intera (range visualizzato > 1°). Se il range è già sotto 1°, il
+        ' Principale stesso disegna già ai decimi — un sotto-livello che lo
+        ' suddivide ulteriormente in decimi mostrerebbe "decimi dei decimi"
+        ' (di fatto centesimi), troppo fitto.
         _penColor = Color.Blue
         PassoY = PassoProv / 10
         tmp2y = MinY
         IX = 0.1F
-        If PassoY / ScalaY >= 1 Then
+        If Int(MaxY - MinY) > 1 AndAlso PassoY / ScalaY >= 1 Then
             Do While tmp2y < MaxY
                 If (tmp2y - MinY) > 0 Then
                     tmpY = (PicH - DimCornice) - (tmp2y - MinY) / ScalaY
