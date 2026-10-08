@@ -129,12 +129,28 @@ Public Class FrmPolare
     ' Logica applicativa
     ' -----------------------------------------------------------------------
 
+    ' Legge il filtro Dal/Al dalle maschere e lo mette in tmpDataIni/
+    ' tmpDataFin. Se un campo è vuoto o incompleto (l'utente non lo ha
+    ' ancora impostato, o lo sta modificando), non si filtra su quel lato
+    ' invece di far fallire la lettura.
+    Private Sub LeggiFiltroDalAl()
+        Dim dIni As Date = Date.MinValue, dFin As Date = Date.MaxValue
+        Dim tsIni As TimeSpan = TimeSpan.Zero, tsFin As TimeSpan = TimeSpan.FromHours(23.99)
+        If IsDate(mskDataIni.Text) Then dIni = CDate(mskDataIni.Text)
+        If IsDate(mskDataFin.Text) Then dFin = CDate(mskDataFin.Text)
+        If mskOraIni.MaskCompleted Then TimeSpan.TryParse(mskOraIni.Text.Replace("."c, ":"c) & ":00", tsIni)
+        If mskOraFin.MaskCompleted Then TimeSpan.TryParse(mskOraFin.Text.Replace("."c, ":"c) & ":00", tsFin)
+        tmpDataIni = If(dIni = Date.MinValue, Date.MinValue, dIni.Add(tsIni))
+        tmpDataFin = If(dFin = Date.MaxValue, Date.MaxValue, dFin.Add(tsFin))
+    End Sub
+
     Private Function SelezionaSingoliDati() As Boolean
         _primoPunto = True
         MaxY = -99999
         MinY = 99999
         MaxX = -99999
         MinX = 99999
+        LeggiFiltroDalAl()
         tmpSQL = "SELECT * FROM [tmpEffemeridi] ORDER BY " &
                  "substr(date,7,4)||substr(date,4,2)||substr(date,1,2), time"
 
@@ -162,23 +178,25 @@ Public Class FrmPolare
             Date.TryParse(_sDate, _dtRow)
             Dim _ts As TimeSpan = TimeSpan.Zero
             TimeSpan.TryParse(_sTime.Replace(".", ":").Replace(",", ":"), _ts)
-            Punti(1, 1, NPunti).data = _dtRow.Date + _ts
+            Dim dtCurr As Date = _dtRow.Date + _ts
+            ' Filtro Dal/Al impostato dall'operatore (default: tutta la
+            ' tabella, se i campi sono vuoti/incompleti).
+            If dtCurr < tmpDataIni OrElse dtCurr > tmpDataFin Then Continue Do
+            Punti(1, 1, NPunti).data = dtCurr
             Punti(1, 1, NPunti).y = CSng(DyVisual("Elevation"))
             Punti(1, 1, NPunti).X = CSng(DyVisual("Azimuth"))
             XProv = CSng(DyVisual("Azimuth"))
             diffX = Math.Abs(XProv - XPrec)
 
-            Dim dtCurr As Date = CDate(Punti(1, 1, NPunti).data)
-            ' tmpEffemeridi è una tabella "scratch" condivisa da più calcoli
-            ' (Program Track, Spiral Acquire, Proiezione...): senza filtro
-            ' per data, righe residue di una sessione precedente (es. un
-            ' satellite diverso) restavano nel mezzo della lettura e
-            ' venivano collegate con una riga dritta al primo punto della
-            ' sessione corrente, attraverso tutto il grafico. Un salto di
-            ' tempo anomalo rispetto al punto precedente (qui: più di 10
-            ' secondi, ben oltre il normale ritmo di campionamento) tronca
-            ' il collegamento invece di disegnarlo.
-            If _dtPrec <> Date.MinValue AndAlso Math.Abs((dtCurr - _dtPrec).TotalSeconds) > 10 Then
+            ' Un'effemeride su 24 ore di un satellite basso contiene più
+            ' passaggi separati (orbita ogni ~101 minuti, visibile solo per
+            ' una decina di minuti a volta): tra un passaggio e il
+            ' successivo c'è un salto di decine di minuti, che non va
+            ' collegato con una linea retta attraverso tutto il grafico.
+            ' Soglia a 1 minuto: più del normale passo di campionamento
+            ' all'interno di un singolo passaggio, meno del distacco tra
+            ' due passaggi diversi.
+            If _dtPrec <> Date.MinValue AndAlso Math.Abs((dtCurr - _dtPrec).TotalSeconds) > 60 Then
                 _primoPunto = True
             End If
             _dtPrec = dtCurr
@@ -351,6 +369,23 @@ Public Class FrmPolare
     End Sub
 
     Private Sub FrmPolare_Shown(sender As Object, e As EventArgs) Handles Me.Shown
+        ' Il filtro Dal/Al ha senso solo per il grafico statico/archivio
+        ' (g_GrafPol=True): in modalità real-time (Trace Orbit) i punti
+        ' arrivano dal timer via s_Az/s_El correnti, non da una lettura
+        ' filtrata di tmpEffemeridi.
+        mskDataIni.Enabled = g_GrafPol
+        mskOraIni.Enabled = g_GrafPol
+        mskDataFin.Enabled = g_GrafPol
+        mskOraFin.Enabled = g_GrafPol
+        BtnFiltra.Enabled = g_GrafPol
+        If g_GrafPol Then
+            ' Default: tutta la giornata odierna (i dati possono coprire
+            ' più passaggi nelle 24 ore, come per un'effemeride).
+            mskDataIni.Text = NowUTC().ToString("ddMMyyyy")
+            mskOraIni.Text = "0000"
+            mskDataFin.Text = NowUTC().ToString("ddMMyyyy")
+            mskOraFin.Text = "2359"
+        End If
         InitCanvas()
         CmdElabora()
     End Sub
@@ -361,6 +396,12 @@ Public Class FrmPolare
             tmrPolare.Interval = If(i_Inter > 0, i_Inter * 1000, 1000)
             tmrPolare.Enabled = True
         End If
+    End Sub
+
+    ' Rielabora il grafico con il filtro Dal/Al corrente (solo modalità
+    ' statica/archivio: il pulsante resta disabilitato in real-time).
+    Private Sub BtnFiltra_Click(sender As Object, e As EventArgs) Handles BtnFiltra.Click
+        CmdElabora()
     End Sub
 
     Private Sub CmdEsci_Click(sender As Object, e As EventArgs) Handles CmdEsci.Click

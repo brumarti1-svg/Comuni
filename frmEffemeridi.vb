@@ -26,6 +26,10 @@ Partial Public Class FrmEffemeridi
     ' Form Load
     ' -------------------------------------------------------
     Private Sub FrmEffemeridi_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Lo svuotamento qui è voluto: senza, riaprendo Ephemeris su un
+        ' satellite diverso si vedrebbero ancora i dati vecchi del
+        ' satellite precedente (confermato: GEO seguito da POLAR mostrava
+        ' ancora i dati di GEO).
         DbExecute("DELETE FROM tmpEffemeridi")
         MnuCalcola.Enabled = True
         MnuInviaTabella.Enabled = False
