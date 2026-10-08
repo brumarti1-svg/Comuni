@@ -270,7 +270,7 @@ Module Calcolo11Par
                 PTK = &H20     'Elementi non validi < 24 ore
             ElseIf DateAdd("d", 1, d_nonvalido) <= Now Then
                 PTK = &H30 'elementi non validi > 24 ore
-                b_Aggiorna = Aggiorna(AggAlgo, Satellite)
+                b_Aggiorna = Aggiorna(AggAlgo, s_Satellite)
                 If b_Aggiorna Then
                     b_Calcola = InitPar11()
 

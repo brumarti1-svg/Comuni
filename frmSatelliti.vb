@@ -69,6 +69,17 @@ Public Class FrmSatelliti
             Dim v As Object = dgvSatelliti.CurrentRow.Cells("NomeSatellite").Value
             If v IsNot Nothing AndAlso Not IsDBNull(v) Then
                 s_Satellite = CStr(v)
+                ' CmdLoad_Click (frmRicezione) rilegge il satellite da
+                ' LblSatellite.Text ("Satellite = LblSatellite.Text"), non da
+                ' s_Satellite: senza questa sincronizzazione, selezionare qui
+                ' un satellite non aveva alcun effetto su "Carica" (restava
+                ' caricato quello precedentemente mostrato nel combo).
+                For Each f As Form In My.Application.OpenForms
+                    If TypeOf f Is frmRicezione Then
+                        CType(f, frmRicezione).LblSatellite.Text = s_Satellite
+                        Exit For
+                    End If
+                Next
             End If
         End If
     End Sub
@@ -315,7 +326,7 @@ ErrSalvo:
             rs_Orbite.MoveNext
         Loop
         rs_Orbite.Close()
-        ric.LblSatellite.Text = Satellite
+        ric.LblSatellite.Text = s_Satellite
         Me.Close()
     End Function
 

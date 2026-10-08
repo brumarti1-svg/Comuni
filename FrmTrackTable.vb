@@ -27,7 +27,7 @@ Public Class FrmTrackTable
     End Sub
 
     Private Sub FrmTrackTable_Load(sender As Object, e As EventArgs) Handles Me.Load
-        LblSatellite.Text = Satellite
+        LblSatellite.Text = s_Satellite
         LoadData()
     End Sub
 

@@ -132,6 +132,11 @@ Public Class FrmPhase
 
         Dim rs As Object = dbOrbite.OpenRecordset(sql, dbOpenDynaset)
         If rs.EOF Then
+            ' Una tabella Fasi vuota (o senza righe per questo satellite) è
+            ' una condizione normale, non un errore: la griglia resta
+            ' semplicemente vuota. Il filtro per satellite in
+            ' frmRicezione.CmdLoad_Click evita comunque di aprire questa
+            ' maschera quando non c'è nulla da scegliere.
             rs.Close()
             Exit Sub
         End If

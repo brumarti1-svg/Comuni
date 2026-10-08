@@ -154,6 +154,7 @@ Public Class FrmPolare
         DyVisual.Close()
         DyVisual = _Cmd.ExecuteReader()
 
+        Dim _dtPrec As Date = Date.MinValue
         Do While DyVisual.Read()
             Dim _sDate = DyVisual("date").ToString().Split(" "c)(0)
             Dim _sTime = DyVisual("Time").ToString()
@@ -168,6 +169,19 @@ Public Class FrmPolare
             diffX = Math.Abs(XProv - XPrec)
 
             Dim dtCurr As Date = CDate(Punti(1, 1, NPunti).data)
+            ' tmpEffemeridi è una tabella "scratch" condivisa da più calcoli
+            ' (Program Track, Spiral Acquire, Proiezione...): senza filtro
+            ' per data, righe residue di una sessione precedente (es. un
+            ' satellite diverso) restavano nel mezzo della lettura e
+            ' venivano collegate con una riga dritta al primo punto della
+            ' sessione corrente, attraverso tutto il grafico. Un salto di
+            ' tempo anomalo rispetto al punto precedente (qui: più di 10
+            ' secondi, ben oltre il normale ritmo di campionamento) tronca
+            ' il collegamento invece di disegnarlo.
+            If _dtPrec <> Date.MinValue AndAlso Math.Abs((dtCurr - _dtPrec).TotalSeconds) > 10 Then
+                _primoPunto = True
+            End If
+            _dtPrec = dtCurr
             DataProv = CSng(dtCurr.Minute + dtCurr.Second / 100.0)
             OraIni = dtCurr.Hour.ToString("D2") & "." & dtCurr.Minute.ToString("D2")
             tmp_Azi = CSng(DyVisual("Azimuth"))

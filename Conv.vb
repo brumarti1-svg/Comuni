@@ -10,7 +10,7 @@
         Try
             Dim tmpSQL As String = "SELECT * FROM [Sat2line] order by Sat_Name"
             rs_Conv = dbOrbite.OpenRecordset(tmpSQL, dbOpenDynaset)
-            rs_Conv.FindFirst("Sat_Name ='" & Satellite & "'")
+            rs_Conv.FindFirst("Sat_Name ='" & s_Satel & "'")
             If rs_Conv.NoMatch Then
                 FrmMain.stpMessaggio.Text = "Satellite not found"
                 FrmMain.TmrMsg.Enabled = True

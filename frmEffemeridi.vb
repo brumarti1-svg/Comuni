@@ -42,7 +42,7 @@ Partial Public Class FrmEffemeridi
         Select Case i_Ephemeris
             Case 0 : LblSatellite.Text = "Alfa Cassiopiae (Schedar)"
             Case 1 : LblSatellite.Text = "Moon"
-            Case 2 : LblSatellite.Text = Satellite
+            Case 2 : LblSatellite.Text = s_Satellite
             Case 3 : LblSatellite.Text = "Sun"
             Case 4 : LblSatellite.Text = "Venus"
         End Select
@@ -581,7 +581,7 @@ Partial Public Class FrmEffemeridi
         Cursor = Cursors.WaitCursor
         Try
             Using sw As New StreamWriter(g_Parametri, False)
-                sw.WriteLine("Effemeridi del " & Now.ToString("dd-MMM-yyyy") & " del satellite " & Satellite)
+                sw.WriteLine("Effemeridi del " & Now.ToString("dd-MMM-yyyy") & " del satellite " & s_Satellite)
                 sw.WriteLine("   Data           Ora          Az.         El.")
                 Using Cmd As New SQLiteCommand("SELECT date, time, azimuth, elevation FROM tmpEffemeridi ORDER BY date, time", CType(dbOrbite, DAODatabase).Connection)
                     Using dr = Cmd.ExecuteReader()

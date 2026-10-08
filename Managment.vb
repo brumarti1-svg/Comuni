@@ -272,7 +272,7 @@ End Function
         Dim d_partenza As Date, d_nonvalido As Date
         InitPar11 = False
         rs_INITPAR = dbOrbite.OpenRecordset("Sat11Par", dbOpenDynaset)
-        rs_INITPAR.FindFirst("Name ='" & Satellite & "'")
+        rs_INITPAR.FindFirst("Name ='" & s_Satellite & "'")
     If Not rs_INITPAR.NoMatch Then
             With NowPar11
                 .EPOCYE = rs_INITPAR!year
@@ -308,13 +308,13 @@ End Function
             InitPar11 = True
         Else
             '        Response = MessageBox.Show("Non sono disponibili i parametri per il Satellite selezionato!", vbOKOnly)
-            FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & Satellite
+            FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
             FrmMain.TmrMsg.Enabled = True
         End If
         Exit Function
 Par11Error:
         '    Response = MessageBox.Show("Non sono disponibili i parametri per il Satellite selezionato!", vbOKOnly)
-        FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & Satellite
+        FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
         FrmMain.TmrMsg.Enabled = True
     End Function
 
@@ -782,17 +782,17 @@ End Function
         rsTLE.Update
         rsTLE.Close
         FileClose(hFile)
-    If s_Satellite = Satellite Then
-            Define_Derived_Constants
-            b_Sat = Convert_Satellite_Data(Satellite)
-            b_Calcola = b_Sat
-            If b_Calcola Then
-                FrmRicezione.LblSatellite.BackColor = Color.LightGreen
-            Else
-                frmRicezione.LblSatellite.BackColor = Color.Yellow
-            End If
-            If Not b_Sat Then GoTo ErrTle
+        ' "s_Satellite = Satellite" era un confronto tra due variabili
+        ' ridondanti (unificate in s_Satellite): sempre vero, quindi rimosso.
+        Define_Derived_Constants
+        b_Sat = Convert_Satellite_Data(s_Satellite)
+        b_Calcola = b_Sat
+        If b_Calcola Then
+            FrmRicezione.LblSatellite.BackColor = Color.LightGreen
+        Else
+            frmRicezione.LblSatellite.BackColor = Color.Yellow
         End If
+        If Not b_Sat Then GoTo ErrTle
         AggiornaTLE = True     'Compara azimuth controlla che i primi due valori dellla traiettoria siano compatibili - Diff <=1
         Exit Function
 ErrTle:

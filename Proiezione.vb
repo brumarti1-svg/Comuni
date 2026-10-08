@@ -312,9 +312,10 @@ SkipPivot:
             sx += XI
             sx2 += xi2
             sx3 += xi3
-            sx4 = xi3 * XI
-            sx5 += sx5 + xi3 * xi2
-            sx6 += sy + y(i)
+            sx4 += xi3 * XI        ' Σx⁴ — era "sx4 = ..." (sovrascriveva invece di sommare)
+            sx5 += xi3 * xi2       ' Σx⁵ — era "sx5 += sx5 + ..." (raddoppiava sé stesso ad ogni giro)
+            sx6 += xi3 * xi3       ' Σx⁶ — era "sx6 += sy + y(i)" (non una potenza di x, mescolava dentro y)
+            sy += y(i)              ' Σy — mancava del tutto: restava sempre 0, termine noto della prima equazione corrotto
             sxy += XI * y(i)
             sx2y += xi2 * y(i)
             sx3y += xi3 * y(i)
@@ -368,7 +369,15 @@ SkipPivot3:
     ' ============================================================
     Sub CalcolaSuccessivo(pts() As TrackPoint, nPts As Long,
                       nFit As Long, grado As Integer,
-                      nextPt As TrackPoint)
+                      ByRef nextPt As TrackPoint)
+        ' "nextPt As TrackPoint" senza ByRef: essendo una Structure (tipo
+        ' valore), veniva passata per copia — ogni calcolo qui dentro
+        ' (gradi 1/2/3/4) scriveva solo sulla copia locale, mai sulla
+        ' variabile globale Public nextPt che InvioPro() legge davvero.
+        ' Risultato: il calcolo era sempre corretto internamente ma
+        ' InvioPro mostrava sempre lo stato precedente (0/vuoto),
+        ' qualunque fosse il grado scelto. Con ByRef le scritture tornano
+        ' alla variabile del chiamante.
         Dim i As Long
         Dim k As Long
 
@@ -382,16 +391,44 @@ SkipPivot3:
         ReDim azArr(nFit - 1)
         ReDim elArr(nFit - 1)
 
+        ' Tempi ricentrati rispetto al campione più recente, IN SECONDI
+        ' (non più il numero seriale assoluto ~46000, quasi identico tra un
+        ' campione e l'altro, né la differenza in giorni, troppo piccola:
+        ' ~0,00001). Il grado 3 soprattutto arriva a sommare x^6 nelle
+        ' equazioni normali: con numeri enormi (46000^6≈1e31) o minuscoli
+        ' (0,00001^6≈1e-30) la matrice resta mal condizionata, ben oltre le
+        ' ~15-17 cifre significative di un Double — in entrambi i casi
+        ' risultati assurdi (es. elevazione sbattuta al clamp di 90°, o
+        ' segno invertito). In secondi, su una finestra di decine di
+        ' secondi, i valori restano in un intervallo numericamente sano
+        ' (decine, non 1e31 né 1e-30) e il fit è stabile.
+        Dim t0 As Double = pts(nPts - 1).T
         k = 0
         For i = nPts - nFit To nPts - 1
-            xArr(k) = pts(i).T
+            xArr(k) = (pts(i).T - t0) * 86400.0#
             azArr(k) = pts(i).az
             elArr(k) = pts(i).el
             k += 1
         Next i
 
+        ' Unwrap azimut: un passaggio che attraversa 0°/360° (es. 358°→2°)
+        ' viene letto da un fit come un salto di quasi -356° invece che di
+        ' +4°, mandando in overflow la regressione (o, per il grado 4, la
+        ' media). Si "srotola" la sequenza rendendola continua oltre
+        ' 0-360 prima del fit; il risultato finale rientra comunque
+        ' nell'intervallo 0-360 grazie al "mantieni azimut" più sotto.
+        For k = 1 To nFit - 1
+            Do While azArr(k) - azArr(k - 1) > 180.0#
+                azArr(k) -= 360.0#
+            Loop
+            Do While azArr(k) - azArr(k - 1) < -180.0#
+                azArr(k) += 360.0#
+            Loop
+        Next k
+
         Dim tNext As Double
         tNext = pts(nPts - 1).T + (1.0# / 86400.0#)
+        Dim tNextRel As Double = (tNext - t0) * 86400.0#   ' = 1.0 esatto (1 secondo), stessa unità di xArr
 
         nextPt.T = tNext
 
@@ -402,8 +439,8 @@ SkipPivot3:
                 Dim aEl1 As Double, bEl1 As Double
                 LinearRegression(xArr, azArr, nFit, aAz1, bAz1)
             LinearRegression(xArr, elArr, nFit, aEl1, bEl1)
-            nextPt.az = aAz1 + bAz1 * tNext
-                nextPt.el = aEl1 + bEl1 * tNext
+            nextPt.az = aAz1 + bAz1 * tNextRel
+                nextPt.el = aEl1 + bEl1 * tNextRel
 
             Case 2
                 ' Parabolico
@@ -411,8 +448,8 @@ SkipPivot3:
                 Dim aEl2 As Double, bEl2 As Double, cEl2 As Double
                 PolyRegression2(xArr, azArr, nFit, aAz2, bAz2, cAz2)
             PolyRegression2(xArr, elArr, nFit, aEl2, bEl2, cEl2)
-            nextPt.az = aAz2 + bAz2 * tNext + cAz2 * tNext * tNext
-                nextPt.el = aEl2 + bEl2 * tNext + cEl2 * tNext * tNext
+            nextPt.az = aAz2 + bAz2 * tNextRel + cAz2 * tNextRel * tNextRel
+                nextPt.el = aEl2 + bEl2 * tNextRel + cEl2 * tNextRel * tNextRel
 
             Case 3
                 ' Cubico
@@ -420,10 +457,24 @@ SkipPivot3:
                 Dim aEl3 As Double, bEl3 As Double, cEl3 As Double, dEl3 As Double
                 PolyRegression3(xArr, azArr, nFit, aAz3, bAz3, cAz3, dAz3)
             PolyRegression3(xArr, elArr, nFit, aEl3, bEl3, cEl3, dEl3)
-            nextPt.az = aAz3 + bAz3 * tNext + cAz3 * tNext * tNext + dAz3 * tNext * tNext * tNext
-                nextPt.el = aEl3 + bEl3 * tNext + cEl3 * tNext * tNext + dEl3 * tNext * tNext * tNext
+            nextPt.az = aAz3 + bAz3 * tNextRel + cAz3 * tNextRel * tNextRel + dAz3 * tNextRel * tNextRel * tNextRel
+                nextPt.el = aEl3 + bEl3 * tNextRel + cEl3 * tNextRel * tNextRel + dEl3 * tNextRel * tNextRel * tNextRel
             Case 4
-                ' Geostazionario - frmPredict not in project
+                ' Geostazionario: mai implementato nel porting ("frmPredict
+                ' not in project") — nextPt.az/el restavano a zero (il
+                ' default di TrackPoint), mostrando "000.000"/"00.000"
+                ' invece di una previsione. Per un bersaglio geostazionario
+                ' (quasi fermo) la previsione è la media mobile sugli ultimi
+                ' nFit punti (azArr/elArr, già preparati sopra con la stessa
+                ' finestra usata dagli altri gradi): filtra il rumore della
+                ' telemetria invece di affidarsi a un singolo campione.
+                Dim sommaAz As Double = 0.0#, sommaEl As Double = 0.0#
+                For i = 0 To nFit - 1
+                    sommaAz += azArr(i)
+                    sommaEl += elArr(i)
+                Next i
+                nextPt.az = sommaAz / nFit
+                nextPt.el = sommaEl / nFit
         End Select
 
         ' Mantieni azimut in range 0-360
