@@ -965,21 +965,57 @@ Rangeout:
         End If
     End Function
     Public Function AnalisiOrdini(Ordine As String) As Boolean
-        Dim Send_ORDINI As String
         Try
-        AnalisiOrdini = False
-        lun = Len(Ordine)
-        i = InStr(2, Ordine, " ", 1)
-        If i = 0 Then
-            s_analisi = Mid$(Ordine, 1, lun)
-        Else
-            s_analisi = Mid$(Ordine, 1, i - 1)
-        End If
-        i_DestOrdine = ACU
+            AnalisiOrdini = False
+            lun = Len(Ordine)
+            i = InStr(2, Ordine, " ", 1)
+            If i = 0 Then
+                s_analisi = Mid$(Ordine, 1, lun)
+            Else
+                s_analisi = Mid$(Ordine, 1, i - 1)
+            End If
+            i_DestOrdine = ACU
+
+            If PrefissiOrdiniMovimento.Contains(s_analisi) Then
+                AnalisiOrdini = AnalisiOrdiniMovimento(Ordine)
+            Else
+                AnalisiOrdini = AnalisiOrdiniParametri(Ordine)
+            End If
+        Catch ex As Exception
+            WriteError(0, "AnalisiOrdini: " & ex.Message)
+        End Try
+    End Function
+
+    ' Prefissi comando gestiti da AnalisiOrdiniMovimento (comandi di stato/
+    ' movimento: Stand By, Step/Auto/Program Track, posizionamento P/X/WS/
+    ' US/BP, Antenna, Beacon Memory, Satellite). Qualunque altro prefisso
+    ' ricade su AnalisiOrdiniParametri — stesso ordine di valutazione del
+    ' doppio Select Case originale (il primo senza Case Else, il secondo
+    ' con un Case Else che accetta/echo qualunque comando residuo).
+    Private ReadOnly PrefissiOrdiniMovimento As HashSet(Of String) = New HashSet(Of String)(StringComparer.Ordinal) From {
+        "*", "?", ">", "<",
+        " S", "AS", "ES",
+        " ST", "AST", "EST", " PS", "APS", "EPS", " AQ", "AAQ", "EAQ", " PI", "API", "EPI", " PO", "APO", "EPO", "AOF", "EOF", "POF",
+        " M", "AM", "EM", " W", "AW", "EW", " U", "AU", "EU",
+        " P", " X", "WS", "US", "BP",
+        "AP", "AX",
+        "EP", "EX",
+        "PP",
+        " A", "AA", "EA",
+        "BM",
+        " SAT", "ASAT", "ESAT", "SATK"
+    }
+
+    ' Comandi di movimento/stato — era il primo dei due Select Case in
+    ' AnalisiOrdini. Estratta identica (nessuna modifica di logica): ogni
+    ' Case qui dentro è invariato rigo per rigo rispetto all'originale.
+    Private Function AnalisiOrdiniMovimento(Ordine As String) As Boolean
+        Dim Send_ORDINI As String
+        AnalisiOrdiniMovimento = False
         Select Case s_analisi
             Case "*", "?", ">", "<"
                 b_Ricezione(ACU) = True
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 Exit Function
             Case " S", "AS", "ES"
                 PTK = &H0
@@ -1000,7 +1036,7 @@ Rangeout:
                 AzOff = 0
                 ElOff = 0
                 '
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 frmRicezione.LblCommand.Text = "Stand By"
                 i_Status = OP_STANDBY
                 Send_ORDINI = Mid$(Ordine, 1, 2)
@@ -1008,12 +1044,12 @@ Rangeout:
                 Exit Function
             Case " ST", "AST", "EST", " PS", "APS", "EPS", " AQ", "AAQ", "EAQ", " PI", "API", "EPI", " PO", "APO", "EPO",
             "AOF", "EOF", "POF"
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 Send_ORDINI = Mid$(Ordine, 1, 3)
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
                 Exit Function
             Case " M", "AM", "EM", " W", "AW", "EW", " U", "AU", "EU"
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 Send_ORDINI = Mid$(Ordine, 1, 2)
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
                 Exit Function
@@ -1039,7 +1075,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniMovimento = True
                     Exit Function
                 Else
                     d_Az = Mid$(Ordine, 4, 6)
@@ -1062,7 +1098,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniMovimento = True
                     Exit Function
                 End If
             Case "AP", "AX"
@@ -1080,7 +1116,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniMovimento = True
                     Exit Function
                 Else
                     d_Az = Mid$(Ordine, 4, 6)
@@ -1096,7 +1132,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniMovimento = True
                     Exit Function
                 End If
             Case "EP", "EX"
@@ -1114,7 +1150,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniMovimento = True
                     Exit Function
                 Else
                     d_El = Mid$(Ordine, 4, 5)
@@ -1130,7 +1166,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniMovimento = True
                     Exit Function
                 End If
             Case "PP"
@@ -1151,15 +1187,15 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 Exit Function
             Case " A", "AA", "EA"
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 Send_ORDINI = Mid$(Ordine, 1, 2) & " "
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
                 Exit Function
             Case "BM"
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 Send_ORDINI = Mid$(Ordine, 1, 4)
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
                 Exit Function
@@ -1176,10 +1212,19 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniMovimento = True
                 Exit Function
         End Select
+    End Function
 
+    ' Comandi di parametro/configurazione — era il secondo dei due Select
+    ' Case in AnalisiOrdini, con un Case Else che accetta/echo qualunque
+    ' comando non altrimenti riconosciuto (per questo non ha bisogno di un
+    ' valore "nessun match": risolve sempre). Estratta identica (nessuna
+    ' modifica di logica).
+    Private Function AnalisiOrdiniParametri(Ordine As String) As Boolean
+        Dim Send_ORDINI As String
+        AnalisiOrdiniParametri = False
         Select Case s_analisi
             Case "IT"
                 If lun < 5 Then Exit Function
@@ -1194,7 +1239,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "ST"
                 If lun < 5 Then Exit Function
@@ -1209,7 +1254,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "SS"
                 If lun < 5 Then Exit Function
@@ -1224,7 +1269,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "XT"
                 If lun < 5 Then Exit Function
@@ -1239,7 +1284,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "YT"
                 If lun < 5 Then Exit Function
@@ -1254,7 +1299,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "RT"
                 If lun < 5 Then Exit Function
@@ -1269,7 +1314,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "AO", "EO"
                 If lun > 12 Then
@@ -1289,7 +1334,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 Else
                     d_Az = Mid$(Ordine, 8, 5)
@@ -1308,7 +1353,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 End If
             Case "PO"
@@ -1329,7 +1374,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "AOS", "EOS"
                 If lun > 10 Then
@@ -1349,7 +1394,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 Else
                     d_Az = Mid$(Ordine, 6, 5)
@@ -1368,7 +1413,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 End If
             Case "POS"
@@ -1389,7 +1434,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "SATS"
                 If lun < 23 Then Ordine += " +00.0"
@@ -1428,7 +1473,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 Else
                     d_El = Mid$(Ordine, 6, 2)
@@ -1464,11 +1509,11 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 End If
             Case "SATKA"
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Send_ORDINI = Mid$(Ordine, 1, 5)
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
                 Exit Function
@@ -1508,7 +1553,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 Else
                     d_El = Mid$(Ordine, 4, 2)
@@ -1545,7 +1590,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 End If
             Case "MK"
@@ -1570,7 +1615,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "MT"
                 If lun < 6 Then Exit Function
@@ -1585,7 +1630,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "STEP"
                 If lun > 7 Then
@@ -1600,7 +1645,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 Else
                     d_El = Mid$(Ordine, 6, 2)
@@ -1614,7 +1659,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 End If
             Case "SPUP", "SPDW"
@@ -1630,7 +1675,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 Else
                     d_El = Mid$(Ordine, 6, 5)
@@ -1644,7 +1689,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 End If
             Case "SPCW", "SPCC"
@@ -1660,7 +1705,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 Else
                     d_Az = Mid$(Ordine, 6, 6)
@@ -1674,7 +1719,7 @@ Rangeout:
                     Else
                         Exit Function
                     End If
-                    AnalisiOrdini = True
+                    AnalisiOrdiniParametri = True
                     Exit Function
                 End If
             Case "SPPCW", "SPPCC"
@@ -1695,23 +1740,23 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "T", "TIME"        'modificato 19/04
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Ordine = "TIME " & NowUTC().ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
                 Exit Function
             Case "DATE"
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Ordine = "DATE " & NowUTC().ToString("dd/MM/yy", System.Globalization.CultureInfo.InvariantCulture)
                 Exit Function
             Case "MRY", "MRN", "SLY", "SLN", "SSY", "SSN", "RES", "MKA"
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Send_ORDINI = Mid$(Ordine, 1, 3)
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
                 Exit Function
             Case "R", "L"
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Send_ORDINI = Mid$(Ordine, 1, 1)
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
                 Exit Function
@@ -1728,7 +1773,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "ATTA", "ATTE"
                 If lun < 7 Then Exit Function
@@ -1743,7 +1788,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "ATRT"
                 If lun < 7 Then Exit Function
@@ -1758,7 +1803,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "ATRA", "ATRE"
                 If lun < 7 Then Exit Function
@@ -1773,7 +1818,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "ASDP", "ESDP"
                 If lun < 7 Then Exit Function
@@ -1788,7 +1833,7 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "ALI", "ELI"
                 If lun < 6 Then Exit Function
@@ -1803,44 +1848,39 @@ Rangeout:
                 Else
                     Exit Function
                 End If
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
                 frmRicezione.TxtOrdini.Text = SEND
                 Exit Function
             Case "AT1E", "ET1E", "AT1D", "ET1D", "AS1E", "ES1E", "AS1D", "ES1D"     'Abilitano (E) o disabilitano (D) i motori 1
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 SEND = Mid$(Ordine, 1, 4)
                 frmRicezione.TxtOrdini.Text = SEND
                 Exit Function
             Case "AT2E", "ET2E", "AT2D", "ET2D", "AS2E", "ES2E", "AS2D", "ES2D"     'Abilitano (E) o disabilitano (D) i motori 2
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 SEND = Mid$(Ordine, 1, 4)
                 frmRicezione.TxtOrdini.Text = SEND
                 Exit Function
             Case "O", "P"
                 i_DestOrdine = GRF
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case "B"
                 i_DestOrdine = GRF
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 CambioFreq(Mid$(Ordine, 3, 8))
             Exit Function
             Case "Z"
                 i_DestOrdine = PCU
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
             Case Else
                 Send_ORDINI = Ordine
                 frmRicezione.TxtOrdini.Text = Send_ORDINI
-                AnalisiOrdini = True
+                AnalisiOrdiniParametri = True
                 Exit Function
         End Select
-        AnalisiOrdini = True
-        Exit Function
-        Catch ex As Exception
-            WriteError(0, "AnalisiOrdini: " & ex.Message)
-        End Try
     End Function
     Public Function Calcolo_Coordinate(Data1 As Date, mSec As Integer) As Boolean
         'Apportata modifica per avere un calcolo differenziato sia sulla data, che viene inviata sulla chiamata
