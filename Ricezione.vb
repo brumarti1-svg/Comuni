@@ -600,6 +600,7 @@ Rangeout:
                     ' CSng(DBNull) lancia InvalidCastException, interrompendo
                     ' l'intero ridisegno del grafico ad ogni redraw.
                     rs_Acq!Intervallo = i_InterAcq
+                    rs_Acq!source = "ACQUIRE"
                     rs_Acq.Update
                     rs_Acq.Close
                 End If

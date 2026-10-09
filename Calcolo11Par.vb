@@ -250,6 +250,7 @@ Module Calcolo11Par
             rs_11Par!Elevation = el
             rs_11Par!Long = LONSAT
             rs_11Par!lat = LATSAT
+            rs_11Par!source = "EFFEMERIDI"
             rs_11Par.Update
         Next Count
         rs_11Par.Close

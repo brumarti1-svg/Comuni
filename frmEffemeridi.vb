@@ -123,7 +123,7 @@ Partial Public Class FrmEffemeridi
         dt.Columns.Add("lat")
         Try
             Dim conn As SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
-            Using Cmd As New SQLiteCommand("SELECT date, time, azimuth, elevation, long, lat FROM tmpEffemeridi ORDER BY date, time", conn)
+            Using Cmd As New SQLiteCommand("SELECT date, time, azimuth, elevation, long, lat FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' ORDER BY date, time", conn)
                 Using dr = Cmd.ExecuteReader()
                     Dim ic As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
                     Do While dr.Read()
@@ -284,7 +284,7 @@ Partial Public Class FrmEffemeridi
             Dim azOff As Double = If(IsNumeric(TxtAzOffset.Text), CDbl(TxtAzOffset.Text), 0)
             Dim elOff As Double = If(IsNumeric(TxtElOffset.Text), CDbl(TxtElOffset.Text), 0)
             Using tx As SQLiteTransaction = connN.BeginTransaction()
-                Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo) VALUES (@d,@t,@az,@el,@lo,@la,@in)", connN)
+                Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", connN)
                     Cmd.Transaction = tx
                     For tsince = tsince1 To tsince2 Step Minuti
                         If ideep = 0 Then
@@ -361,7 +361,7 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo) VALUES (@d,@t,@az,@el,@lo,@la,@in)", CType(dbOrbite, DAODatabase).Connection)
+            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
                 Dim Count As Double = tsince
                 Do While Count <= tsince1
                     Dim pos As New Vector()
@@ -413,7 +413,7 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo) VALUES (@d,@t,@az,@el,@lo,@la,@in)", CType(dbOrbite, DAODatabase).Connection)
+            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
                 Dim Count As Double = tsince
                 Do While Count <= tsince1
                     Dim pos As New Vector()
@@ -465,7 +465,7 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo) VALUES (@d,@t,@az,@el,@lo,@la,@in)", CType(dbOrbite, DAODatabase).Connection)
+            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
                 Dim Count As Double = tsince
                 Do While Count <= tsince1
                     Dim pos As New Vector()
@@ -517,7 +517,7 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo) VALUES (@d,@t,@az,@el,@lo,@la,@in)", CType(dbOrbite, DAODatabase).Connection)
+            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
                 Dim Count As Double = tsince
                 Do While Count <= tsince1
                     Dim pos As New Vector()
@@ -548,7 +548,7 @@ Partial Public Class FrmEffemeridi
     Public Function InviaTabella() As String
         Try
             InviaTabella = ""
-            Using Cmd As New SQLiteCommand("SELECT time, azimuth, elevation FROM tmpEffemeridi ORDER BY date, time", CType(dbOrbite, DAODatabase).Connection)
+            Using Cmd As New SQLiteCommand("SELECT time, azimuth, elevation FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' ORDER BY date, time", CType(dbOrbite, DAODatabase).Connection)
                 Using dr = Cmd.ExecuteReader()
                     Dim rowCount As Integer = 0
                     Do While dr.Read()
@@ -587,7 +587,7 @@ Partial Public Class FrmEffemeridi
             Using sw As New StreamWriter(g_Parametri, False)
                 sw.WriteLine("Effemeridi del " & Now.ToString("dd-MMM-yyyy") & " del satellite " & s_Satellite)
                 sw.WriteLine("   Data           Ora          Az.         El.")
-                Using Cmd As New SQLiteCommand("SELECT date, time, azimuth, elevation FROM tmpEffemeridi ORDER BY date, time", CType(dbOrbite, DAODatabase).Connection)
+                Using Cmd As New SQLiteCommand("SELECT date, time, azimuth, elevation FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' ORDER BY date, time", CType(dbOrbite, DAODatabase).Connection)
                     Using dr = Cmd.ExecuteReader()
                         Do While dr.Read()
                             sw.WriteLine(dr("date").ToString() & "  " &

@@ -214,7 +214,9 @@ Public Class FrmVisualizzazione
 
         ' SQLite: ordina per data convertita in formato YYYYMMDD (substr di "dd/mm/yyyy")
         ' I record fuori dall'intervallo [tmpDataIni, tmpDataFin] vengono saltati nel loop.
-        tmpSQL = "SELECT * FROM [tmpEffemeridi] ORDER BY " &
+        ' source='EFFEMERIDI' esclude righe scritte da frmAcquire/
+        ' Calcolo_Aquire (Spiral Acquire), tabella scratch condivisa.
+        tmpSQL = "SELECT * FROM [tmpEffemeridi] WHERE source = 'EFFEMERIDI' ORDER BY " &
                  "substr(date,7,4)||substr(date,4,2)||substr(date,1,2), time"
 
         _Cmd?.Dispose()
@@ -591,7 +593,8 @@ Public Class FrmVisualizzazione
             End If
 
             ' Primo record disponibile in tmpEffemeridi per preimpostare le date
-            Dim sql As String = "SELECT * FROM [tmpEffemeridi] ORDER BY " &
+            ' (solo righe di questa feature, vedi filtro source in SelezionaSingoliDati)
+            Dim sql As String = "SELECT * FROM [tmpEffemeridi] WHERE source = 'EFFEMERIDI' ORDER BY " &
                                 "substr(date,7,4)||substr(date,4,2)||substr(date,1,2), time LIMIT 1"
             Using Cmd As New SQLiteCommand(sql, dbOrbite.Connection)
                 Using r As SQLiteDataReader = Cmd.ExecuteReader()

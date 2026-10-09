@@ -220,12 +220,10 @@ Public Class FrmVisualAcquire
 
         ' tmpEffemeridi è una tabella "scratch" condivisa anche da altre
         ' funzioni (calcolo effemeridi/orbita, grafici polari/cartesiani):
-        ' senza filtro per l'intervallo Dal/Al impostato dall'operatore, se
-        ' contiene ancora righe residue di un altro calcolo (es. una traccia
-        ' satellite di un giorno intero) vengono disegnate quelle invece
-        ' della spirale di ricerca, producendo una curva che non c'entra
-        ' nulla con lo Spiral Acquire.
-        tmpSql = "SELECT * FROM tmpEffemeridi ORDER BY date, time"
+        ' il filtro source='ACQUIRE' esclude le righe scritte da
+        ' frmEffemeridi/Calcolo11Par, che altrimenti produrrebbero una
+        ' curva che non c'entra nulla con lo Spiral Acquire.
+        tmpSql = "SELECT * FROM tmpEffemeridi WHERE source = 'ACQUIRE' ORDER BY date, time"
 
         _Cmd?.Dispose()
         DyVisual?.Close()
@@ -696,8 +694,9 @@ Public Class FrmVisualAcquire
             Else
                 ' Nessun Acquire configurato in questa sessione (form aperta
                 ' da menu indipendente): come ultima risorsa prova a leggere
-                ' la prima riga disponibile in tmpEffemeridi.
-                tmpSql = "SELECT * FROM tmpEffemeridi ORDER BY date, time"
+                ' la prima riga disponibile in tmpEffemeridi (solo quelle di
+                ' questa feature, vedi filtro source sopra).
+                tmpSql = "SELECT * FROM tmpEffemeridi WHERE source = 'ACQUIRE' ORDER BY date, time"
                 Using Cmd As New SQLiteCommand(tmpSql, CType(dbOrbite, DAODatabase).Connection)
                     Using reader As SQLiteDataReader = Cmd.ExecuteReader()
                         If reader.Read() Then

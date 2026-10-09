@@ -156,7 +156,9 @@ Public Class FrmPolare
         MaxX = -99999
         MinX = 99999
         LeggiFiltroDalAl()
-        tmpSQL = "SELECT * FROM [tmpEffemeridi] ORDER BY " &
+        ' source='EFFEMERIDI' esclude righe scritte da frmAcquire/
+        ' Calcolo_Aquire (Spiral Acquire), tabella scratch condivisa.
+        tmpSQL = "SELECT * FROM [tmpEffemeridi] WHERE source = 'EFFEMERIDI' ORDER BY " &
                  "substr(date,7,4)||substr(date,4,2)||substr(date,1,2), time"
 
         _Cmd?.Dispose()

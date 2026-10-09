@@ -189,8 +189,8 @@ Partial Public Class frmAcquire
                 ' formato "dd/MM/yyyy"/"HH:mm:ss" di Calcolo_Aquire.
                 Dim oraInizioUtc As Date = NowUTC()
                 Using Cmd As New SQLiteCommand(
-                    "INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, orbite, intervallo) " &
-                    "VALUES (@d, @t, @az, @el, 0, 0, 1, 0)", CType(dbOrbite, DAODatabase).Connection)
+                    "INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, orbite, intervallo, source) " &
+                    "VALUES (@d, @t, @az, @el, 0, 0, 1, 0, 'ACQUIRE')", CType(dbOrbite, DAODatabase).Connection)
                     Cmd.Parameters.AddWithValue("@d", oraInizioUtc.ToString("dd/MM/yyyy", Globalization.CultureInfo.InvariantCulture))
                     Cmd.Parameters.AddWithValue("@t", oraInizioUtc.ToString("HH:mm:ss", Globalization.CultureInfo.InvariantCulture))
                     Cmd.Parameters.AddWithValue("@az", Format(g_AzTable, "000.000"))
