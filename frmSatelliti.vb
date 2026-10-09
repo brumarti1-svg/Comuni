@@ -29,36 +29,39 @@ Public Class FrmSatelliti
 
     ' Ricarica il DataGridView dalla tabella Satelliti
     Private Sub LoadSatelliti()
-        On Error Resume Next
-        dgvSatelliti.Columns.Clear()
-        dgvSatelliti.Rows.Clear()
-        dgvSatelliti.Columns.Add("NomeSatellite", "Satellite Name")
-        dgvSatelliti.Columns.Add("Algoritmo", "Algorithm")
-        dgvSatelliti.Columns.Add("FileAgg", "File Orbit Parameter")
-        dgvSatelliti.Columns.Add("PolAngle", "PolAngle")
-        Dim colVerso As New DataGridViewCheckBoxColumn() With {
-            .Name = "Verso", .HeaderText = "Direction",
-            .TrueValue = True, .FalseValue = False}
-        dgvSatelliti.Columns.Add(colVerso)
-        dgvSatelliti.Columns(0).Width = 200
-        dgvSatelliti.Columns(2).Width = 260
-        Dim rs As Object = dbOrbite.OpenRecordset("SELECT * FROM [Satelliti] ORDER BY NomeSatellite", dbOpenDynaset)
-        Do While Not rs.EOF
-            Dim versoVal As Boolean = False
-            Dim rv = rs!verso
-            If Not IsDBNull(rv) AndAlso rv IsNot Nothing Then
-                Dim s = CStr(rv).Trim().ToLower()
-                versoVal = (s = "true" OrElse s = "vero" OrElse s = "1" OrElse s = "-1")
-            End If
-            dgvSatelliti.Rows.Add(
-                If(IsDBNull(rs!NomeSatellite), "", CStr(rs!NomeSatellite)),
-                If(IsDBNull(rs!Algoritmo), "", CStr(rs!Algoritmo)),
-                If(IsDBNull(rs!FileAgg), "", CStr(rs!FileAgg)),
-                If(IsDBNull(rs!polangle), "", CStr(rs!polangle)),
-                versoVal)
-            rs.MoveNext
-        Loop
-        rs.Close()
+        Try
+            dgvSatelliti.Columns.Clear()
+            dgvSatelliti.Rows.Clear()
+            dgvSatelliti.Columns.Add("NomeSatellite", "Satellite Name")
+            dgvSatelliti.Columns.Add("Algoritmo", "Algorithm")
+            dgvSatelliti.Columns.Add("FileAgg", "File Orbit Parameter")
+            dgvSatelliti.Columns.Add("PolAngle", "PolAngle")
+            Dim colVerso As New DataGridViewCheckBoxColumn() With {
+                .Name = "Verso", .HeaderText = "Direction",
+                .TrueValue = True, .FalseValue = False}
+            dgvSatelliti.Columns.Add(colVerso)
+            dgvSatelliti.Columns(0).Width = 200
+            dgvSatelliti.Columns(2).Width = 260
+            Dim rs As Object = dbOrbite.OpenRecordset("SELECT * FROM [Satelliti] ORDER BY NomeSatellite", dbOpenDynaset)
+            Do While Not rs.EOF
+                Dim versoVal As Boolean = False
+                Dim rv = rs!verso
+                If Not IsDBNull(rv) AndAlso rv IsNot Nothing Then
+                    Dim s = CStr(rv).Trim().ToLower()
+                    versoVal = (s = "true" OrElse s = "vero" OrElse s = "1" OrElse s = "-1")
+                End If
+                dgvSatelliti.Rows.Add(
+                    If(IsDBNull(rs!NomeSatellite), "", CStr(rs!NomeSatellite)),
+                    If(IsDBNull(rs!Algoritmo), "", CStr(rs!Algoritmo)),
+                    If(IsDBNull(rs!FileAgg), "", CStr(rs!FileAgg)),
+                    If(IsDBNull(rs!polangle), "", CStr(rs!polangle)),
+                    versoVal)
+                rs.MoveNext
+            Loop
+            rs.Close()
+        Catch ex As Exception
+            WriteError(0, "LoadSatelliti: " & ex.Message)
+        End Try
     End Sub
 
     ' -------------------------------------------------------
@@ -134,22 +137,23 @@ Public Class FrmSatelliti
     ' Menu Parameter → apre form parametri per il satellite
     ' -------------------------------------------------------
     Private Sub MnuParameter_Click(sender As Object, e As EventArgs) Handles MnuParameter.Click
-        On Error GoTo err_par
-        If s_Satellite = "" Then Exit Sub
-        Dim rs As Object = dbOrbite.OpenRecordset("SELECT * FROM [Satelliti] WHERE NomeSatellite='" & s_Satellite & "'", dbOpenDynaset)
-        If Not rs.EOF Then
-            If rs!Algoritmo = 0 Or rs!Algoritmo = 2 Then
-                AggAlgo = rs!Algoritmo
-                Dim f1 As New Frm11Elementi()
-                f1.ShowDialog()
-            ElseIf rs!Algoritmo = 1 Then
-                Dim fn As New FrmNorad()
-                fn.ShowDialog()
+        Try
+            If s_Satellite = "" Then Exit Sub
+            Dim rs As Object = dbOrbite.OpenRecordset("SELECT * FROM [Satelliti] WHERE NomeSatellite='" & s_Satellite & "'", dbOpenDynaset)
+            If Not rs.EOF Then
+                If rs!Algoritmo = 0 Or rs!Algoritmo = 2 Then
+                    AggAlgo = rs!Algoritmo
+                    Dim f1 As New Frm11Elementi()
+                    f1.ShowDialog()
+                ElseIf rs!Algoritmo = 1 Then
+                    Dim fn As New FrmNorad()
+                    fn.ShowDialog()
+                End If
             End If
-        End If
-        rs.Close()
-        Exit Sub
-err_par:
+            rs.Close()
+        Catch ex As Exception
+            WriteError(0, "MnuParameter_Click: " & ex.Message)
+        End Try
     End Sub
 
     ' -------------------------------------------------------
@@ -206,29 +210,28 @@ err_par:
     ' Elimina satellite corrente dal DB
     ' -------------------------------------------------------
     Private Sub Elimina()
-        On Error Resume Next
-        If s_Satellite = "" Then Exit Sub
-        Dim rs As Object = dbOrbite.OpenRecordset("SELECT * FROM [Satelliti] WHERE NomeSatellite='" & s_Satellite & "'", dbOpenDynaset)
-        If Not rs.EOF Then
-            If rs!Algoritmo = 1 Then
-                DbExecute("Delete * from [Sat2line] where Sat_name ='" & s_Satellite & "'")
-            ElseIf rs!Algoritmo = 0 Or rs!Algoritmo = 2 Then
-                DbExecute("Delete * from [Sat11par] where Name ='" & s_Satellite & "'")
+        Try
+            If s_Satellite = "" Then Exit Sub
+            Dim rs As Object = dbOrbite.OpenRecordset("SELECT * FROM [Satelliti] WHERE NomeSatellite='" & s_Satellite & "'", dbOpenDynaset)
+            If Not rs.EOF Then
+                If rs!Algoritmo = 1 Then
+                    DbExecute("Delete * from [Sat2line] where Sat_name ='" & s_Satellite & "'")
+                ElseIf rs!Algoritmo = 0 Or rs!Algoritmo = 2 Then
+                    DbExecute("Delete * from [Sat11par] where Name ='" & s_Satellite & "'")
+                End If
+                rs.Delete()
             End If
-            rs.Delete()
-        End If
-        rs.Close()
+            rs.Close()
+        Catch ex As Exception
+            WriteError(0, "Elimina: " & ex.Message)
+        End Try
     End Sub
 
     ' -------------------------------------------------------
     ' Stampa (stub — TDBGrid.PrintInfo non disponibile)
     ' -------------------------------------------------------
     Private Sub Stampo()
-        On Error GoTo CmdStampa_Err
         MessageBox.Show("Print not available in .NET version.", "Print", MessageBoxButtons.OK, MessageBoxIcon.Information)
-        Exit Sub
-CmdStampa_Err:
-        MessageBox.Show("Error printer", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
     End Sub
 
 
@@ -334,87 +337,82 @@ ErrSalvo:
     ' TxtAlgorithm KeyUp — legge file parametri e popola CmbSatelliti
     ' -------------------------------------------------------
     Private Sub TxtAlgorithm_KeyUp(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles TxtAlgorithm.KeyUp
-        On Error GoTo ErrAlgorithm
         Dim fileisopen As Boolean
-        CmbSatelliti.Items.Clear()
+        Try
+            CmbSatelliti.Items.Clear()
 
-        If e.KeyCode = Keys.Return Then
-            If Not IsNumeric(TxtAlgorithm.Text) Then
-                TxtAlgorithm.Text = "5"
-                Exit Sub
-            ElseIf IsNumeric(TxtAlgorithm.Text) And CInt(TxtAlgorithm.Text) < 4 Then
-                Dim fb As New frmBrowse()
-                fb.ShowDialog()
-                If g_Parametri <> "" Then
-                    TxtParametri.Text = g_Parametri
-                    hFile = FreeFile()
-                    FileOpen(hFile, g_Parametri, OpenMode.Input)
-                    fileisopen = True
-                    Gr_file = LOF(hFile)
+            If e.KeyCode = Keys.Return Then
+                If Not IsNumeric(TxtAlgorithm.Text) Then
+                    TxtAlgorithm.Text = "5"
+                    Exit Sub
+                ElseIf IsNumeric(TxtAlgorithm.Text) And CInt(TxtAlgorithm.Text) < 4 Then
+                    Dim fb As New frmBrowse()
+                    fb.ShowDialog()
+                    If g_Parametri <> "" Then
+                        TxtParametri.Text = g_Parametri
+                        hFile = FreeFile()
+                        FileOpen(hFile, g_Parametri, OpenMode.Input)
+                        fileisopen = True
+                        Gr_file = LOF(hFile)
 
-                    If Gr_file < LUNGFILE Then
-                        FileClose(hFile)
-                        fileisopen = False
-                        TxtAlgorithm.Focus()
-                        Exit Sub
+                        If Gr_file < LUNGFILE Then
+                            FileClose(hFile)
+                            fileisopen = False
+                            TxtAlgorithm.Focus()
+                            Exit Sub
+                        End If
+                        i_Scelta = 0
+                        Select Case CInt(TxtAlgorithm.Text)
+                            Case 0
+                                Do While Not EOF(hFile)
+                                    sReadBuffer = InputString(hFile, CInt(Gr_file))
+                                    i_Scelta = InStr(1, sReadBuffer, "FOR", 1)
+                                    If i_Scelta <> 0 Then Exit Do
+                                Loop
+                                If i_Scelta = 0 Then Exit Sub
+                                i_Scelta += Len("FOR")
+                                i_Scelta1 = InStr(1, sReadBuffer, "/", 1)
+                                CmbSatelliti.Items.Add(LTrim(Mid$(sReadBuffer, i_Scelta, i_Scelta1 - i_Scelta)))
+                                CmbSatelliti.SelectedIndex = 0
+                                s_Satellite = CmbSatelliti.Text
+                            Case 1
+                                Do While Not EOF(hFile)
+                                    If EOF(hFile) Then Exit Do
+                                    Input(hFile, sReadBuffer)
+                                    CmbSatelliti.Items.Add(sReadBuffer)
+                                    Input(hFile, sReadBuffer)
+                                    Input(hFile, sReadBuffer)
+                                Loop
+                                CmbSatelliti.SelectedIndex = 0
+                            Case 2
+                                Do While Not EOF(hFile)
+                                    sReadBuffer = InputString(hFile, CInt(Gr_file))
+                                    i_Scelta = InStr(1, sReadBuffer, "SATELLITE NAME:", 1)
+                                    If i_Scelta <> 0 Then Exit Do
+                                Loop
+                                If i_Scelta = 0 Then Exit Sub
+                                sReadBuffer = Mid$(sReadBuffer, i_Scelta, Len(sReadBuffer) - i_Scelta)
+                                i_Scelta = Len("SATELLITE NAME: ")
+                                i_Scelta1 = InStr(1, sReadBuffer, vbCr, 1)
+                                CmbSatelliti.Items.Add(LTrim(Mid$(sReadBuffer, i_Scelta, i_Scelta1 - i_Scelta)))
+                                CmbSatelliti.SelectedIndex = 0
+                                s_Satellite = CmbSatelliti.Text
+                            Case 3
+                                s_Satellite = CmbSatelliti.Text
+                        End Select
                     End If
-                    i_Scelta = 0
-                    Select Case CInt(TxtAlgorithm.Text)
-                        Case 0
-                            Do While Not EOF(hFile)
-                                sReadBuffer = InputString(hFile, CInt(Gr_file))
-                                i_Scelta = InStr(1, sReadBuffer, "FOR", 1)
-                                If i_Scelta <> 0 Then Exit Do
-                            Loop
-                            If i_Scelta = 0 Then Exit Sub
-                            i_Scelta += Len("FOR")
-                            i_Scelta1 = InStr(1, sReadBuffer, "/", 1)
-                            CmbSatelliti.Items.Add(LTrim(Mid$(sReadBuffer, i_Scelta, i_Scelta1 - i_Scelta)))
-                            CmbSatelliti.SelectedIndex = 0
-                            s_Satellite = CmbSatelliti.Text
-                        Case 1
-                            Do While Not EOF(hFile)
-                                If EOF(hFile) Then Exit Do
-                                Input(hFile, sReadBuffer)
-                                CmbSatelliti.Items.Add(sReadBuffer)
-                                Input(hFile, sReadBuffer)
-                                Input(hFile, sReadBuffer)
-                            Loop
-                            CmbSatelliti.SelectedIndex = 0
-                        Case 2
-                            Do While Not EOF(hFile)
-                                sReadBuffer = InputString(hFile, CInt(Gr_file))
-                                i_Scelta = InStr(1, sReadBuffer, "SATELLITE NAME:", 1)
-                                If i_Scelta <> 0 Then Exit Do
-                            Loop
-                            If i_Scelta = 0 Then Exit Sub
-                            sReadBuffer = Mid$(sReadBuffer, i_Scelta, Len(sReadBuffer) - i_Scelta)
-                            i_Scelta = Len("SATELLITE NAME: ")
-                            i_Scelta1 = InStr(1, sReadBuffer, vbCr, 1)
-                            CmbSatelliti.Items.Add(LTrim(Mid$(sReadBuffer, i_Scelta, i_Scelta1 - i_Scelta)))
-                            CmbSatelliti.SelectedIndex = 0
-                            s_Satellite = CmbSatelliti.Text
-                        Case 3
-                            s_Satellite = CmbSatelliti.Text
-                    End Select
+                ElseIf CInt(TxtAlgorithm.Text) = 4 Then
+                    CmbSatelliti.Items.Add("MOON")
+                    CmbSatelliti.Items.Add("SUN")
+                    CmbSatelliti.SelectedIndex = 0
                 End If
-            ElseIf CInt(TxtAlgorithm.Text) = 4 Then
-                CmbSatelliti.Items.Add("MOON")
-                CmbSatelliti.Items.Add("SUN")
-                CmbSatelliti.SelectedIndex = 0
             End If
-        End If
-        FileClose(hFile)
-        fileisopen = False
-        Exit Sub
-ErrAlgorithm:
-        If Err.Number = 0 Or Err.Number = 20 Then
+            FileClose(hFile)
+            fileisopen = False
+        Catch ex As Exception
             If fileisopen Then FileClose(hFile)
-            Exit Sub
-        End If
-        WriteError(Err.Number, "FrmSatelliti - TxtAlgorithm " & Err.Description)
-        Err.Clear()
-        Resume Next
+            WriteError(0, "FrmSatelliti - TxtAlgorithm " & ex.Message)
+        End Try
     End Sub
 
 End Class

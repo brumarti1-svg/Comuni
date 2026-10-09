@@ -248,23 +248,25 @@ ByVal nSize As Long) As Long
 
     Public Function InvioACU(s_send As String) As Boolean
         Dim Port As Integer, i_lun As Integer
-        On Error Resume Next
         ' frmRicezione.LblRisposta not migrated
         InvioACU = True
-        If s_send = "" Then Exit Function
-        Err.Clear()
+        Try
+            If s_send = "" Then Exit Function
 
-        If Port_Control(ACU).Socket = "N" Then
-            ' ComPort serial control not migrated
-            Port_Control(ACU).Rec_State = PCR_WAIT
-        Else
-            SendMain(ACU, s_send)
-            Port_Control(ACU).Rec_State = PCR_WAIT
-        End If
-        If g_Log Then ScriviLOG(s_send, 0)
-        frmRicezione.TmrTimeoutMSG(ACU).Enabled = False
-        frmRicezione.TmrTimeoutMSG(ACU).Enabled = True
-        ScriviLOG1(s_send, 0)
+            If Port_Control(ACU).Socket = "N" Then
+                ' ComPort serial control not migrated
+                Port_Control(ACU).Rec_State = PCR_WAIT
+            Else
+                SendMain(ACU, s_send)
+                Port_Control(ACU).Rec_State = PCR_WAIT
+            End If
+            If g_Log Then ScriviLOG(s_send, 0)
+            frmRicezione.TmrTimeoutMSG(ACU).Enabled = False
+            frmRicezione.TmrTimeoutMSG(ACU).Enabled = True
+            ScriviLOG1(s_send, 0)
+        Catch ex As Exception
+            WriteError(0, "InvioACU: " & ex.Message)
+        End Try
 End Function
     Public Function InitPar11() As Boolean
         On Error GoTo Par11Error
@@ -466,34 +468,37 @@ Par11Error:
         Dim rs_ScriviAlarm As Object
         Dim Buffer As String, d_data As Date
         '    Dim Errore As Long
-        On Error Resume Next
-        ' preparo il buffer per la scrittura
-        If Level = 1 Then FrmMain.TmrBeep.Enabled = True
-        ' Assegnazione diretta del valore Date, senza passare per una stringa
-        ' formattata: Format$("dd/mm/yy...") con "mm" minuscolo viene letto da
-        ' VB.NET come minuti anche nella parte data (non come mese), producendo
-        ' stringhe come "23/46/26" (46 = minuti al posto del mese) che poi
-        ' fallivano nella riconversione implicita a Date.
-        d_data = NowUTC()
-        '    Buffer = "*** " + Format$(Now, "dd-mm-yy hh.nn.ss") + "  " + Messaggio
-        rs_ScriviAlarm = dbOrbite.OpenRecordset("Error_Messages", dbOpenDynaset)
-        ' scrivo sulla tabella di log
-        rs_ScriviAlarm.AddNew
-        rs_ScriviAlarm("MSG_Date") = d_data
-        rs_ScriviAlarm("Error") = Messaggio
-        rs_ScriviAlarm("Level") = Level
+        Try
+            ' preparo il buffer per la scrittura
+            If Level = 1 Then FrmMain.TmrBeep.Enabled = True
+            ' Assegnazione diretta del valore Date, senza passare per una stringa
+            ' formattata: Format$("dd/mm/yy...") con "mm" minuscolo viene letto da
+            ' VB.NET come minuti anche nella parte data (non come mese), producendo
+            ' stringhe come "23/46/26" (46 = minuti al posto del mese) che poi
+            ' fallivano nella riconversione implicita a Date.
+            d_data = NowUTC()
+            '    Buffer = "*** " + Format$(Now, "dd-mm-yy hh.nn.ss") + "  " + Messaggio
+            rs_ScriviAlarm = dbOrbite.OpenRecordset("Error_Messages", dbOpenDynaset)
+            ' scrivo sulla tabella di log
+            rs_ScriviAlarm.AddNew
+            rs_ScriviAlarm("MSG_Date") = d_data
+            rs_ScriviAlarm("Error") = Messaggio
+            rs_ScriviAlarm("Level") = Level
 
-        rs_ScriviAlarm.Update
-        rs_ScriviAlarm = dbOrbite.OpenRecordset("tmp_Error_Messages", dbOpenDynaset)
-        ' scrivo sulla tabella di log
-        rs_ScriviAlarm.AddNew
-        rs_ScriviAlarm("MSG_Date") = d_data
-        rs_ScriviAlarm("Error") = Messaggio
-        rs_ScriviAlarm("Level") = Level
-        rs_ScriviAlarm.Update
-        ' Datlog/tdbLog controls not migrated
-        If Level = 1 Then i_Alarm = True            '3/2/2026
-        rs_ScriviAlarm.Close
+            rs_ScriviAlarm.Update
+            rs_ScriviAlarm = dbOrbite.OpenRecordset("tmp_Error_Messages", dbOpenDynaset)
+            ' scrivo sulla tabella di log
+            rs_ScriviAlarm.AddNew
+            rs_ScriviAlarm("MSG_Date") = d_data
+            rs_ScriviAlarm("Error") = Messaggio
+            rs_ScriviAlarm("Level") = Level
+            rs_ScriviAlarm.Update
+            ' Datlog/tdbLog controls not migrated
+            If Level = 1 Then i_Alarm = True            '3/2/2026
+            rs_ScriviAlarm.Close
+        Catch ex As Exception
+            WriteError(0, "ScriviAlarm: " & ex.Message)
+        End Try
     End Sub
 
     Public Function CalcoloVolt(Valore As String) As Double
@@ -509,67 +514,69 @@ Par11Error:
         Dim i_Conto As Integer, mSec As Integer, year As Integer, month As Integer, day As Integer, hour As Integer
         Dim minut As Integer, second As Integer
         Dim t_Ciclo As SYSTEMTIME
-        On Error Resume Next
+        Try
+            lunMax = 70
+            Ind1 = 0
 
-        lunMax = 70
-        Ind1 = 0
+            GetSystemTime(t_Ciclo)
+            With t_Ciclo
+                year = .wYear
+                month = .wMonth
+                day = .wDay
+                hour = .wHour
+                minut = .wMinute
+                second = .wSecond
+                mSec = .wMilliseconds
+            End With
+            ' 08/01/2019 Impostato l'orario compreso il giorno per un calcolo più accurato
+            s_msg = Format$(day, "00") & Format$(hour, "00") & Format$(minut, "00") & Format$(second, "00") & Format$(mSec, "000")
 
-        GetSystemTime(t_Ciclo)
-    With t_Ciclo
-            year = .wYear
-            month = .wMonth
-            day = .wDay
-            hour = .wHour
-            minut = .wMinute
-            second = .wSecond
-            mSec = .wMilliseconds
-        End With
-        ' 08/01/2019 Impostato l'orario compreso il giorno per un calcolo più accurato
-        s_msg = Format$(day, "00") & Format$(hour, "00") & Format$(minut, "00") & Format$(second, "00") & Format$(mSec, "000")
-
-        ' preparo il buffer per la scrittura
-        If Tipo = 0 Then
-            Buffer = NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
-        Else
-            '08/01/2019 Controlla che l'orario della ACU non sia successivo a quello del PC
-            If s_MsgAcu <> "" Then Ind1 = CDbl(s_msg) - CDbl(s_MsgAcu)
-            Buffer = "D " & NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
-        End If
-        ' scrivo il messaggio sul file di log
-        ' apro il file di log se non esiste lo creo
-        hFile = FreeFile()
-        s_msg = f_Log2
-        FileOpen(hFile, Application.StartupPath + "\" & s_msg, OpenMode.Append)
-'    Open Canali(ACU).File_Log For Append As #
-
-        i_lun = Int(Len(Buffer) / lunMax)
-        s_msg = ""
-        If i_lun > 0 Then
-            For Ind = 1 To i_lun
-                i_Conto = 1 + ((Ind - 1) * lunMax)
-                If Ind = 1 Then
-                    s_msg = Mid$(Buffer, i_Conto, lunMax)
-                Else
-                    s_msg = "    " + Mid$(Buffer, i_Conto, lunMax)
-                End If
-                If Ind1 < 0 Then
-                    s_msg = "xxx " & s_msg
-                End If
-                PrintLine(hFile, s_msg)
-        Next
-            i_lun = Len(Buffer) Mod lunMax
-            If i_lun > 0 Then
-                i_Conto = 1 + ((Ind - 1) * lunMax)
-                s_msg = "    " + Mid$(Buffer, i_Conto, i_lun)
-                PrintLine(hFile, s_msg)
-        End If
-        Else
-            If Ind1 < 0 Then
-                Buffer = "xxx " & Buffer
+            ' preparo il buffer per la scrittura
+            If Tipo = 0 Then
+                Buffer = NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
+            Else
+                '08/01/2019 Controlla che l'orario della ACU non sia successivo a quello del PC
+                If s_MsgAcu <> "" Then Ind1 = CDbl(s_msg) - CDbl(s_MsgAcu)
+                Buffer = "D " & NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & "; " & Messaggio
             End If
-            PrintLine(hFile, Buffer)
-    End If
-        FileClose(hFile)
+            ' scrivo il messaggio sul file di log
+            ' apro il file di log se non esiste lo creo
+            hFile = FreeFile()
+            s_msg = f_Log2
+            FileOpen(hFile, Application.StartupPath + "\" & s_msg, OpenMode.Append)
+            '    Open Canali(ACU).File_Log For Append As #
+
+            i_lun = Int(Len(Buffer) / lunMax)
+            s_msg = ""
+            If i_lun > 0 Then
+                For Ind = 1 To i_lun
+                    i_Conto = 1 + ((Ind - 1) * lunMax)
+                    If Ind = 1 Then
+                        s_msg = Mid$(Buffer, i_Conto, lunMax)
+                    Else
+                        s_msg = "    " + Mid$(Buffer, i_Conto, lunMax)
+                    End If
+                    If Ind1 < 0 Then
+                        s_msg = "xxx " & s_msg
+                    End If
+                    PrintLine(hFile, s_msg)
+                Next
+                i_lun = Len(Buffer) Mod lunMax
+                If i_lun > 0 Then
+                    i_Conto = 1 + ((Ind - 1) * lunMax)
+                    s_msg = "    " + Mid$(Buffer, i_Conto, i_lun)
+                    PrintLine(hFile, s_msg)
+                End If
+            Else
+                If Ind1 < 0 Then
+                    Buffer = "xxx " & Buffer
+                End If
+                PrintLine(hFile, Buffer)
+            End If
+            FileClose(hFile)
+        Catch ex As Exception
+            WriteError(0, "ScriviLOG1: " & ex.Message)
+        End Try
 End Sub
     Public Sub ScriviLOG2(Messaggio As String, Tipo As Integer)
         Dim hFile As Long
@@ -577,43 +584,45 @@ End Sub
         Dim Ind As Integer, i_lun As Integer, s_msg As String
         Dim lunMax As Integer
         Dim i_Conto As Integer
-        On Error Resume Next
+        Try
+            lunMax = 70
+            hFile = FreeFile()
+            ' preparo il buffer per la scrittura
+            If Tipo = 0 Then
+                Buffer = NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "  " + Messaggio
+            Else
+                Buffer = "D " & NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "  " + Messaggio
+            End If
+            ' scrivo il messaggio sul file di log
+            ' apro il file di log se non esiste lo creo
+            s_msg = f_Log1
+            FileOpen(hFile, Application.StartupPath + "\" & s_msg, OpenMode.Append)
 
-        lunMax = 70
-        hFile = FreeFile()
-        ' preparo il buffer per la scrittura
-        If Tipo = 0 Then
-            Buffer = NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "  " + Messaggio
-        Else
-            Buffer = "D " & NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) + "  " + Messaggio
-        End If
-        ' scrivo il messaggio sul file di log
-        ' apro il file di log se non esiste lo creo
-        s_msg = f_Log1
-        FileOpen(hFile, Application.StartupPath + "\" & s_msg, OpenMode.Append)
-
-    i_lun = Int(Len(Buffer) / lunMax)
-        s_msg = ""
-        If i_lun > 0 Then
-            For Ind = 1 To i_lun
-                i_Conto = 1 + ((Ind - 1) * lunMax)
-                If Ind = 1 Then
-                    s_msg = Mid$(Buffer, i_Conto, lunMax)
-                Else
-                    s_msg = "    " + Mid$(Buffer, i_Conto, lunMax)
-                End If
-                PrintLine(hFile, s_msg)
-        Next
-            i_lun = Len(Buffer) Mod lunMax
+            i_lun = Int(Len(Buffer) / lunMax)
+            s_msg = ""
             If i_lun > 0 Then
-                i_Conto = 1 + ((Ind - 1) * lunMax)
-                s_msg = "    " + Mid$(Buffer, i_Conto, i_lun)
-                PrintLine(hFile, s_msg)
-        End If
-        Else
-            PrintLine(hFile, Buffer)
-    End If
-        FileClose(hFile)
+                For Ind = 1 To i_lun
+                    i_Conto = 1 + ((Ind - 1) * lunMax)
+                    If Ind = 1 Then
+                        s_msg = Mid$(Buffer, i_Conto, lunMax)
+                    Else
+                        s_msg = "    " + Mid$(Buffer, i_Conto, lunMax)
+                    End If
+                    PrintLine(hFile, s_msg)
+                Next
+                i_lun = Len(Buffer) Mod lunMax
+                If i_lun > 0 Then
+                    i_Conto = 1 + ((Ind - 1) * lunMax)
+                    s_msg = "    " + Mid$(Buffer, i_Conto, i_lun)
+                    PrintLine(hFile, s_msg)
+                End If
+            Else
+                PrintLine(hFile, Buffer)
+            End If
+            FileClose(hFile)
+        Catch ex As Exception
+            WriteError(0, "ScriviLOG2: " & ex.Message)
+        End Try
 End Sub
     Public Function ScriviLOG3() As Boolean
         ' scrive sul file di log <giorno>.Txt i valori di azimuth, elevazione e beacon
@@ -622,27 +631,30 @@ End Sub
         Dim Ind As Integer, i_lun As Integer, s_msg As String, Messaggio As String
         Dim lunMax As Integer, pos As Integer, i As Integer
         ScriviLOG3 = True
-        On Error Resume Next
-        hFile = FreeFile()
-        If b_Parametri Then Exit Function
-        Messaggio = " "
+        Try
+            hFile = FreeFile()
+            If b_Parametri Then Exit Function
+            Messaggio = " "
 
-        If IsNumeric(s_Az) Then Messaggio &= "Az. " & Format$(CDbl(Mid(s_Az, 1, 6)) / 1000, "000.000") & "  "   'Chr(CR) & vbLf
-        If IsNumeric(s_El) Then Messaggio &= "El. " & Format$(CDbl(Mid(s_El, 1, 5)) / 1000, "00.000") & "  "   'Chr(CR) & vbLf
-        '                Messaggio &=   "Livello " & Mid(s_Lev1, 1, 1) + Format$(CDbl(Mid(s_Lev1, 2, 3)) / 100, "0.0") & "  "   'Chr(CR) & vbLf
-        If IsNumeric(s_Lev) Then Messaggio &= "Lev. " & s_Lev & "  "
-        If Not String.IsNullOrEmpty(s_OpMode) Then Messaggio &= s_OpMode & " "
-        If frmRicezione.LblCommand.Text = "Augmented" Then
-            If IsNumeric(frmRicezione.LblAzError.Text) Then Messaggio &= "Az.Off " & frmRicezione.LblAzError.Text & " "
-            If IsNumeric(frmRicezione.LblElError.Text) Then Messaggio &= "El.Off " & frmRicezione.LblElError.Text & " "
-            ' TxtAzEr/TxtElEr not migrated
-        End If
-        Buffer = NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) & "   " & Messaggio
-        ' scrivo il messaggio sul file di log
-        ' apro il file di log se non esiste lo creo
-        FileOpen(hFile, Application.StartupPath + "\" + f_Log, OpenMode.Append)
-    PrintLine(hFile, Buffer)
-    FileClose(hFile)
+            If IsNumeric(s_Az) Then Messaggio &= "Az. " & Format$(CDbl(Mid(s_Az, 1, 6)) / 1000, "000.000") & "  "   'Chr(CR) & vbLf
+            If IsNumeric(s_El) Then Messaggio &= "El. " & Format$(CDbl(Mid(s_El, 1, 5)) / 1000, "00.000") & "  "   'Chr(CR) & vbLf
+            '                Messaggio &=   "Livello " & Mid(s_Lev1, 1, 1) + Format$(CDbl(Mid(s_Lev1, 2, 3)) / 100, "0.0") & "  "   'Chr(CR) & vbLf
+            If IsNumeric(s_Lev) Then Messaggio &= "Lev. " & s_Lev & "  "
+            If Not String.IsNullOrEmpty(s_OpMode) Then Messaggio &= s_OpMode & " "
+            If frmRicezione.LblCommand.Text = "Augmented" Then
+                If IsNumeric(frmRicezione.LblAzError.Text) Then Messaggio &= "Az.Off " & frmRicezione.LblAzError.Text & " "
+                If IsNumeric(frmRicezione.LblElError.Text) Then Messaggio &= "El.Off " & frmRicezione.LblElError.Text & " "
+                ' TxtAzEr/TxtElEr not migrated
+            End If
+            Buffer = NowUTC().ToString("dd/MM/yy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) & "   " & Messaggio
+            ' scrivo il messaggio sul file di log
+            ' apro il file di log se non esiste lo creo
+            FileOpen(hFile, Application.StartupPath + "\" + f_Log, OpenMode.Append)
+            PrintLine(hFile, Buffer)
+            FileClose(hFile)
+        Catch ex As Exception
+            WriteError(0, "ScriviLOG3: " & ex.Message)
+        End Try
 End Function
 
     Public Function AggiornaTLE(File As String, Tipo As Integer) As Boolean
@@ -875,7 +887,7 @@ End Sub
         Dim i_Scelta As Integer, b_Check As Boolean, tmpSql As String
         Dim rs2 As Object, Aggiungi As Boolean, UltimoGiorno As String = "", UltimoTime As String = ""
         Dim sReadBuffer As String, tmp_EpochTime As Double, Dato As String, lun As Integer, Quarto As Integer
-        On Error GoTo ERRFILE
+        Try
         DayInseg = " "
         RiempiMemory = True
         hFile = FreeFile()         'file handle
@@ -1007,21 +1019,18 @@ End Sub
         b_Calcola = True
         frmRicezione.LblSatellite.BackColor = Color.Yellow
         SatChange = False
-        Exit Function
-ERRFILE:
-        b_Calcola = False
-        RiempiMemory = False
-        Select Case Err.Number
-            Case 53
+        Catch ex As Exception
+            b_Calcola = False
+            RiempiMemory = False
+            If TypeOf ex Is System.IO.FileNotFoundException Then
                 FrmMain.stpMessaggio.Text = "Celestial Corp not found"
                 FrmMain.TmrMsg.Enabled = True
-                FileClose(hFile)
-            rs_RiempiMemory.Close
-            Case Else
-                FileClose(hFile)
-                rs_RiempiMemory.Close
-        End Select
-
+            Else
+                WriteError(0, "RiempiMemory: " & ex.Message)
+            End If
+            FileClose(hFile)
+            If rs_RiempiMemory IsNot Nothing Then rs_RiempiMemory.Close()
+        End Try
     End Function
     Public Function TrackTable() As Boolean
         Dim rs_TrackTable As Object
@@ -1175,31 +1184,33 @@ ERRFILE:
         Dim i_Conto As Integer, mSec As Integer, year As Integer, month As Integer, day As Integer, hour As Integer
         Dim minut As Integer, second As Integer
         Dim t_Ciclo As SYSTEMTIME
-        On Error Resume Next
+        Try
+            lunMax = 70
 
-        lunMax = 70
+            GetSystemTime(t_Ciclo)
+            With t_Ciclo
+                year = .wYear
+                month = .wMonth
+                day = .wDay
+                hour = .wHour
+                minut = .wMinute
+                second = .wSecond
+                mSec = .wMilliseconds
+            End With
+            ' preparo il buffer per la scrittura
+            Buffer = NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & " " & Messaggio
+            ' scrivo il messaggio sul file di log
+            ' apro il file di log se non esiste lo creo
+            s_msg = f_Log3
+            FileOpen(1, Application.StartupPath + "\" & s_msg, OpenMode.Append)
+            '    FileOpen(1, Canali(ACU).File_Log, OpenMode.Append)
+            i_lun = Len(Buffer) Mod lunMax
 
-        GetSystemTime(t_Ciclo)
-    With t_Ciclo
-            year = .wYear
-            month = .wMonth
-            day = .wDay
-            hour = .wHour
-            minut = .wMinute
-            second = .wSecond
-            mSec = .wMilliseconds
-        End With
-        ' preparo il buffer per la scrittura
-        Buffer = NowUTC().ToString("dd/MM/yy ", System.Globalization.CultureInfo.InvariantCulture) & Format$(hour, "00") & ":" & Format$(minut, "00") & ":" & Format$(second, "00") & "." & Format$(mSec, "000") & " " & Messaggio
-        ' scrivo il messaggio sul file di log
-        ' apro il file di log se non esiste lo creo
-        s_msg = f_Log3
-        FileOpen(1, Application.StartupPath + "\" & s_msg, OpenMode.Append)
-'    FileOpen(1, Canali(ACU).File_Log, OpenMode.Append)
-        i_lun = Len(Buffer) Mod lunMax
-
-        PrintLine(1, Mid$(Buffer, 1, i_lun - 2))
-    FileClose(1)
+            PrintLine(1, Mid$(Buffer, 1, i_lun - 2))
+            FileClose(1)
+        Catch ex As Exception
+            WriteError(0, "ScriviLOG4: " & ex.Message)
+        End Try
     End Sub
     Public Sub Risoluzione()
         'Creata il 1/7/2020 per evitare a fronte di una nuova risoluzione di cambiare su tutti i programmi
@@ -1214,37 +1225,30 @@ ERRFILE:
         Dim Ind As Integer
         Dim dbTemp As Object
 
-        On Error GoTo ges_error
-        ' Screen.MousePointer not migrated
-        ' chiudo il database
-        ' compatto il database
-        If Dir(g_Server + "\TEMP1.MDB") <> "" Then Kill(g_Server + "\TEMP1.MDB")
-    If Dir(g_Server + "\TEMP.MDB") <> "" Then Kill(g_Server + "\TEMP.MDB")
-    frmRicezione.Close()
-    dbOrbite.Close()
-        FileCopy(g_Database, g_Server + "\TEMP.MDB")
-    ' DBEngine.CompactDatabase not available in .NET - skip compaction
-    FileCopy(g_Server + "\temp1.MDB", Application.StartupPath + "\Orbite.MDB")
-    ' riapro i database
-        ' dbOrbite = wsOrbite.OpenDatabase(g_Database) - wsOrbite not migrated
-        frmRicezione.ShowDialog()
-    FrmMain.stpMessaggio.Text = "Data compact"
-        FrmMain.TmrMsg.Enabled = True
-        ' Screen.MousePointer not migrated
-        Exit Sub
-
-ges_error:
-        Select Case Err.Number
-            Case 70
-                FrmMain.stpMessaggio.Text = Err.Description
-                FrmMain.TmrMsg.Enabled = True
-            Case Else
-                FrmMain.stpMessaggio.Text = CStr(Err.Number) + "-" + Err.Description
-                FrmMain.TmrMsg.Enabled = True
-        End Select
-        ' dbOrbite = wsOrbite.OpenDatabase(g_Database) - wsOrbite not migrated
-        frmRicezione.ShowDialog()
-    ' Screen.MousePointer not migrated
+        Try
+            ' Screen.MousePointer not migrated
+            ' chiudo il database
+            ' compatto il database
+            If Dir(g_Server + "\TEMP1.MDB") <> "" Then Kill(g_Server + "\TEMP1.MDB")
+            If Dir(g_Server + "\TEMP.MDB") <> "" Then Kill(g_Server + "\TEMP.MDB")
+            frmRicezione.Close()
+            dbOrbite.Close()
+            FileCopy(g_Database, g_Server + "\TEMP.MDB")
+            ' DBEngine.CompactDatabase not available in .NET - skip compaction
+            FileCopy(g_Server + "\temp1.MDB", Application.StartupPath + "\Orbite.MDB")
+            ' riapro i database
+            ' dbOrbite = wsOrbite.OpenDatabase(g_Database) - wsOrbite not migrated
+            frmRicezione.ShowDialog()
+            FrmMain.stpMessaggio.Text = "Data compact"
+            FrmMain.TmrMsg.Enabled = True
+            ' Screen.MousePointer not migrated
+        Catch ex As Exception
+            FrmMain.stpMessaggio.Text = ex.Message
+            FrmMain.TmrMsg.Enabled = True
+            ' dbOrbite = wsOrbite.OpenDatabase(g_Database) - wsOrbite not migrated
+            frmRicezione.ShowDialog()
+            ' Screen.MousePointer not migrated
+        End Try
     End Sub
 
 

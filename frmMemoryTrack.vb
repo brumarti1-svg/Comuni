@@ -21,37 +21,49 @@
     Public Function ValoreMemory(Messaggio As String) As Boolean
         Dim rs_ValMem As Object
         Dim t_Memory As Date, TabAz As String, TabEl As String, Port As Integer
-        On Error Resume Next
         ValoreMemory = True
-        frmRicezione.TmrTimeoutMSG(ACU).Interval = If(Port_Control(ACU).Time_out * 1000 > 0, Port_Control(ACU).Time_out * 1000, 30000)
-        i_Cont = 0
-        Campo = Mid$(Messaggio, 6, 1)
-        i = 1
-    rs_ValMem = dbOrbite.OpenRecordset("MemoryTrack", dbOpenDynaset)
-    If Not rs_ValMem.BOF Then
-            rs_ValMem.MoveFirst
-        End If
-        ' leggo i campi solo per lo status
-        '07/06/2016
-        pos = 2
-        t_Memory = CDate("0000").ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
-        For i = 1 To 96
-            rs_ValMem.AddNew
-            pos += 5
-            TabAz = Mid$(Messaggio, pos, 6)
-            pos += 6
-            TabEl = Mid$(Messaggio, pos, 5)
-            rs_ValMem!ora = t_Memory.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
-            If IsNumeric(TabAz) Then rs_ValMem!az = Format$(TabAz / 1000, "000.000")
-            If IsNumeric(TabEl) Then rs_ValMem!el = Format$(TabEl / 1000, "00.000")
-            t_Memory = DateAdd("n", 15, t_Memory)
-            rs_ValMem.Update
-        Next i
-        rs_ValMem.Close
-        Me.Refresh()
-        ' tdbMemoryTrack.ReBind  ' VB6 DBGrid ReBind — not available in VB.NET
-        Me.Refresh()
-        b_Parametri = False
+        Try
+            frmRicezione.TmrTimeoutMSG(ACU).Interval = If(Port_Control(ACU).Time_out * 1000 > 0, Port_Control(ACU).Time_out * 1000, 30000)
+            i_Cont = 0
+            Campo = Mid$(Messaggio, 6, 1)
+            i = 1
+            rs_ValMem = dbOrbite.OpenRecordset("MemoryTrack", dbOpenDynaset)
+            If Not rs_ValMem.BOF Then
+                rs_ValMem.MoveFirst
+            End If
+            ' leggo i campi solo per lo status
+            '07/06/2016
+            pos = 2
+            t_Memory = CDate("0000").ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
+            For i = 1 To 96
+                ' Try per-iterazione (non uno solo attorno a tutto il
+                ' ciclo): "On Error Resume Next" saltava la singola riga
+                ' fallita e continuava con la successiva delle 96 — un
+                ' Try/Catch attorno all'intero ciclo avrebbe invece
+                ' interrotto tutte le righe restanti al primo errore.
+                Try
+                    rs_ValMem.AddNew
+                    pos += 5
+                    TabAz = Mid$(Messaggio, pos, 6)
+                    pos += 6
+                    TabEl = Mid$(Messaggio, pos, 5)
+                    rs_ValMem!ora = t_Memory.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)
+                    If IsNumeric(TabAz) Then rs_ValMem!az = Format$(TabAz / 1000, "000.000")
+                    If IsNumeric(TabEl) Then rs_ValMem!el = Format$(TabEl / 1000, "00.000")
+                    t_Memory = DateAdd("n", 15, t_Memory)
+                    rs_ValMem.Update
+                Catch exRiga As Exception
+                    WriteError(0, "ValoreMemory riga " & i & ": " & exRiga.Message)
+                End Try
+            Next i
+            rs_ValMem.Close
+            Me.Refresh()
+            ' tdbMemoryTrack.ReBind  ' VB6 DBGrid ReBind — not available in VB.NET
+            Me.Refresh()
+            b_Parametri = False
+        Catch ex As Exception
+            WriteError(0, "ValoreMemory: " & ex.Message)
+        End Try
     End Function
 
 
@@ -88,7 +100,6 @@
         Dim s_Header As String
         Stampa = True
         s_Header = "Memory Track del  " & Format(Now, "dd\-mmm\-yyyy")
-        On Error Resume Next
         ' tdbMemoryTrack.PrintInfo.PageHeader = s_Header  ' VB6 DBGrid PrintInfo — not available in VB.NET
         ' tdbMemoryTrack.PrintInfo.PrintData
         ' datMemoryTrack.RecordSource = "SELECT * FROM [MemoryTrack] ORDER BY Ora"  ' VB6 Data control — not available in VB.NET

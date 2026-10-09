@@ -57,7 +57,6 @@ Public Class FrmPhase
     End Sub
 
     Private Sub FrmPhase_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        On Error Resume Next
         Response = 0
         LoadFasi()
     End Sub
@@ -119,69 +118,71 @@ Public Class FrmPhase
     End Sub
 
     Private Sub LoadFasi()
-        On Error Resume Next
-        dgvPhase.Columns.Clear()
-        dgvPhase.Rows.Clear()
+        Try
+            dgvPhase.Columns.Clear()
+            dgvPhase.Rows.Clear()
 
-        Dim sql As String
-        If b_Scelta Then
-            sql = "SELECT * FROM [Fasi] ORDER BY Sat, frequenza, faseEl"
-        Else
-            sql = "SELECT * FROM [Fasi] WHERE Sat='" & s_Satellite & "' ORDER BY frequenza, faseEl"
-        End If
+            Dim sql As String
+            If b_Scelta Then
+                sql = "SELECT * FROM [Fasi] ORDER BY Sat, frequenza, faseEl"
+            Else
+                sql = "SELECT * FROM [Fasi] WHERE Sat='" & s_Satellite & "' ORDER BY frequenza, faseEl"
+            End If
 
-        Dim rs As Object = dbOrbite.OpenRecordset(sql, dbOpenDynaset)
-        If rs.EOF Then
-            ' Una tabella Fasi vuota (o senza righe per questo satellite) è
-            ' una condizione normale, non un errore: la griglia resta
-            ' semplicemente vuota. Il filtro per satellite in
-            ' frmRicezione.CmdLoad_Click evita comunque di aprire questa
-            ' maschera quando non c'è nulla da scegliere.
-            rs.Close()
-            Exit Sub
-        End If
+            Dim rs As Object = dbOrbite.OpenRecordset(sql, dbOpenDynaset)
+            If rs.EOF Then
+                ' Una tabella Fasi vuota (o senza righe per questo satellite) è
+                ' una condizione normale, non un errore: la griglia resta
+                ' semplicemente vuota. Il filtro per satellite in
+                ' frmRicezione.CmdLoad_Click evita comunque di aprire questa
+                ' maschera quando non c'è nulla da scegliere.
+                rs.Close()
+                Exit Sub
+            End If
 
-        ' Aggiunge colonne leggendo i nomi dal recordset
-        Dim fieldCount As Integer = rs.Fields.Count
-        For i As Integer = 0 To fieldCount - 1
-            dgvPhase.Columns.Add(rs.Fields(i).Name, rs.Fields(i).Name)
-        Next
-        ' Larghezze colonne chiave
-        For Each col As DataGridViewColumn In dgvPhase.Columns
-            Select Case col.Name.ToLower()
-                Case "sat"        : col.Width = 130
-                Case "frequenza"  : col.Width = 80
-                Case "faseel"     : col.Width = 60
-                Case "faseaz"     : col.Width = 60
-                Case "pol"        : col.Width = 60
-                Case "lna"        : col.Width = 40
-                Case "ultima"     : col.Width = 45
-                Case Else         : col.Width = 60
-            End Select
-            ' Colonne numeriche: valori allineati a destra (Fasi: Frequenza REAL,
-            ' le altre INTEGER; il resto è testo e resta allineato a sinistra).
-            Select Case col.Name.ToLower()
-                Case "frequenza", "faseel", "faseaz", "polangle", "lna", "offsetaz", "offsetel"
-                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
-            End Select
-        Next
-
-        Do While Not rs.EOF
-            Dim rowVals(fieldCount - 1) As Object
+            ' Aggiunge colonne leggendo i nomi dal recordset
+            Dim fieldCount As Integer = rs.Fields.Count
             For i As Integer = 0 To fieldCount - 1
-                rowVals(i) = If(IsDBNull(rs.Fields(i).Value), "", rs.Fields(i).Value)
+                dgvPhase.Columns.Add(rs.Fields(i).Name, rs.Fields(i).Name)
             Next
-            dgvPhase.Rows.Add(rowVals)
-            rs.MoveNext
-        Loop
-        rs.Close()
+            ' Larghezze colonne chiave
+            For Each col As DataGridViewColumn In dgvPhase.Columns
+                Select Case col.Name.ToLower()
+                    Case "sat"        : col.Width = 130
+                    Case "frequenza"  : col.Width = 80
+                    Case "faseel"     : col.Width = 60
+                    Case "faseaz"     : col.Width = 60
+                    Case "pol"        : col.Width = 60
+                    Case "lna"        : col.Width = 40
+                    Case "ultima"     : col.Width = 45
+                    Case Else         : col.Width = 60
+                End Select
+                ' Colonne numeriche: valori allineati a destra (Fasi: Frequenza REAL,
+                ' le altre INTEGER; il resto è testo e resta allineato a sinistra).
+                Select Case col.Name.ToLower()
+                    Case "frequenza", "faseel", "faseaz", "polangle", "lna", "offsetaz", "offsetel"
+                        col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
+                End Select
+            Next
+
+            Do While Not rs.EOF
+                Dim rowVals(fieldCount - 1) As Object
+                For i As Integer = 0 To fieldCount - 1
+                    rowVals(i) = If(IsDBNull(rs.Fields(i).Value), "", rs.Fields(i).Value)
+                Next
+                dgvPhase.Rows.Add(rowVals)
+                rs.MoveNext
+            Loop
+            rs.Close()
+        Catch ex As Exception
+            WriteError(0, "LoadFasi: " & ex.Message)
+        End Try
     End Sub
 
     ' -------------------------------------------------------
     ' Menu Apply (era MnuMain(1)) — legge riga selezionata
     ' -------------------------------------------------------
     Private Sub MnuApply_Click(sender As Object, e As EventArgs) Handles MnuApply.Click
-        On Error Resume Next
         Response = 1
         If dgvPhase.CurrentRow Is Nothing Then
             Response = 0
@@ -238,15 +239,18 @@ Public Class FrmPhase
     ' Menu Remove (era MnuMain(3)) — cancella la riga selezionata
     ' -------------------------------------------------------
     Private Sub MnuRemove_Click(sender As Object, e As EventArgs) Handles MnuRemove.Click
-        On Error Resume Next
-        If dgvPhase.CurrentRow Is Nothing Then Exit Sub
-        Dim sat As String  = CellVal(dgvPhase.CurrentRow, "sat")
-        Dim frq As String  = CellVal(dgvPhase.CurrentRow, "frequenza")
-        Dim pol As String  = CellVal(dgvPhase.CurrentRow, "pol")
-        Dim lna As String  = CellVal(dgvPhase.CurrentRow, "lna")
-        If sat = "" Then Exit Sub
-        DbExecute("DELETE FROM [Fasi] WHERE Sat='" & sat & "' AND frequenza='" & frq & "' AND Pol='" & pol & "' AND Lna='" & lna & "'")
-        LoadFasi()
+        Try
+            If dgvPhase.CurrentRow Is Nothing Then Exit Sub
+            Dim sat As String  = CellVal(dgvPhase.CurrentRow, "sat")
+            Dim frq As String  = CellVal(dgvPhase.CurrentRow, "frequenza")
+            Dim pol As String  = CellVal(dgvPhase.CurrentRow, "pol")
+            Dim lna As String  = CellVal(dgvPhase.CurrentRow, "lna")
+            If sat = "" Then Exit Sub
+            DbExecute("DELETE FROM [Fasi] WHERE Sat='" & sat & "' AND frequenza='" & frq & "' AND Pol='" & pol & "' AND Lna='" & lna & "'")
+            LoadFasi()
+        Catch ex As Exception
+            WriteError(0, "MnuRemove_Click: " & ex.Message)
+        End Try
     End Sub
 
     ' -------------------------------------------------------
@@ -257,7 +261,6 @@ Public Class FrmPhase
     End Sub
 
     Private Sub Stampa()
-        On Error Resume Next
         MessageBox.Show("Print not available.", "Print", MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Sub
 

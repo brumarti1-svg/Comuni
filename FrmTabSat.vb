@@ -12,37 +12,47 @@
     Public Function ValoreSat(Messaggio As String) As Boolean
         Dim rs_Sat As Object
         Dim TabAz As String, TabEl As String, TabPol As String, Port As Integer, s_segn As String
-        On Error Resume Next
         ValoreSat = True
-        i_Inter = LeggiFileIni("Canale1", "Inter")
-        frmRicezione.TmrTimeoutMSG(ACU).Interval = Port_Control(ACU).Time_out * 1000
-        Campo = Mid$(Messaggio, 6, 1)
-        i = 1
-        i_Cont = 1
-        rs_Sat = dbOrbite.OpenRecordset("Sat", dbOpenDynaset)
-        ' leggo i campi solo per lo status
-        pos = 7
-        If Campo = "<" Then
-            For i = 1 To 40
-                rs_Sat.AddNew
-                TabAz = Mid$(Messaggio, pos, 6)
-                pos = pos + 6
-                TabEl = Mid$(Messaggio, pos, 5)
-                pos = pos + 5
-                s_segn = Mid$(Messaggio, pos, 1)
-                pos = pos + 1
-                TabPol = Mid$(Messaggio, pos, 3)
-                pos = pos + 3
-                rs_Sat!sat = i - 1
-                If IsNumeric(TabAz) Then rs_Sat!Azimuth = Format$(TabAz / 1000, "000.000")
-                If IsNumeric(TabEl) Then rs_Sat!elev = Format$(TabEl / 1000, "00.000")
-                If IsNumeric(TabPol) Then rs_Sat!POL = s_segn + Format$(TabPol / 10, "00.0")
-                rs_Sat.Update
-            Next i
-            ' datTMath.Absat / tdbTMath.Absat not migrated
-        End If
-        rs_Sat.Close
-        b_Parametri = False
+        Try
+            i_Inter = LeggiFileIni("Canale1", "Inter")
+            frmRicezione.TmrTimeoutMSG(ACU).Interval = Port_Control(ACU).Time_out * 1000
+            Campo = Mid$(Messaggio, 6, 1)
+            i = 1
+            i_Cont = 1
+            rs_Sat = dbOrbite.OpenRecordset("Sat", dbOpenDynaset)
+            ' leggo i campi solo per lo status
+            pos = 7
+            If Campo = "<" Then
+                For i = 1 To 40
+                    ' Try per-iterazione: come in ValoreMemory, "On Error
+                    ' Resume Next" saltava la singola riga fallita e
+                    ' continuava con le altre 39.
+                    Try
+                        rs_Sat.AddNew
+                        TabAz = Mid$(Messaggio, pos, 6)
+                        pos = pos + 6
+                        TabEl = Mid$(Messaggio, pos, 5)
+                        pos = pos + 5
+                        s_segn = Mid$(Messaggio, pos, 1)
+                        pos = pos + 1
+                        TabPol = Mid$(Messaggio, pos, 3)
+                        pos = pos + 3
+                        rs_Sat!sat = i - 1
+                        If IsNumeric(TabAz) Then rs_Sat!Azimuth = Format$(TabAz / 1000, "000.000")
+                        If IsNumeric(TabEl) Then rs_Sat!elev = Format$(TabEl / 1000, "00.000")
+                        If IsNumeric(TabPol) Then rs_Sat!POL = s_segn + Format$(TabPol / 10, "00.0")
+                        rs_Sat.Update
+                    Catch exRiga As Exception
+                        WriteError(0, "ValoreSat riga " & i & ": " & exRiga.Message)
+                    End Try
+                Next i
+                ' datTMath.Absat / tdbTMath.Absat not migrated
+            End If
+            rs_Sat.Close
+            b_Parametri = False
+        Catch ex As Exception
+            WriteError(0, "ValoreSat: " & ex.Message)
+        End Try
     End Function
 
 

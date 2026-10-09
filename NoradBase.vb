@@ -55,7 +55,6 @@ Module NoradBase
     ' Perform the initialization of member variables, specifically the variables
     ' used by derived-class objects to calculate ECI coordinates.
     Public Function InitSGP() As Boolean
-        On Error GoTo div0
         InitSGP = True
         ' Initialize Object variables which are time-independent when
         ' calculating the ECI coordinates of the satellite.
@@ -138,11 +137,6 @@ Module NoradBase
         x7thm1 = 7 * theta2 - 1
         If (twopi / xnodp >= 225) Then
         End If
-        Exit Function
-div0:
-        FrmMain.stpMessaggio.Text = "Not valid parameters"
-        FrmMain.TmrMsg.Enabled = True
-        frmRicezione.LblSatellite.BackColor = Color.Yellow
     End Function
 
 

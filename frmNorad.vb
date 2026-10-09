@@ -22,7 +22,7 @@ Public Class FrmNorad
     Dim rs_Norad As Object
 
     Private Sub FrmNorad_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        On Error Resume Next
+        ' MnuNorad_Click ha già il proprio gestore d'errore.
         MnuNorad_Click(2)
         If LblInvalido IsNot Nothing Then LblInvalido.BackColor = Color.White
     End Sub
@@ -35,7 +35,7 @@ Public Class FrmNorad
         Dim tmpSql As String
         Dim iexp As Double          'esponenziale
         Dim ibexp As Double     'tipo effemeridi
-        On Error Resume Next
+        Try
         Select Case Index
             Case 0
                 If IsNumeric(TxtEpoch.Text) And IsNumeric(TxtInclination.Text) And IsNumeric(TxtRAAN.Text) And IsNumeric(TxtEccentricity.Text) And IsNumeric(TxtPerigee.Text) _
@@ -110,9 +110,12 @@ Public Class FrmNorad
                 End If
                 Inizialize()
         End Select
+        Catch ex As Exception
+            WriteError(0, "MnuNorad_Click(" & Index & "): " & ex.Message)
+        End Try
     End Sub
     Private Sub Inizialize()
-        On Error Resume Next
+        Try
         tmpSql = "SELECT * FROM [Sat2line] order by Sat_Name"
     rs_Norad = dbOrbite.OpenRecordset(tmpSql, dbOpenDynaset)
     TxtSatellite.Text = s_Satellite
@@ -152,7 +155,9 @@ Public Class FrmNorad
             TxtMotion.Text = ""
             TxtOrbite.Text = 0
         End If
-
+        Catch ex As Exception
+            WriteError(0, "Inizialize: " & ex.Message)
+        End Try
     End Sub
     Public Sub AggNorad()
         Dim sReadBuffer As String, s_TwoLine1 As String, tmpsqlAgg As String
