@@ -76,7 +76,12 @@ Public Class FrmPolare
         NPAsseY = h
         CentroX = w / 2.0F
         CentroY = h / 2.0F
-        Raggio = (Math.Min(w, h) / 2.0F) - 20.0F
+        ' Margine 40px (non 20): le etichette dei gradi (VisualizzaAsseX)
+        ' vengono disegnate fino a 5px oltre il bordo del cerchio, più
+        ' l'altezza del testo stesso — con soli 20px restavano tagliate in
+        ' alto/in basso contro il bordo del canvas (o, qui, contro la
+        ' barra dei filtri appena sopra picGrafico).
+        Raggio = (Math.Min(w, h) / 2.0F) - 40.0F
         Intervallo = Raggio / nCerchi
     End Sub
 
@@ -366,6 +371,23 @@ Public Class FrmPolare
 
     Private Sub FrmPolare_Load(sender As Object, e As EventArgs) Handles Me.Load
         ' Le dimensioni reali arrivano in Shown (dopo il Maximize)
+    End Sub
+
+    ' picGrafico (Dock=Fill) si ridimensiona da solo con la finestra, ma il
+    ' bitmap di sfondo e la geometria del grafico polare (CentroX/CentroY/
+    ' Raggio) venivano calcolati una sola volta in InitCanvas() — risultato:
+    ' solo il "quadro" (il controllo) seguiva il resize, il disegno restava
+    ' fermo alla dimensione iniziale. Si rigenera tutto alla nuova
+    ' dimensione reale del controllo.
+    Private Sub PicGrafico_Resize(sender As Object, e As EventArgs) Handles picGrafico.Resize
+        If _g Is Nothing Then Exit Sub   ' primo layout, prima di Shown: niente da rigenerare ancora
+        If picGrafico.ClientSize.Width <= 0 OrElse picGrafico.ClientSize.Height <= 0 Then Exit Sub
+        ' CmdElabora() da sola non rigenera il canvas: chiama InitCanvas()
+        ' solo la primissima volta (If _g Is Nothing), quindi va richiamato
+        ' esplicitamente qui per ricalcolare bitmap e geometria alla nuova
+        ' dimensione.
+        InitCanvas()
+        CmdElabora()
     End Sub
 
     Private Sub FrmPolare_Shown(sender As Object, e As EventArgs) Handles Me.Shown
