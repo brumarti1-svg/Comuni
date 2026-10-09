@@ -506,12 +506,42 @@ Par11Error:
         CalcoloVolt *= Conv_Volt
     End Function
 
+    ' Spezza Buffer in righe da lunMax caratteri (le righe successive alla
+    ' prima rientrate di 4 spazi) e le scrive su hFile. segnalaAnomalia
+    ' antepone "xxx " a ogni riga (usato da ScriviLOG1 quando l'orario della
+    ' ACU risulta successivo a quello del PC).
+    Private Sub ScriviWrappato(hFile As Integer, Buffer As String, lunMax As Integer, Optional segnalaAnomalia As Boolean = False)
+        Dim Ind As Integer, i_Conto As Integer, i_lun As Integer, s_msg As String
+        i_lun = Int(Len(Buffer) / lunMax)
+        If i_lun > 0 Then
+            For Ind = 1 To i_lun
+                i_Conto = 1 + ((Ind - 1) * lunMax)
+                If Ind = 1 Then
+                    s_msg = Mid$(Buffer, i_Conto, lunMax)
+                Else
+                    s_msg = "    " + Mid$(Buffer, i_Conto, lunMax)
+                End If
+                If segnalaAnomalia Then s_msg = "xxx " & s_msg
+                PrintLine(hFile, s_msg)
+            Next
+            i_lun = Len(Buffer) Mod lunMax
+            If i_lun > 0 Then
+                i_Conto = 1 + ((Ind - 1) * lunMax)
+                s_msg = "    " + Mid$(Buffer, i_Conto, i_lun)
+                PrintLine(hFile, s_msg)
+            End If
+        Else
+            If segnalaAnomalia Then Buffer = "xxx " & Buffer
+            PrintLine(hFile, Buffer)
+        End If
+    End Sub
+
     Sub ScriviLOG1(Messaggio As String, Tipo As Integer)
         Dim hFile As Long
         Dim Buffer As String
-        Dim Ind As Integer, i_lun As Integer, s_msg As String, Ind1 As System.Single
+        Dim s_msg As String, Ind1 As System.Single
         Dim lunMax As Integer
-        Dim i_Conto As Integer, mSec As Integer, year As Integer, month As Integer, day As Integer, hour As Integer
+        Dim mSec As Integer, year As Integer, month As Integer, day As Integer, hour As Integer
         Dim minut As Integer, second As Integer
         Dim t_Ciclo As SYSTEMTIME
         Try
@@ -546,33 +576,7 @@ Par11Error:
             FileOpen(hFile, Application.StartupPath + "\" & s_msg, OpenMode.Append)
             '    Open Canali(ACU).File_Log For Append As #
 
-            i_lun = Int(Len(Buffer) / lunMax)
-            s_msg = ""
-            If i_lun > 0 Then
-                For Ind = 1 To i_lun
-                    i_Conto = 1 + ((Ind - 1) * lunMax)
-                    If Ind = 1 Then
-                        s_msg = Mid$(Buffer, i_Conto, lunMax)
-                    Else
-                        s_msg = "    " + Mid$(Buffer, i_Conto, lunMax)
-                    End If
-                    If Ind1 < 0 Then
-                        s_msg = "xxx " & s_msg
-                    End If
-                    PrintLine(hFile, s_msg)
-                Next
-                i_lun = Len(Buffer) Mod lunMax
-                If i_lun > 0 Then
-                    i_Conto = 1 + ((Ind - 1) * lunMax)
-                    s_msg = "    " + Mid$(Buffer, i_Conto, i_lun)
-                    PrintLine(hFile, s_msg)
-                End If
-            Else
-                If Ind1 < 0 Then
-                    Buffer = "xxx " & Buffer
-                End If
-                PrintLine(hFile, Buffer)
-            End If
+            ScriviWrappato(hFile, Buffer, lunMax, Ind1 < 0)
             FileClose(hFile)
         Catch ex As Exception
             WriteError(0, "ScriviLOG1: " & ex.Message)
@@ -581,9 +585,8 @@ End Sub
     Public Sub ScriviLOG2(Messaggio As String, Tipo As Integer)
         Dim hFile As Long
         Dim Buffer As String
-        Dim Ind As Integer, i_lun As Integer, s_msg As String
+        Dim s_msg As String
         Dim lunMax As Integer
-        Dim i_Conto As Integer
         Try
             lunMax = 70
             hFile = FreeFile()
@@ -598,27 +601,7 @@ End Sub
             s_msg = f_Log1
             FileOpen(hFile, Application.StartupPath + "\" & s_msg, OpenMode.Append)
 
-            i_lun = Int(Len(Buffer) / lunMax)
-            s_msg = ""
-            If i_lun > 0 Then
-                For Ind = 1 To i_lun
-                    i_Conto = 1 + ((Ind - 1) * lunMax)
-                    If Ind = 1 Then
-                        s_msg = Mid$(Buffer, i_Conto, lunMax)
-                    Else
-                        s_msg = "    " + Mid$(Buffer, i_Conto, lunMax)
-                    End If
-                    PrintLine(hFile, s_msg)
-                Next
-                i_lun = Len(Buffer) Mod lunMax
-                If i_lun > 0 Then
-                    i_Conto = 1 + ((Ind - 1) * lunMax)
-                    s_msg = "    " + Mid$(Buffer, i_Conto, i_lun)
-                    PrintLine(hFile, s_msg)
-                End If
-            Else
-                PrintLine(hFile, Buffer)
-            End If
+            ScriviWrappato(hFile, Buffer, lunMax)
             FileClose(hFile)
         Catch ex As Exception
             WriteError(0, "ScriviLOG2: " & ex.Message)
