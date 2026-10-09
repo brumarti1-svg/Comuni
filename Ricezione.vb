@@ -965,7 +965,7 @@ Rangeout:
     End Function
     Public Function AnalisiOrdini(Ordine As String) As Boolean
         Dim Send_ORDINI As String
-        On Error GoTo esci
+        Try
         AnalisiOrdini = False
         lun = Len(Ordine)
         i = InStr(2, Ordine, " ", 1)
@@ -1837,7 +1837,9 @@ Rangeout:
         End Select
         AnalisiOrdini = True
         Exit Function
-esci:
+        Catch ex As Exception
+            WriteError(0, "AnalisiOrdini: " & ex.Message)
+        End Try
     End Function
     Public Function Calcolo_Coordinate(Data1 As Date, mSec As Integer) As Boolean
         'Apportata modifica per avere un calcolo differenziato sia sulla data, che viene inviata sulla chiamata
