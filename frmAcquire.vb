@@ -29,7 +29,9 @@ Partial Public Class frmAcquire
         If frmRicezioneRef IsNot Nothing Then
             frmRicezioneRef.TmrSpiralAcquire.Enabled = False
         End If
-        DbExecute("DELETE FROM tmpEffemeridi")
+        ' Scoped a source='ACQUIRE' (più le righe legacy senza source):
+        ' non deve cancellare dati di un calcolo Effemeridi in corso.
+        DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'ACQUIRE' OR source IS NULL")
         mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
         mskDataIni.Focus()
         optPreset.Checked = False
@@ -169,7 +171,9 @@ Partial Public Class frmAcquire
         ' non solo all'apertura del dialogo (frmAcquire_Activated): altrimenti
         ' righe residue di un run precedente restano visibili nel grafico
         ' "Acquire Trace" fin dal primo redraw, sembrando già completo.
-        DbExecute("DELETE FROM tmpEffemeridi")
+        ' Scoped a source='ACQUIRE' (più le righe legacy senza source): non
+        ' deve cancellare dati di un calcolo Effemeridi in corso.
+        DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'ACQUIRE' OR source IS NULL")
 
         ' VB6: Now - CDate(i_Offset/24) — i_Offset è intero in ore, /24
         ' convertiva in giorni OLE (stesso bug già corretto altrove, es.

@@ -29,8 +29,9 @@ Partial Public Class FrmEffemeridi
         ' Lo svuotamento qui è voluto: senza, riaprendo Ephemeris su un
         ' satellite diverso si vedrebbero ancora i dati vecchi del
         ' satellite precedente (confermato: GEO seguito da POLAR mostrava
-        ' ancora i dati di GEO).
-        DbExecute("DELETE FROM tmpEffemeridi")
+        ' ancora i dati di GEO). Scoped a source='EFFEMERIDI' (più le righe
+        ' legacy senza source): non deve cancellare un Acquire in corso.
+        DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' OR source IS NULL")
         MnuCalcola.Enabled = True
         MnuInviaTabella.Enabled = False
         MnuSalva.Enabled = True
@@ -50,7 +51,7 @@ Partial Public Class FrmEffemeridi
             Case 3 : LblSatellite.Text = "Sun"
             Case 4 : LblSatellite.Text = "Venus"
         End Select
-        DbExecute("DELETE FROM tmpEffemeridi")
+        DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' OR source IS NULL")
         MskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
         TxtMinuti.Focus()
     End Sub
@@ -75,7 +76,7 @@ Partial Public Class FrmEffemeridi
 
         MnuInviaTabella.Enabled = True
 
-        DbExecute("DELETE FROM tmpEffemeridi")
+        DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' OR source IS NULL")
         Me.Refresh()
 
         Dim dataIni As Date
@@ -184,7 +185,7 @@ Partial Public Class FrmEffemeridi
     ' Timer Effemeridi — ricalcolo periodico
     ' -------------------------------------------------------
     Private Sub TmrEffemeridi_Tick(sender As Object, e As EventArgs) Handles TmrEffemeridi.Tick
-        DbExecute("DELETE FROM tmpEffemeridi")
+        DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' OR source IS NULL")
         Select Case i_Ephemeris
             Case 0 : EffCASSIOPEA(CDbl(TxtMinuti.Text))
             Case 1 : EffMOON(CDbl(TxtMinuti.Text))

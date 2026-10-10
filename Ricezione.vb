@@ -576,7 +576,12 @@ Module Ricezione
 Rangeout:
         ' TEMPORANEO (test): controllo elevazione minima disattivato. Da ripristinare rimettendo ">= g_ElMin" al posto di "True".
         If True Then
-            rs_Acq = dbOrbite.OpenRecordset("tmpEffemeridi", dbOpenDynaset)
+            ' Filtrato su source='ACQUIRE': senza, MoveFirst/Delete poteva
+            ' colpire una riga scritta da Effemeridi (se calcolata mentre
+            ' l'acquire è attivo), e rs_Acq!Orbite sarebbe DBNull per quella
+            ' riga (Effemeridi non valorizza quella colonna), causando un
+            ' errore di cast nella sottrazione sottostante.
+            rs_Acq = dbOrbite.OpenRecordset("SELECT * FROM tmpEffemeridi WHERE source = 'ACQUIRE'", dbOpenDynaset)
             If i_Spiral > 2 Then                          'Cancella anche se in Lock
                 If i_Spiral - rs_Acq!Orbite >= 2 Then
                     rs_Acq.MoveFirst
@@ -930,7 +935,8 @@ Rangeout:
         End If
 Rangeout:
         If CDbl(frmRicezione.LblElevazione.Text) >= g_ElMin Then
-            rs_Acq = dbOrbite.OpenRecordset("tmpEffemeridi", dbOpenDynaset)
+            ' Filtrato su source='ACQUIRE', stesso motivo di Rangeout sopra.
+            rs_Acq = dbOrbite.OpenRecordset("SELECT * FROM tmpEffemeridi WHERE source = 'ACQUIRE'", dbOpenDynaset)
             If i_Spiral > 2 Then                          'Cancella anche se in Lock
                 If i_Spiral - rs_Acq!Orbite >= 2 Then
                     rs_Acq.MoveFirst
