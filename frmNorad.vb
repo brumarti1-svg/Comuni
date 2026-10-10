@@ -165,7 +165,12 @@ Public Class FrmNorad
         Dim rs_Norad1 As Object
         Try
             If s_Internet = "N" Then Exit Sub
-            tmpsqlAgg = "SELECT * FROM [URL] where Aggiorna order by URL"
+            ' Aggiorna è una colonna TEXT ("True"/"False", talvolta "1"/"-1" o
+            ' residui storici come "Vero"/"Falso"): un "WHERE Aggiorna" nudo la
+            ' valuta numericamente (SQLite tenta la conversione a numero), quindi
+            ' con un valore testuale come "True" risultava sempre falso e la
+            ' query non restituiva mai nessuna riga, anche con la casella spuntata.
+            tmpsqlAgg = "SELECT * FROM [URL] WHERE UPPER(Aggiorna) IN ('TRUE','1','-1') order by URL"
             rs_Norad1 = dbOrbite.OpenRecordset(tmpsqlAgg, dbOpenDynaset)
             rs_Norad1.MoveFirst
             Do While Not rs_Norad1.EOF
