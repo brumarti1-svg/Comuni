@@ -51,6 +51,7 @@ Public Class FrmUrl
                 col.ReadOnly = Not col.Name.Equals("Aggiorna", StringComparison.OrdinalIgnoreCase)
             Next
         Catch ex As Exception
+            WriteError(0, "FrmUrl.LoadData: " & ex.Message)
         End Try
     End Sub
 
@@ -89,6 +90,7 @@ Public Class FrmUrl
             gridRow.Cells("URL").ReadOnly = True
             gridRow.Cells("FileAgg").ReadOnly = True
         Catch ex As Exception
+            WriteError(0, "FrmUrl.DgvUrl_RowLeave: " & ex.Message)
         End Try
     End Sub
 
@@ -116,6 +118,7 @@ Public Class FrmUrl
             End If
             rs.Close()
         Catch ex As Exception
+            WriteError(0, "FrmUrl.DgvUrl_CellValueChanged: " & ex.Message)
         End Try
     End Sub
 
@@ -143,6 +146,7 @@ Public Class FrmUrl
             rs.Close()
             LoadData()
         Catch ex As Exception
+            WriteError(0, "FrmUrl.Elimina: " & ex.Message)
         End Try
     End Sub
 
