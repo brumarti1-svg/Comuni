@@ -163,43 +163,59 @@ Public Class FrmNorad
         Dim sReadBuffer As String, s_TwoLine1 As String, tmpsqlAgg As String
         Dim s_Linea As String
         Dim rs_Norad1 As Object
-        On Error Resume Next
-        If s_Internet = "N" Then Exit Sub
-        tmpsqlAgg = "SELECT * FROM [URL] where Aggiorna order by URL"
-        rs_Norad1 = dbOrbite.OpenRecordset(tmpsqlAgg, dbOpenDynaset)
-        rs_Norad1.MoveFirst
-        Do While Not rs_Norad1.EOF
+        Try
+            If s_Internet = "N" Then Exit Sub
+            tmpsqlAgg = "SELECT * FROM [URL] where Aggiorna order by URL"
+            rs_Norad1 = dbOrbite.OpenRecordset(tmpsqlAgg, dbOpenDynaset)
+            rs_Norad1.MoveFirst
+            Do While Not rs_Norad1.EOF
+                Try
+                    s_url = ""
+                    If Not IsDBNull(rs_Norad1("URL")) Then s_url = CStr(rs_Norad1("URL"))
+                    If rs_Norad1("FileAgg") = "" OrElse IsDBNull(rs_Norad1("FileAgg")) Then
+                        ' riga senza file di destinazione: nessun download (era "GoTo Continua")
+                    Else
+                        s_TwoLine1 = CStr(rs_Norad1("FileAgg"))
+                        i = InStr(1, s_TwoLine1, ":", 1)
+                        If i = 0 Then s_TwoLine1 = Application.StartupPath & "\" & s_TwoLine1
 
+                        ' Era CopyURLToFile (API WinInet di VB6, non portata in .NET):
+                        ' la riga era rimasta commentata, quindi nessun file veniva
+                        ' mai scaricato. WebClient.DownloadFile è l'equivalente .NET.
+                        If s_url <> "" Then
+                            Dim destDir As String = IO.Path.GetDirectoryName(s_TwoLine1)
+                            If Not String.IsNullOrEmpty(destDir) AndAlso Not IO.Directory.Exists(destDir) Then
+                                IO.Directory.CreateDirectory(destDir)
+                            End If
+                            Using wc As New System.Net.WebClient()
+                                wc.DownloadFile(s_url, s_TwoLine1)
+                            End Using
+                        End If
 
-            If Not IsDBNull(rs_Norad1("URL")) Then s_url = CStr(rs_Norad1("URL"))
-            If rs_Norad1("FileAgg") = "" Or IsDBNull(rs_Norad1("FileAgg")) Then
-                GoTo Continua
-            Else
-                s_TwoLine1 = CStr(rs_Norad1("FileAgg"))
-                i = InStr(1, s_TwoLine1, ":", 1)
-                If i = 0 Then s_TwoLine1 = Application.StartupPath & "\" & s_TwoLine1 '
-            End If
-            'If s_url <> "" Then CopyURLToFile(s_url, s_TwoLine1)   'Funziona  'BC30451: commented out - VB6 WinInet API not available in VB.NET
+                        '10/01/2019
+                        Attesa(2)
+                    End If
+                Catch exRiga As Exception
+                    WriteError(0, "AggNorad (" & s_url & "): " & exRiga.Message)
+                End Try
+                rs_Norad1.MoveNext
+            Loop
+            rs_Norad1.Close()
+            d_TLEDate = Now.AddHours(-i_Offset)
 
-            '10/01/2019
-            Attesa(2)
-Continua:
-            rs_Norad1.MoveNext
-        Loop
-        rs_Norad1.Close()
-        d_TLEDate = Now.AddHours(-i_Offset)
-
-        '        s_Satellite = Satellite
-        '10/01/2019 E' sembrato un aggiornamento eccessivo. Ce ne sono troppi
-        '        b_Check = AggiornaTLE(s_TwoLine, 2)
-        '                If Not b_Check Then
-        '                    frmRicezione.LblSatellite.BackColor = vbYellow
-        '                Else
-        '                    frmRicezione.LblSatellite.BackColor = &HFFFF00
-        '                End If
-        '                Exit Sub
-        '    Inizialize
-
+            '        s_Satellite = Satellite
+            '10/01/2019 E' sembrato un aggiornamento eccessivo. Ce ne sono troppi
+            '        b_Check = AggiornaTLE(s_TwoLine, 2)
+            '                If Not b_Check Then
+            '                    frmRicezione.LblSatellite.BackColor = vbYellow
+            '                Else
+            '                    frmRicezione.LblSatellite.BackColor = &HFFFF00
+            '                End If
+            '                Exit Sub
+            '    Inizialize
+        Catch ex As Exception
+            WriteError(0, "AggNorad: " & ex.Message)
+        End Try
     End Sub
 
 
