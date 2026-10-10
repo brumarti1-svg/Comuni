@@ -183,9 +183,12 @@ Public Class FrmNorad
                         ' la riga era rimasta commentata, quindi nessun file veniva
                         ' mai scaricato. WebClient.DownloadFile è l'equivalente .NET.
                         If s_url <> "" Then
-                            Dim destDir As String = IO.Path.GetDirectoryName(s_TwoLine1)
-                            If Not String.IsNullOrEmpty(destDir) AndAlso Not IO.Directory.Exists(destDir) Then
-                                IO.Directory.CreateDirectory(destDir)
+                            ' Nome completo "System.IO" obbligatorio: nel progetto esiste
+                            ' una variabile globale "io As Double" (ModSGP4.vb) che, essendo
+                            ' VB.NET case-insensitive, altrimenti vince su "IO.Path"/"IO.Directory".
+                            Dim destDir As String = System.IO.Path.GetDirectoryName(s_TwoLine1)
+                            If Not String.IsNullOrEmpty(destDir) AndAlso Not System.IO.Directory.Exists(destDir) Then
+                                System.IO.Directory.CreateDirectory(destDir)
                             End If
                             Using wc As New System.Net.WebClient()
                                 wc.DownloadFile(s_url, s_TwoLine1)
