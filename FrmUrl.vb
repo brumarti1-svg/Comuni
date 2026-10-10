@@ -50,6 +50,11 @@ Public Class FrmUrl
             For Each col As DataGridViewColumn In dgvUrl.Columns
                 col.ReadOnly = Not col.Name.Equals("Aggiorna", StringComparison.OrdinalIgnoreCase)
             Next
+
+            ' Intestazioni in inglese (il nome colonna nel database, usato dal
+            ' resto del codice, resta "Aggiorna"/"FileAgg").
+            If dgvUrl.Columns.Contains("Aggiorna") Then dgvUrl.Columns("Aggiorna").HeaderText = "Update"
+            If dgvUrl.Columns.Contains("FileAgg") Then dgvUrl.Columns("FileAgg").HeaderText = "Local File"
         Catch ex As Exception
             WriteError(0, "FrmUrl.LoadData: " & ex.Message)
         End Try
