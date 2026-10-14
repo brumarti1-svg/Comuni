@@ -116,6 +116,8 @@ Partial Class frmGrafico
         Me.TxtIntervallo.Font      = New System.Drawing.Font("Arial", 10.2!)
         Me.TxtIntervallo.TabIndex  = 3
         Me.TxtIntervallo.Name      = "TxtIntervallo"
+        Me.TxtIntervallo.ReadOnly  = True
+        Me.TxtIntervallo.TabStop   = False
         ' Label2 "Interval" (Left=1368/15=91, Top=5544/15=370, Width=1140/15=76, RightAlign)
         LblInterval.Location  = New System.Drawing.Point(91, 370)
         LblInterval.Size      = New System.Drawing.Size(76, 17)
