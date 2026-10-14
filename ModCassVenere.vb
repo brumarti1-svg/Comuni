@@ -37,7 +37,7 @@ Private Function GetStelleCas() As TStella
     ' ============================================================
     Private Sub PrecessaStella(RAj2000 As Double, Decj2000 As Double,
                             mRA As Double, mDec As Double,
-                            jd As Double, RAout As Double)
+                            jd As Double, ByRef RAout As Double, ByRef Decout As Double)
         Const DEG As Double = 3.14159265358979 / 180.0#
         Const RAD As Double = 180.0# / 3.14159265358979
 
@@ -65,14 +65,14 @@ Private Function GetStelleCas() As TStella
         c = System.Math.Sin(theta * DEG) * System.Math.Cos(Dec_r) * System.Math.Cos(RA_r + zeta * DEG) + System.Math.Cos(theta * DEG) * System.Math.Sin(Dec_r)
 
         RAout = Norm360v(Atan2v(a, b) * RAD + z) / 15.0#
-        '   Decout = Asin(c) * RAD
+        Decout = Asin(c) * RAD
     End Sub
 
     ' ============================================================
     '  Calcolo Az/El topocentrico per una stella
     ' ============================================================
     Public Sub PosizioneStellaOrizzontale(RAore As Double, Decgr As Double,
-                                       jd As Double, latsta11 As Double, lonsta11 As Double, azimut As Double, elevazione As Double)
+                                       jd As Double, latsta11 As Double, lonsta11 As Double, ByRef azimut As Double, ByRef elevazione As Double)
         Const DEG As Double = 3.14159265358979 / 180.0#
         Const RAD As Double = 180.0# / 3.14159265358979
 
@@ -116,7 +116,7 @@ Private Function GetStelleCas() As TStella
 
         '    For i = 0 To 4
         Call PrecessaStella(stelle.RAh, stelle.Decl,
-                             stelle.mRA, stelle.mDec, jd, RAprec)
+                             stelle.mRA, stelle.mDec, jd, RAprec, Decprec)
         Call PosizioneStellaOrizzontale(RAprec, Decprec, jd, LATSTA11, LONSTA11, az, el)
 
         pos.Valori(1) = az
@@ -149,7 +149,7 @@ Private Function GetStelleCas() As TStella
 
         Dim RAp As Double, Decp As Double
         Call PrecessaStella(stelle.RAh, stelle.Decl,
-                         stelle.mRA, stelle.mDec, JD0, RAp)
+                         stelle.mRA, stelle.mDec, JD0, RAp, Decp)
 
         ' Convertire RA da ore a gradi
         RAp *= 15.0#
