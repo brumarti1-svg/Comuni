@@ -155,8 +155,16 @@ Partial Public Class frmGrafico
     Private Sub TmrGrafico_Tick(sender As Object, e As EventArgs) Handles TmrGrafico.Tick
         Try
             Dim ValBeacon As System.Single
-            ValBeacon = -150
-            ' frmRicezioneRef.TxtLev not migrated
+            ' Era hardcoded a -150 ("TxtLev not migrated"): legge ora il
+            ' livello beacon reale da frmRicezione (LblLev_ctrl, aggiornato
+            ' da AggiornaBeaconLock — dato ricevitore s_Lev1, o fallback sul
+            ' dato grezzo ACU s_Lev se il ricevitore non è collegato).
+            ' -150 resta il valore di sentinella VB6 per "nessun dato".
+            If frmRicezioneRef IsNot Nothing AndAlso IsNumeric(frmRicezioneRef.LblLev_ctrl.Text) Then
+                ValBeacon = CSng(frmRicezioneRef.LblLev_ctrl.Text)
+            Else
+                ValBeacon = -150
+            End If
 
             MaxPunti = If(MaxX = 2, CInt(2 * 60 * 1 / i_Inter), 60 * 60)
 
