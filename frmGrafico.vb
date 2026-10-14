@@ -34,6 +34,12 @@ Partial Public Class frmGrafico
     Private NPAsseY As System.Single
     Private NPAsseX As System.Single
     Private Const DimCornice As Integer = 9
+    ' Margine inferiore maggiorato: con solo DimCornice (9px) le etichette
+    ' dell'asse X (VisualizzaAsseX) venivano disegnate 2px sotto l'ultima
+    ' griglia, cioè oltre il bordo inferiore del bitmap — tagliate fuori,
+    ' invisibili. Usato come riferimento Y "basso" al posto di DimCornice
+    ' ovunque si calcola la posizione della riga MinY.
+    Private Const MargineBasso As Integer = 22
     Private Intervallo As Integer
 
     Private OraIni As String
@@ -223,9 +229,12 @@ Partial Public Class frmGrafico
         MinY = CSng(TxtMin.Text)
         MaxX = CSng(CmbAssex.Text)
         ScalaX = MaxX / (picGrafico.Width - 2 * DimCornice)
-        ScalaY = (MaxY - MinY) / (picGrafico.Height - 2 * DimCornice)
+        ScalaY = (MaxY - MinY) / (picGrafico.Height - DimCornice - MargineBasso)
         stepinc = (MaxY - MinY) / 10
         PassoX = MaxX / 10
+        ' Era mai assegnato ("TxtIntervallo = Abs(TxtMax - TxtMin)" in VB6,
+        ' persa nel porting): il campo restava sempre vuoto.
+        If TxtIntervallo IsNot Nothing Then TxtIntervallo.Text = CStr(Math.Abs(MaxY - MinY))
 
         If i_AsseXGrafico = 2 Then
             MaxPunti = CInt(2 * 60 * 1 / i_Inter)
@@ -284,7 +293,7 @@ Partial Public Class frmGrafico
                 For i As Integer = n To MaxPunti
                     If Punti(i).data = "" Then Continue For
                     Dim tmpX As System.Single = Punti(i).X / ScalaX + DimCornice
-                    Dim tmpY As System.Single = (picGrafico.Height - DimCornice) -Math.Abs((Punti(i).y - MinY)) / ScalaY
+                    Dim tmpY As System.Single = (picGrafico.Height - MargineBasso) -Math.Abs((Punti(i).y - MinY)) / ScalaY
 
                     If started AndAlso Punti(i).y >= MinY AndAlso Punti(i).y <= MaxY AndAlso
                        YValPrec >= MinY AndAlso YValPrec <= MaxY Then
@@ -317,10 +326,11 @@ Partial Public Class frmGrafico
             Dim tmpAz As System.Single = 0
             Do While tmpAz <= MaxX + 0.01F
                 Dim tmpX As System.Single = tmpAz / ScalaX + DimCornice
-                Dim tmpY As System.Single = picGrafico.Height - DimCornice
+                Dim tmpY As System.Single = picGrafico.Height - MargineBasso
                 ' Linea verticale griglia
                 g.DrawLine(penGrid, tmpX, DimCornice, tmpX, tmpY)
-                ' Etichetta
+                ' Etichetta (ora dentro MargineBasso, non più tagliata fuori
+                ' dal bitmap)
                 Dim Lbl As String = Format(tmpAz - MaxX, "##0.#")
                 g.DrawString(Lbl, font, brush, tmpX - 4, tmpY + 2)
                 tmpAz += PassoX
@@ -338,7 +348,7 @@ Partial Public Class frmGrafico
         Using brush As New SolidBrush(Color.Black)
             Dim tmp2y As System.Single = MinY
             Do While tmp2y <= MaxY
-                Dim tmpY As System.Single = (picGrafico.Height - DimCornice) - (tmp2y - MinY) / ScalaY
+                Dim tmpY As System.Single = (picGrafico.Height - MargineBasso) - (tmp2y - MinY) / ScalaY
                 ' Linea orizzontale griglia
                 g.DrawLine(penGrid, DimCornice, tmpY, picGrafico.Width - DimCornice, tmpY)
                 ' EtichettaSystem.Math.Sinistra e destra
