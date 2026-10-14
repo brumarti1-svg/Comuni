@@ -269,7 +269,16 @@ Partial Public Class frmGrafico
 
             Using penRed As New Pen(Color.Red, 2)
                 penRed.DashStyle = Drawing2D.DashStyle.Solid
+                ' YPrec deve essere la coordinata PIXEL del punto precedente
+                ' (per DrawLine), non il valore grezzo — tenuto a parte in
+                ' YValPrec solo per il controllo di range min/max. Prima
+                ' DrawLine riceveva il valore grezzo (es. -48..-103) al posto
+                ' del pixel Y, disegnando segmenti verticali impazziti invece
+                ' di una linea continua (si vedeva solo con dati che variano:
+                ' prima, con ValBeacon fisso a -150, la riga non era quasi
+                ' mai nel range min/max e quindi non veniva mai disegnata).
                 Dim XPrec As System.Single = 0, YPrec As System.Single = 0
+                Dim YValPrec As System.Single = 0
                 Dim started As Boolean = False
 
                 For i As Integer = n To MaxPunti
@@ -278,12 +287,13 @@ Partial Public Class frmGrafico
                     Dim tmpY As System.Single = (picGrafico.Height - DimCornice) -Math.Abs((Punti(i).y - MinY)) / ScalaY
 
                     If started AndAlso Punti(i).y >= MinY AndAlso Punti(i).y <= MaxY AndAlso
-                       YPrec >= MinY AndAlso YPrec <= MaxY Then
+                       YValPrec >= MinY AndAlso YValPrec <= MaxY Then
                         gfx.DrawLine(penRed, XPrec, YPrec, tmpX, tmpY)
                     End If
 
                     XPrec = tmpX
-                    YPrec = Punti(i).y
+                    YPrec = tmpY
+                    YValPrec = Punti(i).y
                     started = True
                 Next
             End Using
