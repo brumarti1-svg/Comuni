@@ -35,6 +35,25 @@ ByVal nSize As Long) As Long
         Box.SelectedIndex = -1
     End Sub
 
+    ' Cache delle righe del file INI: LeggiFileIni veniva chiamata decine di
+    ' volte in sequenza (es. da LeggiParametri) e ognuna rileggeva e
+    ' ri-parsava l'intero file da disco — contribuiva da sola per oltre 2
+    ' secondi all'avvio. La cache resta valida finché il timestamp di
+    ' modifica del file non cambia (si invalida da sola se il file viene
+    ' modificato da fuori); ScriviFileIni la aggiorna direttamente, senza
+    ' bisogno di rileggere da disco dopo ogni scrittura.
+    Private _iniCacheLines As String() = Nothing
+    Private _iniCacheTimestamp As DateTime = DateTime.MinValue
+
+    Private Function LeggiRigheIni(FileName As String) As String()
+        Dim lastWrite As DateTime = System.IO.File.GetLastWriteTimeUtc(FileName)
+        If _iniCacheLines Is Nothing OrElse _iniCacheTimestamp <> lastWrite Then
+            _iniCacheLines = System.IO.File.ReadAllLines(FileName)
+            _iniCacheTimestamp = lastWrite
+        End If
+        Return _iniCacheLines
+    End Function
+
     Public Function LeggiFileIni(Section As String, key As String) As String
         Dim FileName As String = Application.StartupPath & "\SMOD1574.INI"
         If Not System.IO.File.Exists(FileName) Then
@@ -42,7 +61,7 @@ ByVal nSize As Long) As Long
             End
         End If
         Dim inSection As Boolean = False
-        For Each line As String In System.IO.File.ReadAllLines(FileName)
+        For Each line As String In LeggiRigheIni(FileName)
             Dim trimmed As String = line.Trim()
             If trimmed.StartsWith("[") AndAlso trimmed.EndsWith("]") Then
                 inSection = (String.Compare(trimmed.Substring(1, trimmed.Length - 2), Section, StringComparison.OrdinalIgnoreCase) = 0)
@@ -66,7 +85,7 @@ ByVal nSize As Long) As Long
         Dim FileName As String = Application.StartupPath & "\SMOD1574.INI"
         Dim lines As New List(Of String)
         If System.IO.File.Exists(FileName) Then
-            lines.AddRange(System.IO.File.ReadAllLines(FileName))
+            lines.AddRange(LeggiRigheIni(FileName))
         End If
 
         Dim sectionStart As Integer = -1
@@ -108,6 +127,8 @@ ByVal nSize As Long) As Long
         End If
 
         System.IO.File.WriteAllLines(FileName, lines)
+        _iniCacheLines = lines.ToArray()
+        _iniCacheTimestamp = System.IO.File.GetLastWriteTimeUtc(FileName)
     End Sub
 
     Public Function CheckSum(Buffer As String) As String

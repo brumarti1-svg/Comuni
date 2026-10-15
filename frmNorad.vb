@@ -160,8 +160,7 @@ Public Class FrmNorad
         End Try
     End Sub
     Public Sub AggNorad()
-        Dim sReadBuffer As String, s_TwoLine1 As String, tmpsqlAgg As String
-        Dim s_Linea As String
+        Dim tmpsqlAgg As String
         Dim rs_Norad1 As Object
         Try
             If s_Internet = "N" Then Exit Sub
@@ -173,42 +172,55 @@ Public Class FrmNorad
             tmpsqlAgg = "SELECT * FROM [URL] WHERE UPPER(Aggiorna) IN ('TRUE','1','-1') order by URL"
             rs_Norad1 = dbOrbite.OpenRecordset(tmpsqlAgg, dbOpenDynaset)
             rs_Norad1.MoveFirst
-            Do While Not rs_Norad1.EOF
-                Try
-                    s_url = ""
-                    If Not IsDBNull(rs_Norad1("URL")) Then s_url = CStr(rs_Norad1("URL"))
-                    If rs_Norad1("FileAgg") = "" OrElse IsDBNull(rs_Norad1("FileAgg")) Then
-                        ' riga senza file di destinazione: nessun download (era "GoTo Continua")
-                    Else
-                        s_TwoLine1 = CStr(rs_Norad1("FileAgg"))
-                        i = InStr(1, s_TwoLine1, ":", 1)
-                        If i = 0 Then s_TwoLine1 = Application.StartupPath & "\" & s_TwoLine1
 
-                        ' Era CopyURLToFile (API WinInet di VB6, non portata in .NET):
-                        ' la riga era rimasta commentata, quindi nessun file veniva
-                        ' mai scaricato. WebClient.DownloadFile è l'equivalente .NET.
-                        If s_url <> "" Then
+            ' Raccoglie prima tutte le righe da scaricare, poi esegue i
+            ' download in parallelo (erano uno alla volta, con 2s fissi di
+            ' pausa dopo ciascuno — non presenti nel VB6 originale, nessuna
+            ' giustificazione nota, costavano da soli 8s+ a ogni avvio con
+            ' le 4 URL attualmente configurate). Col download in parallelo
+            ' il tempo totale è quello del più lento, non la somma di tutti.
+            Dim urls As New List(Of String)
+            Dim dest As New List(Of String)
+            Do While Not rs_Norad1.EOF
+                Dim urlRiga As String = ""
+                If Not IsDBNull(rs_Norad1("URL")) Then urlRiga = CStr(rs_Norad1("URL"))
+                If Not (rs_Norad1("FileAgg") = "" OrElse IsDBNull(rs_Norad1("FileAgg"))) AndAlso urlRiga <> "" Then
+                    Dim destPath As String = CStr(rs_Norad1("FileAgg"))
+                    Dim idx As Integer = InStr(1, destPath, ":", 1)
+                    If idx = 0 Then destPath = Application.StartupPath & "\" & destPath
+                    urls.Add(urlRiga)
+                    dest.Add(destPath)
+                End If
+                rs_Norad1.MoveNext
+            Loop
+            rs_Norad1.Close()
+
+            Dim tasks(urls.Count - 1) As System.Threading.Tasks.Task
+            For i_url As Integer = 0 To urls.Count - 1
+                Dim urlLoc As String = urls(i_url)
+                Dim destLoc As String = dest(i_url)
+                tasks(i_url) = System.Threading.Tasks.Task.Run(
+                    Sub()
+                        Try
                             ' Nome completo "System.IO" obbligatorio: nel progetto esiste
                             ' una variabile globale "io As Double" (ModSGP4.vb) che, essendo
                             ' VB.NET case-insensitive, altrimenti vince su "IO.Path"/"IO.Directory".
-                            Dim destDir As String = System.IO.Path.GetDirectoryName(s_TwoLine1)
+                            Dim destDir As String = System.IO.Path.GetDirectoryName(destLoc)
                             If Not String.IsNullOrEmpty(destDir) AndAlso Not System.IO.Directory.Exists(destDir) Then
                                 System.IO.Directory.CreateDirectory(destDir)
                             End If
                             Using wc As New System.Net.WebClient()
-                                wc.DownloadFile(s_url, s_TwoLine1)
+                                If Not wc.DownloadFileTaskAsync(urlLoc, destLoc).Wait(15000) Then
+                                    Throw New TimeoutException("Timeout scaricando " & urlLoc)
+                                End If
                             End Using
-                        End If
+                        Catch exRiga As Exception
+                            WriteError(0, "AggNorad (" & urlLoc & "): " & exRiga.Message)
+                        End Try
+                    End Sub)
+            Next
+            System.Threading.Tasks.Task.WaitAll(tasks)
 
-                        '10/01/2019
-                        Attesa(2)
-                    End If
-                Catch exRiga As Exception
-                    WriteError(0, "AggNorad (" & s_url & "): " & exRiga.Message)
-                End Try
-                rs_Norad1.MoveNext
-            Loop
-            rs_Norad1.Close()
             d_TLEDate = Now.AddHours(-i_Offset)
 
             '        s_Satellite = Satellite
