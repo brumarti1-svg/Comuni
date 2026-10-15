@@ -268,9 +268,11 @@ Module Time
 
     Public ReadOnly Property TimeZoneOffset() As Integer
         Get
+            ' s_Ora = "L" (ora locale, nessuna conversione) era una modalità
+            ' in disuso: tutti i dati del sistema sono in UTC, quindi lo
+            ' scarto va applicato sempre, a prescindere da s_Ora.
             Dim off As Integer = CInt((TZInfo.Bias / 60) * -1)
             If DSTInEffect Then off += 1
-            If s_Ora = "L" Then off = 0
             Return off
         End Get
     End Property
