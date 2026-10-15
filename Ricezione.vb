@@ -1982,7 +1982,6 @@ Rangeout:
             If IsNumeric(frmRicezione.LblAzimuth.Text) Then Az_prov = frmRicezione.LblAzimuth.Text
             If IsNumeric(frmRicezione.LblElevazione.Text) Then El_Prov = frmRicezione.LblElevazione.Text
         ElseIf Algoritmo = 4 Then
-            'per ora solo il sole
             If s_Satellite = "Sun" Then
                 SolarAzEl(Timen, pos)
     ElseIf s_Satellite = "Moon" Then
@@ -2114,8 +2113,15 @@ Rangeout:
             If IsNumeric(frmRicezione.LblAzimuth.Text) Then Az_prov = frmRicezione.LblAzimuthC.Text
             If IsNumeric(frmRicezione.LblElevazione.Text) Then El_Prov = frmRicezione.LblElevazioneC.Text
         ElseIf Algoritmo = 4 Then
-            'per ora solo il sole
-            SolarAzEl(Timen, pos)
+            If s_Satellite = "Sun" Then
+                SolarAzEl(Timen, pos)
+            ElseIf s_Satellite = "Moon" Then
+                PosizioneLuna(Timen, pos)
+            ElseIf s_Satellite = "Venus" Then
+                Call PosizioneVenere(Timen, pos)
+            ElseIf s_Satellite = "Cassiopeia" Then
+                Call CalcolaCassiopeia(Timen, pos)
+            End If
             Az_prov = Format$((pos.Valori(1)) + AzOffset1 + AzOffset, "0.000")
             El_Prov = Format$((pos.Valori(2)) + ElOffset1 + ElOffset, "0.000")
             frmRicezione.LblAzimuthC.Text = Format$(Az_prov, "0.000")
