@@ -27,7 +27,7 @@ Public Class FrmSimulazione
 
     Private Sub CmdLoad_Click(sender As Object, e As EventArgs) Handles CmdLoad.Click
         If IsDate(mskDataIni.Text) Then
-            '            Calcolo_Coordinate1 mskDataIni.Text
+            Calcolo_Coordinate1(CDate(mskDataIni.Text))
         Else
             mskDataIni.Text = "__/__/____ __:__:__"
             mskDataIni.Focus()

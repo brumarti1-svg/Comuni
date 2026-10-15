@@ -254,6 +254,13 @@ Module ModLuna
 
         pos.Valori(1) = Norm360(Atan2(Sin(angHR), System.Math.Cos(angHR) *System.Math.Sin(latsta11R) - Tan(DecR) * System.Math.Cos(latsta11R)) * RAD + 180.0#)
 
+        ' Punto sub-lunare (dove la Luna è allo zenit): lat = declinazione,
+        ' lon = ascensione retta - tempo siderale di Greenwich, Est positivo.
+        ' Riusa Valori(3)/(4), prima scratch per long/lat eclittiche (non
+        ' più necessarie da qui in avanti).
+        pos.Valori(3) = Norm360(ra - theta0 + 180.0#) - 180.0#
+        pos.Valori(4) = dec
+
         ' Converti RA in ore per visualizzazione
         ra /= 15.0#
 

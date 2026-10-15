@@ -315,19 +315,29 @@ Module Utility
         el = Asin(zhor) * RadGradi
         pos.Valori(1) = az
         pos.Valori(2) = el
+
+        ' Punto sub-solare (dove il Sole è allo zenit): lat = declinazione,
+        ' lon = ascensione retta - tempo siderale di Greenwich, Est positivo.
+        pos.Valori(3) = Modulus(RA - 15.0 * (GMST0 + UTH) + 180.0, 360.0) - 180.0
+        pos.Valori(4) = delta
+
         Return True
     End Function
 
     Public Function Atan2(y As Double, X As Double) As Double
-        If X = 0 Then
-            If y > 0 Then
-                Atan2 = PIGREC / 2
-            Else
-                Atan2 = -PIGREC / 2
-            End If
-        Else
+        ' Versione a 4 quadranti corretta (nel VB6 attuale questa stessa
+        ' formula è presente ma commentata, sostituita da una versione
+        ' semplificata che per X<0 e y<0 restituisce un angolo sfasato
+        ' di 360°: Atn(y/x)+PIGREC invece di Sgn(y)*(PIGREC-Atn(Abs(y/x))).
+        ' Qui si usa deliberatamente la versione corretta.
+        If X > 0 Then
             Atan2 = Math.Atan(y / X)
-            If X < 0 Then Atan2 += PIGREC
+        ElseIf X < 0 Then
+            Atan2 = Math.Sign(y) * (PIGREC - Math.Atan(Math.Abs(y / X)))
+        ElseIf y = 0 Then
+            Atan2 = 0
+        Else
+            Atan2 = Math.Sign(y) * PIGREC / 2
         End If
     End Function
 

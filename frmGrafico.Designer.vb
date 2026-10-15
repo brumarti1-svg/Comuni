@@ -44,7 +44,7 @@ Partial Class frmGrafico
         '
         ' picGrafico (Left=72/15=5, Top=540/15=36, Width=9888/15=659, Height=4728/15=315)
         '
-        Me.picGrafico.Anchor      = CType(System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right, System.Windows.Forms.AnchorStyles)
+        Me.picGrafico.Anchor      = CType(System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left Or System.Windows.Forms.AnchorStyles.Right, System.Windows.Forms.AnchorStyles)
         Me.picGrafico.BackColor   = System.Drawing.Color.FromArgb(224, 224, 224)
         Me.picGrafico.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.picGrafico.Location    = New System.Drawing.Point(5, 36)
@@ -103,6 +103,7 @@ Partial Class frmGrafico
         '              / TxtMax / Label9 "max" / CmdEsci
         '
         ' CmdScale (Left=180/15=12, Top=5544/15=370, Width=828/15=55, H=495/15=33)
+        Me.CmdScale.Anchor   = CType(System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left, System.Windows.Forms.AnchorStyles)
         Me.CmdScale.Location = New System.Drawing.Point(12, 370)
         Me.CmdScale.Size     = New System.Drawing.Size(55, 33)
         Me.CmdScale.Text     = "Scale"
@@ -110,6 +111,7 @@ Partial Class frmGrafico
         Me.CmdScale.TabIndex = 4
         Me.CmdScale.Name     = "CmdScale"
         ' TxtIntervallo (Left=2808/15=187, Top=5508/15=367, Width=696/15=46, H=336/15=22)
+        Me.TxtIntervallo.Anchor    = CType(System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left, System.Windows.Forms.AnchorStyles)
         Me.TxtIntervallo.Location  = New System.Drawing.Point(187, 367)
         Me.TxtIntervallo.Size      = New System.Drawing.Size(46, 22)
         Me.TxtIntervallo.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
@@ -119,11 +121,13 @@ Partial Class frmGrafico
         Me.TxtIntervallo.ReadOnly  = True
         Me.TxtIntervallo.TabStop   = False
         ' Label2 "Interval" (Left=1368/15=91, Top=5544/15=370, Width=1140/15=76, RightAlign)
+        LblInterval.Anchor    = CType(System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left, System.Windows.Forms.AnchorStyles)
         LblInterval.Location  = New System.Drawing.Point(91, 370)
         LblInterval.Size      = New System.Drawing.Size(76, 17)
         LblInterval.Text      = "Interval"
         LblInterval.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         ' TxtMin (Left=2052/15=137, Top=5976/15=399, Width=768/15=51, H=336/15=22)
+        Me.TxtMin.Anchor   = CType(System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left, System.Windows.Forms.AnchorStyles)
         Me.TxtMin.Location  = New System.Drawing.Point(137, 399)
         Me.TxtMin.Size      = New System.Drawing.Size(51, 22)
         Me.TxtMin.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
@@ -131,11 +135,13 @@ Partial Class frmGrafico
         Me.TxtMin.TabIndex  = 6
         Me.TxtMin.Name      = "TxtMin"
         ' Label8 "min" (Left=1296/15=86, Top=6012/15=401, Width=636/15=42, RightAlign)
+        LblMin.Anchor    = CType(System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left, System.Windows.Forms.AnchorStyles)
         LblMin.Location  = New System.Drawing.Point(86, 401)
         LblMin.Size      = New System.Drawing.Size(42, 17)
         LblMin.Text      = "min"
         LblMin.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         ' TxtMax (Left=3744/15=250, Top=5976/15=399)
+        Me.TxtMax.Anchor   = CType(System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left, System.Windows.Forms.AnchorStyles)
         Me.TxtMax.Location  = New System.Drawing.Point(250, 399)
         Me.TxtMax.Size      = New System.Drawing.Size(51, 22)
         Me.TxtMax.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
@@ -143,6 +149,7 @@ Partial Class frmGrafico
         Me.TxtMax.TabIndex  = 5
         Me.TxtMax.Name      = "TxtMax"
         ' Label9 "max"
+        LblMax.Anchor    = CType(System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left, System.Windows.Forms.AnchorStyles)
         LblMax.Location  = New System.Drawing.Point(206, 401)
         LblMax.Size      = New System.Drawing.Size(42, 17)
         LblMax.Text      = "max"
@@ -159,7 +166,7 @@ Partial Class frmGrafico
         ' frmGrafico (ClientWidth=10104/15=674, ClientHeight=6636/15=443)
         '
         Me.ClientSize  = New System.Drawing.Size(674, 443)
-        Me.ControlBox  = False
+        Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
         Me.Controls.Add(Me.picGrafico)
         Me.Controls.AddRange(New System.Windows.Forms.Control() {
             LblAntTag, Me.LblAntenna, LblInputLev, Me.LblLev,

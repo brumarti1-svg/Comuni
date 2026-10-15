@@ -122,6 +122,15 @@ Private Function GetStelleCas() As TStella
         pos.Valori(1) = az
         pos.Valori(2) = el
 
+        ' Punto sub-stellare (dove la stella è allo zenit): lat =
+        ' declinazione, lon = ascensione retta - tempo siderale di
+        ' Greenwich, Est positivo.
+        Dim T As Double = (jd - 2451545.0#) / 36525.0#
+        Dim theta0 As Double = Norm360v(280.46061837 + 360.98564736629 * (jd - 2451545.0#) +
+             0.000387933 * T * T - T * T * T / 38710000.0#)
+        pos.Valori(3) = Norm360v(RAprec * 15.0# - theta0 + 180.0#) - 180.0#
+        pos.Valori(4) = Decprec
+
         '        risultati = stelle.Nome & _
         '                       "  Mag=" & Format(stelle.Mag, "0.00") & _
         '                       "  Az=" & Format(az, "0.000") & Chr(176) & _
@@ -305,8 +314,6 @@ Private Function GetStelleCas() As TStella
         lonV -= 0.005693 / delta * System.Math.Cos((lonSoleGeo - lonV) * DEG)
         latV -= 0.005693 / delta * System.Math.Sin(latV * DEG)
         Dim dist As Double, dec As Double
-        pos.Valori(4) = lonV
-        pos.Valori(3) = latV
         dist = delta
 
         Dim eps As Double
@@ -334,6 +341,14 @@ Private Function GetStelleCas() As TStella
            0.0009 * fase + 0.000239 * fase * fase - 0.00000065 * fase * fase * fase
         pos.Valori(1) = azimut
         pos.Valori(2) = elev
+
+        ' Punto sub-planetario (dove Venere è allo zenit): lat =
+        ' declinazione, lon = ascensione retta - tempo siderale di
+        ' Greenwich, Est positivo.
+        Dim theta0V As Double = Norm360v(280.46061837 + 360.98564736629 * (jd - 2451545.0#) +
+             0.000387933 * T * T - T * T * T / 38710000.0#)
+        pos.Valori(3) = Norm360v(ra - theta0V + 180.0#) - 180.0#
+        pos.Valori(4) = dec
     End Sub
 
 

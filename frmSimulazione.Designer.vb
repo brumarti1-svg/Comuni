@@ -34,14 +34,14 @@ Partial Class FrmSimulazione
         Me.tmrSimulation.Interval = 1000
 
         ' mskDataIni
-        Me.mskDataIni.Location = New System.Drawing.Point(80, 14)
+        Me.mskDataIni.Location = New System.Drawing.Point(140, 14)
         Me.mskDataIni.Mask = "00/00/0000 00:00:00"
         Me.mskDataIni.Name = "mskDataIni"
         Me.mskDataIni.Size = New System.Drawing.Size(140, 21)
         Me.mskDataIni.TabIndex = 0
 
         ' mskDataFin
-        Me.mskDataFin.Location = New System.Drawing.Point(80, 44)
+        Me.mskDataFin.Location = New System.Drawing.Point(140, 44)
         Me.mskDataFin.Mask = "00/00/0000 00:00:00"
         Me.mskDataFin.Name = "mskDataFin"
         Me.mskDataFin.Size = New System.Drawing.Size(140, 21)
@@ -49,20 +49,20 @@ Partial Class FrmSimulazione
 
         ' LblDateSimul
         Me.LblDateSimul.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.LblDateSimul.Location = New System.Drawing.Point(80, 74)
+        Me.LblDateSimul.Location = New System.Drawing.Point(140, 74)
         Me.LblDateSimul.Name = "LblDateSimul"
         Me.LblDateSimul.Size = New System.Drawing.Size(140, 21)
         Me.LblDateSimul.Text = ""
 
         ' CmdLoad
-        Me.CmdLoad.Location = New System.Drawing.Point(230, 14)
+        Me.CmdLoad.Location = New System.Drawing.Point(290, 14)
         Me.CmdLoad.Name = "CmdLoad"
         Me.CmdLoad.Size = New System.Drawing.Size(75, 23)
         Me.CmdLoad.TabIndex = 2
         Me.CmdLoad.Text = "Load"
 
         ' CmdOK
-        Me.CmdOK.Location = New System.Drawing.Point(230, 44)
+        Me.CmdOK.Location = New System.Drawing.Point(290, 44)
         Me.CmdOK.Name = "CmdOK"
         Me.CmdOK.Size = New System.Drawing.Size(75, 23)
         Me.CmdOK.TabIndex = 3
@@ -70,7 +70,7 @@ Partial Class FrmSimulazione
         Me.CmdOK.BackColor = System.Drawing.Color.LightGreen
 
         ' CmdAnnulla
-        Me.CmdAnnulla.Location = New System.Drawing.Point(230, 74)
+        Me.CmdAnnulla.Location = New System.Drawing.Point(290, 74)
         Me.CmdAnnulla.Name = "CmdAnnulla"
         Me.CmdAnnulla.Size = New System.Drawing.Size(75, 23)
         Me.CmdAnnulla.TabIndex = 4
@@ -95,7 +95,7 @@ Partial Class FrmSimulazione
         ' Form
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
-        Me.ClientSize = New System.Drawing.Size(320, 115)
+        Me.ClientSize = New System.Drawing.Size(380, 115)
         Me.Controls.AddRange(New System.Windows.Forms.Control() {
             Me.LblIni, Me.mskDataIni, Me.CmdLoad,
             Me.LblFin, Me.mskDataFin, Me.CmdOK,

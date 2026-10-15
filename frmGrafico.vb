@@ -253,6 +253,15 @@ Partial Public Class frmGrafico
             If MaxPunti > 0 Then Punti(MaxPunti).X = MaxX
         End If
 
+        ' Il timer viene normalmente abilitato da frmRicezione quando si
+        ' connette l'ACU (frmGrafico.TmrGrafico.Enabled = True), ma quella
+        ' chiamata avviene una sola volta alla connessione. Se nel frattempo
+        ' questa finestra viene chiusa e riaperta, VB.NET ne crea un'istanza
+        ' default nuova (quella vecchia è disposed) col timer di nuovo
+        ' spento, e il grafico restava vuoto per sempre. Riaccenderlo qui
+        ' garantisce che riparta ogni volta che la finestra si (ri)attiva.
+        TmrGrafico.Enabled = True
+
         ' Ridisegna assi
         picGrafico.Invalidate()
     End Function

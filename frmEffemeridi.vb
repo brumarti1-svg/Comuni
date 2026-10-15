@@ -53,6 +53,7 @@ Partial Public Class FrmEffemeridi
         End Select
         DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' OR source IS NULL")
         MskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+        AggiornaGriglia()
         TxtMinuti.Focus()
     End Sub
 
@@ -362,24 +363,29 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
-                Dim Count As Double = tsince
-                Do While Count <= tsince1
-                    Dim pos As New Vector()
-                    CalcolaCassiopeia(timec, pos)
-                    Cmd.Parameters.Clear()
-                    Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
-                    Cmd.Parameters.AddWithValue("@t", Format(Time_of_Day(timec, 1, 0), "HH:mm:ss"))
-                    Dim icC As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
-                    Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icC))
-                    Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icC))
-                    Cmd.Parameters.AddWithValue("@lo", (pos.Valori(1) * RadGradi).ToString("0.000", icC))
-                    Cmd.Parameters.AddWithValue("@la", (pos.Valori(2) * RadGradi).ToString("0.000", icC))
-                    Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
-                    Cmd.ExecuteNonQuery()
-                    timec += i
-                    Count += Minuti
-                Loop
+            Dim connCas As SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
+            Using tx As SQLiteTransaction = connCas.BeginTransaction()
+                Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", connCas)
+                    Cmd.Transaction = tx
+                    Dim Count As Double = tsince
+                    Do While Count <= tsince1
+                        Dim pos As Vector = NewVector()
+                        CalcolaCassiopeia(timec, pos)
+                        Cmd.Parameters.Clear()
+                        Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
+                        Cmd.Parameters.AddWithValue("@t", Time_of_Day(timec, 1, 0))
+                        Dim icC As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
+                        Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icC))
+                        Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icC))
+                        Cmd.Parameters.AddWithValue("@lo", pos.Valori(3).ToString("0.000", icC))
+                        Cmd.Parameters.AddWithValue("@la", pos.Valori(4).ToString("0.000", icC))
+                        Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
+                        Cmd.ExecuteNonQuery()
+                        timec += i
+                        Count += Minuti
+                    Loop
+                End Using
+                tx.Commit()
             End Using
             EffCASSIOPEA = True
         Catch ex As Exception
@@ -414,24 +420,29 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
-                Dim Count As Double = tsince
-                Do While Count <= tsince1
-                    Dim pos As New Vector()
-                    PosizioneLuna(timec, pos)
-                    Cmd.Parameters.Clear()
-                    Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
-                    Cmd.Parameters.AddWithValue("@t", Format(Time_of_Day(timec, 1, 0), "HH:mm:ss"))
-                    Dim icM As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
-                    Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icM))
-                    Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icM))
-                    Cmd.Parameters.AddWithValue("@lo", (pos.Valori(3) * RadGradi).ToString("0.000", icM))
-                    Cmd.Parameters.AddWithValue("@la", (pos.Valori(4) * RadGradi).ToString("0.000", icM))
-                    Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
-                    Cmd.ExecuteNonQuery()
-                    timec += IX
-                    Count += Minuti
-                Loop
+            Dim connMoon As SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
+            Using tx As SQLiteTransaction = connMoon.BeginTransaction()
+                Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", connMoon)
+                    Cmd.Transaction = tx
+                    Dim Count As Double = tsince
+                    Do While Count <= tsince1
+                        Dim pos As Vector = NewVector()
+                        PosizioneLuna(timec, pos)
+                        Cmd.Parameters.Clear()
+                        Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
+                        Cmd.Parameters.AddWithValue("@t", Time_of_Day(timec, 1, 0))
+                        Dim icM As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
+                        Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icM))
+                        Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icM))
+                        Cmd.Parameters.AddWithValue("@lo", pos.Valori(3).ToString("0.000", icM))
+                        Cmd.Parameters.AddWithValue("@la", pos.Valori(4).ToString("0.000", icM))
+                        Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
+                        Cmd.ExecuteNonQuery()
+                        timec += IX
+                        Count += Minuti
+                    Loop
+                End Using
+                tx.Commit()
             End Using
             EffMOON = True
         Catch ex As Exception
@@ -466,24 +477,29 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
-                Dim Count As Double = tsince
-                Do While Count <= tsince1
-                    Dim pos As New Vector()
-                    SolarAzEl(timec, pos)
-                    Cmd.Parameters.Clear()
-                    Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
-                    Cmd.Parameters.AddWithValue("@t", Format(Time_of_Day(timec, 1, 0), "HH:mm:ss"))
-                    Dim icM As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
-                    Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icM))
-                    Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icM))
-                    Cmd.Parameters.AddWithValue("@lo", (pos.Valori(3) * RadGradi).ToString("0.000", icM))
-                    Cmd.Parameters.AddWithValue("@la", (pos.Valori(4) * RadGradi).ToString("0.000", icM))
-                    Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
-                    Cmd.ExecuteNonQuery()
-                    timec += i
-                    Count += Minuti
-                Loop
+            Dim connSun As SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
+            Using tx As SQLiteTransaction = connSun.BeginTransaction()
+                Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", connSun)
+                    Cmd.Transaction = tx
+                    Dim Count As Double = tsince
+                    Do While Count <= tsince1
+                        Dim pos As Vector = NewVector()
+                        SolarAzEl(timec, pos)
+                        Cmd.Parameters.Clear()
+                        Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
+                        Cmd.Parameters.AddWithValue("@t", Time_of_Day(timec, 1, 0))
+                        Dim icM As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
+                        Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icM))
+                        Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icM))
+                        Cmd.Parameters.AddWithValue("@lo", pos.Valori(3).ToString("0.000", icM))
+                        Cmd.Parameters.AddWithValue("@la", pos.Valori(4).ToString("0.000", icM))
+                        Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
+                        Cmd.ExecuteNonQuery()
+                        timec += i
+                        Count += Minuti
+                    Loop
+                End Using
+                tx.Commit()
             End Using
             EffSUN = True
         Catch ex As Exception
@@ -518,24 +534,29 @@ Partial Public Class FrmEffemeridi
             Dim tsince As Double = (timec - julian_epoch) * xmnpda
             Minuti = CInt(Minuti) + (i_Sec / 60 * 100) / 100
 
-            Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", CType(dbOrbite, DAODatabase).Connection)
-                Dim Count As Double = tsince
-                Do While Count <= tsince1
-                    Dim pos As New Vector()
-                    PosizioneVenere(timec, pos)
-                    Cmd.Parameters.Clear()
-                    Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
-                    Cmd.Parameters.AddWithValue("@t", Format(Time_of_Day(timec, 1, 0), "HH:mm:ss"))
-                    Dim icM As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
-                    Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icM))
-                    Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icM))
-                    Cmd.Parameters.AddWithValue("@lo", (pos.Valori(3) * RadGradi).ToString("0.000", icM))
-                    Cmd.Parameters.AddWithValue("@la", (pos.Valori(4) * RadGradi).ToString("0.000", icM))
-                    Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
-                    Cmd.ExecuteNonQuery()
-                    timec += i
-                    Count += Minuti
-                Loop
+            Dim connVen As SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
+            Using tx As SQLiteTransaction = connVen.BeginTransaction()
+                Using Cmd As New SQLiteCommand("INSERT INTO tmpEffemeridi (date, time, azimuth, elevation, long, lat, intervallo, source) VALUES (@d,@t,@az,@el,@lo,@la,@in,'EFFEMERIDI')", connVen)
+                    Cmd.Transaction = tx
+                    Dim Count As Double = tsince
+                    Do While Count <= tsince1
+                        Dim pos As Vector = NewVector()
+                        PosizioneVenere(timec, pos)
+                        Cmd.Parameters.Clear()
+                        Cmd.Parameters.AddWithValue("@d", Calendar_Date(timec, 0))
+                        Cmd.Parameters.AddWithValue("@t", Time_of_Day(timec, 1, 0))
+                        Dim icM As System.Globalization.CultureInfo = System.Globalization.CultureInfo.InvariantCulture
+                        Cmd.Parameters.AddWithValue("@az", pos.Valori(1).ToString("000.000", icM))
+                        Cmd.Parameters.AddWithValue("@el", pos.Valori(2).ToString("00.000", icM))
+                        Cmd.Parameters.AddWithValue("@lo", pos.Valori(3).ToString("0.000", icM))
+                        Cmd.Parameters.AddWithValue("@la", pos.Valori(4).ToString("0.000", icM))
+                        Cmd.Parameters.AddWithValue("@in", TxtMinuti.Text)
+                        Cmd.ExecuteNonQuery()
+                        timec += i
+                        Count += Minuti
+                    Loop
+                End Using
+                tx.Commit()
             End Using
             EffPLANETS = True
         Catch ex As Exception
