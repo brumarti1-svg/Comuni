@@ -255,71 +255,55 @@ Module Utility
     End Sub
 
     Public Function SolarAzEl(timex As Double, ByRef pos As Vector) As Boolean
-        Dim jd As Double, d As Double, W As Double, e As Double, m As Double, L As Double, oblecl As Double
-        Dim X As Double, y As Double, z As Double, r As Double, v As Double, xeclip As Double, yeclip As Double, zeclip As Double
-        Dim xequat As Double, yequat As Double, zequat As Double, RA As Double, delta As Double, J2000 As Double
-        Dim UTH As Double, GMST0 As Double, SIDTIME As Double, HA As Double, xhor As Double, yhor As Double, zhor As Double
-        Dim az As Double, el As Double, Ex As Double, Laty As Double, Lony As Double, Lon As Double
-        Laty = LATSTA11
-        Lony = LONSTA11
+        ' Riscritta per usare la longitudine eclittica apparente del Sole di
+        ' Meeus "Astronomical Algorithms" cap.25 (precisione dichiarata
+        ' ~0.01°, include nutazione e aberrazione — PosizioneSoleFull in
+        ' ModCassVenere.vb, già usata per Venere) invece del precedente
+        ' modello kepleriano a due corpi (Koblick) senza alcuna
+        ' perturbazione, che risultava sistematicamente sfasato di qualche
+        ' decimo di grado rispetto a Stellarium. Stessa trasformazione
+        ' topocentrica RA/Dec -> Az/El già usata per Luna e Cassiopea.
+        Const DEG As Double = 3.14159265358979 / 180.0#
+        Const RAD As Double = 180.0# / 3.14159265358979
 
-        jd = timex
-        d = jd - JulDate2000
-        W = 282.9404 + 0.0000470935 * d
-        e = 0.016709 - 0.000000001151 * d
-        m = Modulus(356.047 + 0.9856002585 * d, 360)
-        L = W + m
-        oblecl = 23.4393 - 0.0000003563 * d
+        Dim jd As Double = timex
+        Dim T As Double = (jd - 2451545.0#) / 36525.0#
 
-        Ex = m + (RadGradi) * e * Math.Sin(m * (GradiRad)) * (1 + e * Math.Cos(m * (GradiRad)))
+        Dim lonSole As Double = PosizioneSoleFull(jd)
+        Dim eps As Double = 23.4392911 - 0.013004167 * T - 0.0000001639 * T * T + 0.0000005036 * T * T * T
 
-        X = Math.Cos(Ex * (GradiRad)) - e
-        y = Math.Sin(Ex * (GradiRad)) * Math.Sqrt(1 - e ^ 2)
+        Dim lonR As Double = lonSole * DEG
+        Dim epsR As Double = eps * DEG
 
-        r = Math.Sqrt(X ^ 2 + y ^ 2)
-        v = Atan2(y, X) * (RadGradi)
+        ' Latitudine eclittica del Sole trascurata (~0 per definizione)
+        Dim ra As Double = Modulus(Atan2(Math.Sin(lonR) * Math.Cos(epsR), Math.Cos(lonR)) * RAD, 360.0#)
+        Dim dec As Double = Asin(Math.Sin(epsR) * Math.Sin(lonR)) * RAD
 
-        Lon = v + W
+        Dim theta0 As Double = Modulus(280.46061837 + 360.98564736629 * (jd - 2451545.0#) +
+             0.000387933 * T * T - T * T * T / 38710000.0#, 360.0#)
 
-        xeclip = r * Math.Cos(Lon * (GradiRad))
-        yeclip = r * Math.Sin(Lon * (GradiRad))
-        zeclip = 0
+        Dim angH As Double = Modulus(theta0 + LONSTA11 - ra, 360.0#)
 
-        xequat = xeclip
-        yequat = yeclip * Math.Cos(oblecl * (GradiRad)) + zeclip * Math.Sin(oblecl * (GradiRad))
-        zequat = yeclip * Math.Sin(23.4406 * (GradiRad)) + zeclip * Math.Cos(oblecl * (GradiRad))
+        Dim latsta11R As Double = LATSTA11 * DEG
+        Dim DecR As Double = dec * DEG
+        Dim angHR As Double = angH * DEG
 
-        r = Math.Sqrt(xequat ^ 2 + yequat ^ 2 + zequat ^ 2) - (h / 149598000)
-        RA = Atan2(yequat, xequat) * (RadGradi)
-        delta = Asin(zequat / r)
-        delta *= RadGradi
+        Dim el As Double = Asin(Math.Sin(latsta11R) * Math.Sin(DecR) + Math.Cos(latsta11R) * Math.Cos(DecR) * Math.Cos(angHR)) * RAD
 
-        J2000 = jd - JulDate2000
-        ts = Time_of_Effemeridi(timex, False, 3)
-        UTH = ts.hr + ts.mi / 60 + ts.se / 3600
+        If el > -0.5 Then
+            Dim rif As Double = (1.02 / Math.Tan((el + 10.3 / (el + 5.11)) * DEG)) / 60.0#
+            el += rif
+        End If
 
-        GMST0 = Modulus(L + 180, 360) / 15
-        SIDTIME = GMST0 + UTH + Lony / 15
+        Dim az As Double = Modulus(Atan2(Math.Sin(angHR), Math.Cos(angHR) * Math.Sin(latsta11R) - Math.Tan(DecR) * Math.Cos(latsta11R)) * RAD + 180.0#, 360.0#)
 
-        HA = (SIDTIME * 15 - RA)
-
-        X = Math.Cos(HA * (GradiRad)) * Math.Cos(delta * (GradiRad))
-        y = Math.Sin(HA * (GradiRad)) * Math.Cos(delta * (GradiRad))
-        z = Math.Sin(delta * (GradiRad))
-
-        xhor = X * Math.Cos((90 - Laty) * (GradiRad)) - z * Math.Sin((90 - Laty) * (GradiRad))
-        yhor = y
-        zhor = X * Math.Sin((90 - Laty) * (GradiRad)) + z * Math.Cos((90 - Laty) * (GradiRad))
-
-        az = Atan2(yhor, xhor) * (RadGradi) + 180.0
-        el = Asin(zhor) * RadGradi
         pos.Valori(1) = az
         pos.Valori(2) = el
 
         ' Punto sub-solare (dove il Sole è allo zenit): lat = declinazione,
         ' lon = ascensione retta - tempo siderale di Greenwich, Est positivo.
-        pos.Valori(3) = Modulus(RA - 15.0 * (GMST0 + UTH) + 180.0, 360.0) - 180.0
-        pos.Valori(4) = delta
+        pos.Valori(3) = Modulus(ra - theta0 + 180.0#, 360.0#) - 180.0#
+        pos.Valori(4) = dec
 
         Return True
     End Function
