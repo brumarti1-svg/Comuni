@@ -487,17 +487,22 @@ Par11Error:
 
     Public Sub ScriviAlarm(ByVal Messaggio As String, Level As Integer)
         Dim rs_ScriviAlarm As Object
-        Dim Buffer As String, d_data As Date
+        Dim Buffer As String, d_data As String
         '    Dim Errore As Long
         Try
             ' preparo il buffer per la scrittura
             If Level = 1 Then FrmMain.TmrBeep.Enabled = True
-            ' Assegnazione diretta del valore Date, senza passare per una stringa
-            ' formattata: Format$("dd/mm/yy...") con "mm" minuscolo viene letto da
-            ' VB.NET come minuti anche nella parte data (non come mese), producendo
-            ' stringhe come "23/46/26" (46 = minuti al posto del mese) che poi
-            ' fallivano nella riconversione implicita a Date.
-            d_data = NowUTC()
+            ' Era un'assegnazione diretta del valore Date (senza stringa
+            ' formattata) per evitare un bug di Format$("dd/mm/yy...") con
+            ' "mm" minuscolo, letto da VB.NET come minuti anche nella parte
+            ' data (non come mese): produceva stringhe tipo "23/46/26" (46 =
+            ' minuti al posto del mese). Ma salvare il Date grezzo nel campo
+            ' TEXT usa la rappresentazione di default di .NET, che include i
+            ' secondi con moltissimi decimali (es. "19:08:21.8142965Z").
+            ' DateTime.ToString() coi token .NET (non Format$) non ha
+            ' l'ambiguità mm/MM: minuti e mese sono sempre distinti dal caso,
+            ' indipendentemente dal contesto.
+            d_data = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
             '    Buffer = "*** " + Format$(Now, "dd-mm-yy hh.nn.ss") + "  " + Messaggio
             rs_ScriviAlarm = dbOrbite.OpenRecordset("Error_Messages", dbOpenDynaset)
             ' scrivo sulla tabella di log
