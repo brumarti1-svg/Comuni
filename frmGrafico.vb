@@ -40,6 +40,11 @@ Partial Public Class frmGrafico
     ' invisibili. Usato come riferimento Y "basso" al posto di DimCornice
     ' ovunque si calcola la posizione della riga MinY.
     Private Const MargineBasso As Integer = 22
+    ' Margine destro per l'etichetta del valore sull'asse Y: senza
+    ' questo la curva e la griglia arrivavano quasi fino al bordo
+    ' (Width - DimCornice, 9px), e l'etichetta finiva disegnata
+    ' "dentro" l'area del grafico invece che in una zona dedicata.
+    Private Const MargineDestra As Integer = 32
     Private Intervallo As Integer
 
     Private OraIni As String
@@ -88,8 +93,21 @@ Partial Public Class frmGrafico
         Inizio()
     End Sub
 
-    ' Nessuna riscalatura proporzionale sul resize: form non a schermo
-    ' intero. picGrafico usa Anchor = All per adattarsi automaticamente.
+    ' -------------------------------------------------------
+    ' Form Resize — ridisegna subito il grafico alla nuova dimensione
+    ' -------------------------------------------------------
+    ' picGrafico si ridimensiona da solo (Anchor), ma il contenuto
+    ' disegnato (bmp) restava quello della dimensione precedente finché
+    ' non scattava il prossimo tick di TmrGrafico (fino a qualche
+    ' secondo di ritardo, se non addirittura i_Inter secondi): durante
+    ' e subito dopo un resize si vedeva ancora il grafico vecchio.
+    Private Sub frmGrafico_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
+        ' Solo le scale, non l'intero Inizio(): quello azzera/riscala
+        ' Punti() e tocca il timer, inopportuno a ogni evento Resize
+        ' (ne scattano molti durante un trascinamento del bordo).
+        RicalcolaScale()
+        VisualizzaGrafico()
+    End Sub
 
     ' -------------------------------------------------------
     ' Bottone Esci
@@ -218,6 +236,28 @@ Partial Public Class frmGrafico
     End Sub
 
     ' -------------------------------------------------------
+    ' Ricalcola solo le scale (pixel per unità) in base alla
+    ' dimensione attuale di picGrafico, senza toccare i dati già
+    ' accumulati in Punti() né il timer: usata anche dal resize, dove
+    ' rifare tutto Inizio() (che azzera/riscala Punti()) sarebbe
+    ' sbagliato e costoso se l'evento scatta più volte di seguito.
+    ' -------------------------------------------------------
+    Private Sub RicalcolaScale()
+        If MaxX = 0 OrElse MaxY = MinY Then Return
+        ScalaX = MaxX / (picGrafico.Width - DimCornice - MargineDestra)
+        ScalaY = (MaxY - MinY) / (picGrafico.Height - DimCornice - MargineBasso)
+    End Sub
+
+    ' -------------------------------------------------------
+    ' Dimensione del font per gli assi, proporzionale all'altezza di
+    ' picGrafico: a schermo intero il font fisso a 6pt (dimensionato
+    ' per la finestra piccola originale, 315px) risultava minuscolo.
+    ' -------------------------------------------------------
+    Private Function DimensioneFont() As Single
+        Return Math.Max(6.0F, Math.Min(10.0F, 6.0F * picGrafico.Height / 315.0F))
+    End Function
+
+    ' -------------------------------------------------------
     ' Inizializza il grafico
     ' -------------------------------------------------------
     Private Function Inizio() As Boolean
@@ -228,8 +268,7 @@ Partial Public Class frmGrafico
         MaxY = CSng(TxtMax.Text)
         MinY = CSng(TxtMin.Text)
         MaxX = CSng(CmbAssex.Text)
-        ScalaX = MaxX / (picGrafico.Width - 2 * DimCornice)
-        ScalaY = (MaxY - MinY) / (picGrafico.Height - DimCornice - MargineBasso)
+        RicalcolaScale()
         stepinc = (MaxY - MinY) / 10
         PassoX = MaxX / 10
         ' Era mai assegnato ("TxtIntervallo = Abs(TxtMax - TxtMin)" in VB6,
@@ -330,7 +369,7 @@ Partial Public Class frmGrafico
         If ScalaX = 0 Then Exit Sub
         Using penGrid As New Pen(Color.Black) With {.DashStyle = Drawing2D.DashStyle.Dot}
         Using penAxis As New Pen(Color.Red)
-        Using font As New Font("Arial", 6)
+        Using font As New Font("Arial", DimensioneFont())
         Using brush As New SolidBrush(Color.Red)
             Dim tmpAz As System.Single = 0
             Do While tmpAz <= MaxX + 0.01F
@@ -353,17 +392,20 @@ Partial Public Class frmGrafico
     Private Sub VisualizzaAsseY(g As Graphics)
         If ScalaY = 0 Then Exit Sub
         Using penGrid As New Pen(Color.Black) With {.DashStyle = Drawing2D.DashStyle.Dot}
-        Using font As New Font("Arial", 6)
+        Using font As New Font("Arial", DimensioneFont())
         Using brush As New SolidBrush(Color.Black)
             Dim tmp2y As System.Single = MinY
             Do While tmp2y <= MaxY
                 Dim tmpY As System.Single = (picGrafico.Height - MargineBasso) - (tmp2y - MinY) / ScalaY
-                ' Linea orizzontale griglia
-                g.DrawLine(penGrid, DimCornice, tmpY, picGrafico.Width - DimCornice, tmpY)
-                ' EtichettaSystem.Math.Sinistra e destra
+                ' Linea orizzontale griglia: si ferma a MargineDestra dal
+                ' bordo (stesso limite usato per ScalaX, quindi combacia col
+                ' punto più a destra della curva) lasciando spazio
+                ' all'etichetta in una zona dedicata, come già MargineBasso
+                ' fa in basso per l'asse X.
+                g.DrawLine(penGrid, DimCornice, tmpY, picGrafico.Width - MargineDestra, tmpY)
                 Dim Lbl As String = Format(tmp2y, "#0.#")
                 g.DrawString(Lbl, font, brush, 2, tmpY - 6)
-                g.DrawString(Lbl, font, brush, picGrafico.Width - DimCornice, tmpY - 6)
+                g.DrawString(Lbl, font, brush, picGrafico.Width - MargineDestra + 2, tmpY - 6)
                 tmp2y += stepinc
             Loop
         End Using : End Using : End Using
