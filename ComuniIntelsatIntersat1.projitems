@@ -150,6 +150,9 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)FrmUrl.resx">
       <DependentUpon>FrmUrl.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)FrmVisualAcquire.resx">
+      <DependentUpon>FrmVisualAcquire.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)FrmVisualizzazione.resx">
       <DependentUpon>FrmVisualizzazione.vb</DependentUpon>
     </EmbeddedResource>
