@@ -3,7 +3,33 @@
 Public Class FrmPreset
     Dim s_Step As String, Port As Integer, AzPro As Double, ElPro As Double, PTKold As Integer, i_StatusOld As Integer
 
-    Private Sub CmdAnnulla_Click()
+    Private Declare Function ReleaseCapture Lib "user32.dll" () As Boolean
+    Private Declare Function SendMessage Lib "user32.dll" Alias "SendMessageA" (ByVal hWnd As IntPtr, ByVal Msg As Integer, ByVal wParam As Integer, ByVal lParam As Integer) As Integer
+    Private Const WM_NCLBUTTONDOWN As Integer = &HA1
+    Private Const HTCAPTION As Integer = &H2
+
+    ' FixedDialog è già spostabile dalla barra del titolo; questo handler
+    ' permette di trascinare la finestra anche cliccando sulle etichette
+    ' statiche o sull'area del form, non solo sulla barra del titolo.
+    Private Sub TrascinaFinestra(sender As Object, e As MouseEventArgs) Handles Me.MouseDown, LblAzimuth.MouseDown, LblElevazione.MouseDown, LblInc.MouseDown
+        If e.Button = MouseButtons.Left Then
+            ReleaseCapture()
+            SendMessage(Me.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+        End If
+    End Sub
+
+    ' CDbl() sul locale italiano interpreta il punto come separatore delle
+    ' migliaia, non decimale: CDbl("0.01") = 1, CDbl("45.000") = 45000. I
+    ' letterali con il punto usati in questo form (CmbInc, "0.000"/"90.000")
+    ' andrebbero quindi in pezzi non appena coinvolti in un calcolo. Val()
+    ' interpreta sempre il punto come decimale a prescindere dal locale, ma
+    ' si ferma alla virgola — qui la si normalizza prima, così funziona
+    ' anche sui valori "045,123" prodotti da Format$ in questo stesso form.
+    Private Function ParseGrad(testo As String) As Double
+        Return Val(testo.Replace(","c, "."c))
+    End Function
+
+    Private Sub CmdAnnulla_Click(sender As Object, e As EventArgs) Handles CmdAnnulla.Click
         i_Inter = LeggiFileIni("Canale1", "Inter")
         FrmRicezione.LblAzimuth.Text = ""
         FrmRicezione.LblElevazione.Text = ""
@@ -22,14 +48,28 @@ Public Class FrmPreset
         Me.Close()
     End Sub
 
-    Private Sub CmdOK_Click()
+    Private Sub CmdOK_Click(sender As Object, e As EventArgs) Handles CmdOK.Click
+        InviaComando()
+        Me.Close()
+    End Sub
+
+    ' Invio del comando all'ACU, senza chiudere la maschera: usato sia dal
+    ' bottone Execute (che poi chiude) sia dalle frecce di incremento (che
+    ' devono restare aperte per permettere aggiustamenti successivi).
+    Private Sub InviaComando()
         Dim s_Polar As String
         Dim s_program As String
         Dim i As Integer
         On Error Resume Next
         s_program = ""
-        MskAzimuth.Text = Format$(MskAzimuth.Text, "000.000")
-        MskElevazione.Text = Format$(MskElevazione.Text, "00.000")
+        ' Format$(stringa, "000.000") con una STRINGA come primo argomento
+        ' restituisce sempre "000.000"/zero (verificato: non riconverte la
+        ' stringa in numero come faceva VB6) — a differenza di
+        ' Format$(numero, "000.000"), che funziona correttamente. Ogni
+        ' Format$ qui sotto deve quindi ricevere un valore numerico
+        ' (ParseGrad/CDbl), mai .Text direttamente.
+        MskAzimuth.Text = Format$(ParseGrad(MskAzimuth.Text), "000.000")
+        MskElevazione.Text = Format$(ParseGrad(MskElevazione.Text), "00.000")
         If Not IsNumeric(MskAzimuth.Text) Then
             MskAzimuth.Text = "   .  "
         ElseIf Val(MskAzimuth.Text) < 0 And Val(MskAzimuth.Text) > 359.999 Then
@@ -48,30 +88,34 @@ Public Class FrmPreset
         b_Ricezione(ACU) = False
         Select Case i_Assi
             Case 0
-                s_program = " P " & Format$(MskAzimuth.Text, "000.000") & " " &
-                Format$(MskElevazione.Text, "00.000")
-                FrmRicezione.LblElevazione.Text = Format$(MskElevazione.Text, "0.000")
-                FrmRicezione.LblAzimuth.Text = Format$(MskAzimuth.Text, "0.000")
+                s_program = " P " & Format$(ParseGrad(MskAzimuth.Text), "000.000") & " " &
+                Format$(ParseGrad(MskElevazione.Text), "00.000")
+                FrmRicezione.LblElevazione.Text = Format$(ParseGrad(MskElevazione.Text), "0.000")
+                FrmRicezione.LblAzimuth.Text = Format$(ParseGrad(MskAzimuth.Text), "0.000")
             Case 1
-                s_program = "AP " & Format$(MskAzimuth.Text, "000.000")
-                FrmRicezione.LblAzimuth.Text = Format$(MskAzimuth.Text, "0.000")
+                s_program = "AP " & Format$(ParseGrad(MskAzimuth.Text), "000.000")
+                FrmRicezione.LblAzimuth.Text = Format$(ParseGrad(MskAzimuth.Text), "0.000")
             Case 2
-                s_program = "EP " & Format$(MskElevazione.Text, "00.000")
-                FrmRicezione.LblElevazione.Text = Format$(MskElevazione.Text, "0.000")
+                s_program = "EP " & Format$(ParseGrad(MskElevazione.Text), "00.000")
+                FrmRicezione.LblElevazione.Text = Format$(ParseGrad(MskElevazione.Text), "0.000")
         End Select
-        If IsNumeric(LblAzimuth.Text) Then AzCalc = CDbl(LblAzimuth.Text)
-        If IsNumeric(LblElevazione.Text) Then ElCalc = CDbl(LblElevazione.Text)
         i = Len(s_program) + 6
         b_Ricezione(ACU) = False
         FrmRicezione.TmrTimeoutMSG(ACU).Enabled = False
-        SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+        SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
         InvioACU(SEND_ACU)
         b_int(ACU) = True
         KeyPreview = True
         TxtFreccia.Focus()
     End Sub
 
-    Private Sub Form_Activate()
+    ' Visibilità assi + coordinate attuali: fattorizzata per poter essere
+    ' chiamata anche da Load, non solo da Activated. Activated scatta DOPO
+    ' che la finestra è già visibile — nello spazio fra la comparsa della
+    ' finestra (con i valori di default del Designer "000.000"/"00.000") e
+    ' l'esecuzione di questo codice, si vede per un istante il placeholder
+    ' invece delle coordinate reali (segnalato dall'utente come "azzeramento").
+    Private Sub PopolaCoordinateAttuali()
         Select Case i_Assi
             Case 1
                 MskElevazione.Visible = False
@@ -93,26 +137,26 @@ Public Class FrmPreset
         If IsNumeric(s_Az) Then MskAzimuth.Text = Format$(s_Az / 1000, "000.000")
         If IsNumeric(s_El) Then MskElevazione.Text = Format$(s_El / 1000, "00.000")
         CmbInc.Text = "0.01"
+    End Sub
+
+    Private Sub FrmPreset_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        PopolaCoordinateAttuali()
         TxtFreccia.Focus()
         KeyPreview = True
     End Sub
 
-    Private Sub Form_Initialize()
+    Private Sub FrmPreset_KeyDown(sender As Object, e As KeyEventArgs) Handles MyBase.KeyDown
         KeyPreview = True
-    End Sub
-
-    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-        KeyPreview = True
-        If (KeyCode = Keys.Up Or KeyCode = Keys.Down Or KeyCode = Keys.Right Or KeyCode = Keys.Left) Then
-            Select Case KeyCode
+        If (e.KeyCode = Keys.Up Or e.KeyCode = Keys.Down Or e.KeyCode = Keys.Right Or e.KeyCode = Keys.Left) Then
+            Select Case e.KeyCode
                 Case Keys.Up
-                    CmdUp_Click()
+                    CmdUp_Click(Me, EventArgs.Empty)
                 Case Keys.Down
-                    CmdDown_Click()
+                    CmdDown_Click(Me, EventArgs.Empty)
                 Case Keys.Right
-                    CmdCW_Click()
+                    CmdCW_Click(Me, EventArgs.Empty)
                 Case Keys.Left
-                    CmdCCW_Click()
+                    CmdCCW_Click(Me, EventArgs.Empty)
             End Select
         End If
     End Sub
@@ -139,89 +183,86 @@ Public Class FrmPreset
             MskAzimuth.Visible = True
             MskAzimuth.Enabled = True
             LblAzimuth.Visible = True
+            PopolaCoordinateAttuali()
             KeyPreview = True
             i_Cont = 0
         End If
     End Sub
 
+    Private Sub CmdCCW_Click(sender As Object, e As EventArgs) Handles CmdCCW.Click
+        If IsNumeric(MskAzimuth.Text) Then
+            AzPro = ParseGrad(MskAzimuth.Text)
+            AzPro -= ParseGrad(CmbInc.Text)
+        ElseIf IsNumeric(s_Az) Then
+            AzPro = (s_Az / 1000) - ParseGrad(CmbInc.Text)
+        Else
+            TxtFreccia.Focus()
+            Exit Sub
+        End If
+        MskAzimuth.Text = Format$(AzPro, "000.000")
+        If ParseGrad(MskAzimuth.Text) < 0 Then MskAzimuth.Text = Format$(360 - ParseGrad(CmbInc.Text), "000.000")
+        InviaComando()
+    End Sub
+
     Private Sub CmdCW_Click(sender As Object, e As EventArgs) Handles CmdCW.Click
-
-    End Sub
-
-    Private Sub CmdCCW_Click()
+        KeyPreview = True
         If IsNumeric(MskAzimuth.Text) Then
-            AzPro = CDbl(MskAzimuth.Text)
-            AzPro -= CDbl(CmbInc.Text)
+            AzPro = ParseGrad(MskAzimuth.Text)
+            AzPro += ParseGrad(CmbInc.Text)
         ElseIf IsNumeric(s_Az) Then
-            AzPro = (s_Az / 1000) - CDbl(CmbInc.Text)
+            AzPro = (s_Az / 1000) + ParseGrad(CmbInc.Text)
         Else
             TxtFreccia.Focus()
             Exit Sub
         End If
         MskAzimuth.Text = Format$(AzPro, "000.000")
-        If CDbl(MskAzimuth.Text) < 0 Then MskAzimuth.Text = Format$(360 - CDbl(CmbInc.Text), "000.000")
-        CmdOK_Click()
+        If ParseGrad(MskAzimuth.Text) >= 360 Then MskAzimuth.Text = Format$(0, "000.000")
+        InviaComando()
     End Sub
 
-    Private Sub CmdCW_Click()
-        KeyPreview = True
-        If IsNumeric(MskAzimuth.Text) Then
-            AzPro = CDbl(MskAzimuth.Text)
-            AzPro += CDbl(CmbInc.Text)
-        ElseIf IsNumeric(s_Az) Then
-            AzPro = (s_Az / 1000) + CDbl(CmbInc.Text)
-        Else
-            TxtFreccia.Focus()
-            Exit Sub
-        End If
-        MskAzimuth.Text = Format$(AzPro, "000.000")
-        If CDbl(MskAzimuth.Text) >= 360 Then MskAzimuth.Text = "0.000"
-        CmdOK_Click()
-    End Sub
-
-    Private Sub CmdDown_Click()
+    Private Sub CmdDown_Click(sender As Object, e As EventArgs) Handles CmdDown.Click
         KeyPreview = True
         If IsNumeric(MskElevazione.Text) Then
-            ElPro = CDbl(MskElevazione.Text)
-            ElPro -= CDbl(CmbInc.Text)
+            ElPro = ParseGrad(MskElevazione.Text)
+            ElPro -= ParseGrad(CmbInc.Text)
         ElseIf IsNumeric(s_El) Then
-            ElPro = (s_El / 1000) - CDbl(CmbInc.Text)
+            ElPro = (s_El / 1000) - ParseGrad(CmbInc.Text)
         Else
             TxtFreccia.Focus()
             Exit Sub
         End If
         MskElevazione.Text = Format$(ElPro, "00.000")
-        If CDbl(MskElevazione.Text) < 0 Then MskElevazione.Text = "  .  "
-        CmdOK_Click()
+        If ParseGrad(MskElevazione.Text) < 0 Then MskElevazione.Text = "  .  "
+        InviaComando()
     End Sub
 
-    Private Sub CmdUp_Click()
+    Private Sub CmdUp_Click(sender As Object, e As EventArgs) Handles CmdUp.Click
         KeyPreview = True
         If IsNumeric(MskElevazione.Text) Then
-            ElPro = CDbl(MskElevazione.Text)
-            ElPro += CDbl(CmbInc.Text)
+            ElPro = ParseGrad(MskElevazione.Text)
+            ElPro += ParseGrad(CmbInc.Text)
         ElseIf IsNumeric(s_El) Then
-            ElPro = (s_El / 1000) + CDbl(CmbInc.Text)
+            ElPro = (s_El / 1000) + ParseGrad(CmbInc.Text)
         Else
             TxtFreccia.Focus()
             Exit Sub
         End If
         MskElevazione.Text = Format$(ElPro, "00.000")
-        If CDbl(MskElevazione.Text) >= 90 Then MskElevazione.Text = "90.000"
-        CmdOK_Click()
+        If ParseGrad(MskElevazione.Text) >= 90 Then MskElevazione.Text = Format$(90, "00.000")
+        InviaComando()
     End Sub
 
-    Private Sub TxtFreccia_KeyDown(KeyCode As Integer, Shift As Integer)
-        If (KeyCode = Keys.Up Or KeyCode = Keys.Down Or KeyCode = Keys.Right Or KeyCode = Keys.Left) Then
-            Select Case KeyCode
+    Private Sub TxtFreccia_KeyDown(sender As Object, e As KeyEventArgs) Handles TxtFreccia.KeyDown
+        If (e.KeyCode = Keys.Up Or e.KeyCode = Keys.Down Or e.KeyCode = Keys.Right Or e.KeyCode = Keys.Left) Then
+            Select Case e.KeyCode
                 Case Keys.Up
-                    CmdUp_Click()
+                    CmdUp_Click(Me, EventArgs.Empty)
                 Case Keys.Down
-                    CmdDown_Click()
+                    CmdDown_Click(Me, EventArgs.Empty)
                 Case Keys.Right
-                    CmdCW_Click()
+                    CmdCW_Click(Me, EventArgs.Empty)
                 Case Keys.Left
-                    CmdCCW_Click()
+                    CmdCCW_Click(Me, EventArgs.Empty)
             End Select
         End If
     End Sub

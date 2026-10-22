@@ -439,7 +439,7 @@ Module Ricezione
             s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                     Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
             i = Len(s_program) + 6
-            SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+            SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
             b_int(ACU) = True
             b_Ricezione(ACU) = False
             InvioACU(SEND_ACU)
@@ -507,7 +507,7 @@ Module Ricezione
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                 Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -537,7 +537,7 @@ Module Ricezione
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                 Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -620,7 +620,7 @@ Rangeout:
             s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                      Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
             i = Len(s_program) + 6
-            SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+            SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
             b_int(ACU) = True
             b_Ricezione(ACU) = False
             InvioACU(SEND_ACU)
@@ -714,7 +714,7 @@ Rangeout:
             s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                     Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
             i = Len(s_program) + 6
-            SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+            SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
             b_int(ACU) = True
             b_Ricezione(ACU) = False
             InvioACU(SEND_ACU)
@@ -738,7 +738,7 @@ Rangeout:
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                 Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -756,7 +756,7 @@ Rangeout:
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                 Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -778,7 +778,7 @@ Rangeout:
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                  Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -801,7 +801,7 @@ Rangeout:
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                      Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                     i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                    SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                     b_int(ACU) = True
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
@@ -815,7 +815,7 @@ Rangeout:
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                     Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                     i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                    SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                     b_int(ACU) = True
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
@@ -842,7 +842,7 @@ Rangeout:
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                  Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -866,7 +866,7 @@ Rangeout:
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                      Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                     i = Len(s_program) + 6
-                    SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                    SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                     b_int(ACU) = True
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
@@ -889,7 +889,7 @@ Rangeout:
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
              Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -911,7 +911,7 @@ Rangeout:
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -954,7 +954,7 @@ Rangeout:
             s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                      Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
             i = Len(s_program) + 6
-            SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+            SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
             b_int(ACU) = True
             b_Ricezione(ACU) = False
             InvioACU(SEND_ACU)
@@ -2044,7 +2044,7 @@ Rangeout:
                     s_program = "EP " & Format$(El_Prov, "00.000")
                 End If
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -2188,7 +2188,7 @@ frmRicezione.LblAzimuth.Text = ""
                 i_ConStato += 1
                 s_program = "AP " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -2221,7 +2221,7 @@ frmRicezione.LblAzimuth.Text = ""
                 End If
                 s_Lev3 = d_LevAve         'Memorizzo il livello del beacon
                 s_program = "AP " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " "
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -2254,7 +2254,7 @@ frmRicezione.LblAzimuth.Text = ""
                 End If
                 s_program = "AP " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -2282,7 +2282,7 @@ frmRicezione.LblAzimuth.Text = ""
                 i_ConStato += 1
                 s_program = "EP " & Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -2318,7 +2318,7 @@ frmRicezione.LblAzimuth.Text = ""
                 s_Lev3 = d_LevAve         'Memorizzo il livello del beacon
                 s_program = "EP " & Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
@@ -2352,7 +2352,7 @@ frmRicezione.LblAzimuth.Text = ""
                 End If
                 s_program = "EP " & Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(i), "00") + Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
                 b_int(ACU) = True
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)

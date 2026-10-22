@@ -580,7 +580,7 @@ Partial Public Class FrmEffemeridi
                                 Format(CDbl(dr("azimuth")), "000.000") & " " &
                                 Format(CDbl(dr("elevation")), "00.000")
                             Dim i As Integer = Len(s_program) + 6
-                            SEND_ACU = CheckSum(Format(CStr(i), "00") & Mid(s_program, 1, Len(s_program)))
+                            SEND_ACU = CheckSum(Format(i, "00") & Mid(s_program, 1, Len(s_program)))
                             Return SEND_ACU
                         End If
                         rowCount += 1

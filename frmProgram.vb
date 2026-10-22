@@ -79,7 +79,7 @@ Public Class FrmProgram
                     Format$(g_AzTable, "000.000") & " " &
                     Format$(g_ElTable, "00.000")
                 Dim msgLen As Integer = Len(s_program) + 6
-                SEND_ACU = CheckSum(Format$(CStr(msgLen), "00") & Mid$(s_program, 1, Len(s_program)))
+                SEND_ACU = CheckSum(Format$(msgLen, "00") & Mid$(s_program, 1, Len(s_program)))
                 frmRicezione.TmrTimeoutMSG(ACU).Enabled = False
                 b_Ricezione(ACU) = False
                 b_int(ACU)       = True

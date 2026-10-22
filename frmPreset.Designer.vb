@@ -39,112 +39,126 @@ Partial Class FrmPreset
         '
         'MskAzimuth
         '
-        Me.MskAzimuth.Location = New System.Drawing.Point(82, 10)
+        Me.MskAzimuth.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!)
+        Me.MskAzimuth.Location = New System.Drawing.Point(124, 14)
         Me.MskAzimuth.Name = "MskAzimuth"
-        Me.MskAzimuth.Size = New System.Drawing.Size(90, 22)
+        Me.MskAzimuth.Size = New System.Drawing.Size(120, 28)
         Me.MskAzimuth.TabIndex = 1
         Me.MskAzimuth.Text = "000.000"
+        Me.MskAzimuth.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         '
         'MskElevazione
         '
-        Me.MskElevazione.Location = New System.Drawing.Point(82, 36)
+        Me.MskElevazione.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!)
+        Me.MskElevazione.Location = New System.Drawing.Point(124, 48)
         Me.MskElevazione.Name = "MskElevazione"
-        Me.MskElevazione.Size = New System.Drawing.Size(90, 22)
+        Me.MskElevazione.Size = New System.Drawing.Size(120, 28)
         Me.MskElevazione.TabIndex = 3
         Me.MskElevazione.Text = "00.000"
+        Me.MskElevazione.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         '
         'TxtFreccia
         '
         Me.TxtFreccia.BackColor = System.Drawing.SystemColors.Control
         Me.TxtFreccia.BorderStyle = System.Windows.Forms.BorderStyle.None
-        Me.TxtFreccia.Location = New System.Drawing.Point(82, 136)
+        Me.TxtFreccia.Location = New System.Drawing.Point(120, 186)
         Me.TxtFreccia.Name = "TxtFreccia"
         Me.TxtFreccia.ReadOnly = True
-        Me.TxtFreccia.Size = New System.Drawing.Size(46, 15)
+        Me.TxtFreccia.Size = New System.Drawing.Size(60, 20)
         Me.TxtFreccia.TabIndex = 8
         '
         'CmbInc
         '
+        Me.CmbInc.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!)
         Me.CmbInc.Items.AddRange(New Object() {"0.001", "0.010", "0.100", "0.500", "1.000"})
-        Me.CmbInc.Location = New System.Drawing.Point(82, 64)
+        Me.CmbInc.Location = New System.Drawing.Point(124, 82)
         Me.CmbInc.Name = "CmbInc"
-        Me.CmbInc.Size = New System.Drawing.Size(90, 24)
+        Me.CmbInc.Size = New System.Drawing.Size(120, 30)
         Me.CmbInc.TabIndex = 5
         Me.CmbInc.Text = "0.010"
         '
         'CmdUp
         '
-        Me.CmdUp.Location = New System.Drawing.Point(82, 100)
+        Me.CmdUp.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!)
+        Me.CmdUp.Location = New System.Drawing.Point(120, 130)
         Me.CmdUp.Name = "CmdUp"
-        Me.CmdUp.Size = New System.Drawing.Size(46, 30)
+        Me.CmdUp.Size = New System.Drawing.Size(60, 40)
         Me.CmdUp.TabIndex = 6
         Me.CmdUp.Text = "▲"
         '
         'CmdDown
         '
-        Me.CmdDown.Location = New System.Drawing.Point(82, 172)
+        Me.CmdDown.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!)
+        Me.CmdDown.Location = New System.Drawing.Point(120, 230)
         Me.CmdDown.Name = "CmdDown"
-        Me.CmdDown.Size = New System.Drawing.Size(46, 30)
+        Me.CmdDown.Size = New System.Drawing.Size(60, 40)
         Me.CmdDown.TabIndex = 10
         Me.CmdDown.Text = "▼"
         '
         'CmdCW
         '
-        Me.CmdCW.Location = New System.Drawing.Point(130, 136)
+        Me.CmdCW.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!)
+        Me.CmdCW.Location = New System.Drawing.Point(190, 180)
         Me.CmdCW.Name = "CmdCW"
-        Me.CmdCW.Size = New System.Drawing.Size(46, 30)
+        Me.CmdCW.Size = New System.Drawing.Size(60, 40)
         Me.CmdCW.TabIndex = 9
         Me.CmdCW.Text = "►"
         '
         'CmdCCW
         '
-        Me.CmdCCW.Location = New System.Drawing.Point(34, 136)
+        Me.CmdCCW.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!)
+        Me.CmdCCW.Location = New System.Drawing.Point(50, 180)
         Me.CmdCCW.Name = "CmdCCW"
-        Me.CmdCCW.Size = New System.Drawing.Size(46, 30)
+        Me.CmdCCW.Size = New System.Drawing.Size(60, 40)
         Me.CmdCCW.TabIndex = 7
         Me.CmdCCW.Text = "◄"
         '
         'CmdOK
         '
         Me.CmdOK.BackColor = System.Drawing.Color.LightGreen
-        Me.CmdOK.Location = New System.Drawing.Point(8, 218)
+        Me.CmdOK.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Bold)
+        Me.CmdOK.Location = New System.Drawing.Point(16, 290)
         Me.CmdOK.Name = "CmdOK"
-        Me.CmdOK.Size = New System.Drawing.Size(80, 30)
+        Me.CmdOK.Size = New System.Drawing.Size(130, 42)
         Me.CmdOK.TabIndex = 11
-        Me.CmdOK.Text = "OK"
+        Me.CmdOK.Text = "Execute"
         Me.CmdOK.UseVisualStyleBackColor = False
         '
         'CmdAnnulla
         '
         Me.CmdAnnulla.BackColor = System.Drawing.Color.Salmon
-        Me.CmdAnnulla.Location = New System.Drawing.Point(100, 218)
+        Me.CmdAnnulla.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Bold)
+        Me.CmdAnnulla.Location = New System.Drawing.Point(154, 290)
         Me.CmdAnnulla.Name = "CmdAnnulla"
-        Me.CmdAnnulla.Size = New System.Drawing.Size(80, 30)
+        Me.CmdAnnulla.Size = New System.Drawing.Size(130, 42)
         Me.CmdAnnulla.TabIndex = 12
-        Me.CmdAnnulla.Text = "Cancel"
+        Me.CmdAnnulla.Text = "Exit"
         Me.CmdAnnulla.UseVisualStyleBackColor = False
         '
         'LblAzimuth
         '
-        Me.LblAzimuth.Location = New System.Drawing.Point(8, 12)
+        Me.LblAzimuth.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!)
+        Me.LblAzimuth.Location = New System.Drawing.Point(16, 18)
         Me.LblAzimuth.Name = "LblAzimuth"
-        Me.LblAzimuth.Size = New System.Drawing.Size(70, 20)
+        Me.LblAzimuth.Size = New System.Drawing.Size(100, 24)
         Me.LblAzimuth.TabIndex = 0
         Me.LblAzimuth.Text = "Azimuth:"
         '
         'LblElevazione
         '
-        Me.LblElevazione.Location = New System.Drawing.Point(8, 38)
+        Me.LblElevazione.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!)
+        Me.LblElevazione.Location = New System.Drawing.Point(16, 52)
         Me.LblElevazione.Name = "LblElevazione"
-        Me.LblElevazione.Size = New System.Drawing.Size(70, 20)
+        Me.LblElevazione.Size = New System.Drawing.Size(100, 24)
         Me.LblElevazione.TabIndex = 2
         Me.LblElevazione.Text = "Elevation:"
         '
         'LblInc
         '
-        Me.LblInc.Location = New System.Drawing.Point(8, 66)
+        Me.LblInc.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!)
+        Me.LblInc.Location = New System.Drawing.Point(16, 86)
         Me.LblInc.Name = "LblInc"
-        Me.LblInc.Size = New System.Drawing.Size(70, 20)
+        Me.LblInc.Size = New System.Drawing.Size(100, 24)
         Me.LblInc.TabIndex = 4
         Me.LblInc.Text = "Increment:"
         '
@@ -152,7 +166,7 @@ Partial Class FrmPreset
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
-        Me.ClientSize = New System.Drawing.Size(192, 260)
+        Me.ClientSize = New System.Drawing.Size(300, 370)
         Me.Controls.Add(Me.LblAzimuth)
         Me.Controls.Add(Me.MskAzimuth)
         Me.Controls.Add(Me.LblElevazione)
@@ -187,8 +201,8 @@ Partial Class FrmPreset
     Friend WithEvents CmdCCW        As System.Windows.Forms.Button
     Friend WithEvents CmdOK         As System.Windows.Forms.Button
     Friend WithEvents CmdAnnulla    As System.Windows.Forms.Button
-    Friend           LblAzimuth     As System.Windows.Forms.Label
-    Friend           LblElevazione  As System.Windows.Forms.Label
-    Friend           LblInc         As System.Windows.Forms.Label
+    Friend WithEvents LblAzimuth     As System.Windows.Forms.Label
+    Friend WithEvents LblElevazione  As System.Windows.Forms.Label
+    Friend WithEvents LblInc         As System.Windows.Forms.Label
 End Class
 
