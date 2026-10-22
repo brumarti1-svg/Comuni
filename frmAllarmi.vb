@@ -41,6 +41,14 @@ Public Class frmAllarmi
                 End Using
             End Using
             dgvAllarmi.DataSource = dt
+            ' AutoSizeColumnsMode=Fill distribuisce lo spazio in parti uguali
+            ' fra le 3 colonne per default (FillWeight=100 ciascuna): "Data"
+            ' risultava così stretta da tagliare i secondi. Pesi espliciti:
+            ' Data più stretta, Messaggio più largo (il contenuto più
+            ' variabile), Livello minimo (un numero).
+            If dgvAllarmi.Columns.Contains("Data") Then dgvAllarmi.Columns("Data").FillWeight = 25
+            If dgvAllarmi.Columns.Contains("Messaggio") Then dgvAllarmi.Columns("Messaggio").FillWeight = 65
+            If dgvAllarmi.Columns.Contains("Livello") Then dgvAllarmi.Columns("Livello").FillWeight = 10
         Catch ex As Exception
             ' nessun dato disponibile
         End Try
