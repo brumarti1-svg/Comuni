@@ -239,8 +239,8 @@ Public Class FrmNorad
     End Sub
 
 
-    Private Sub TxtEpoch_KeyUp(KeyCode As Integer, Shift As Integer)
-        If KeyCode = CR Then
+    Private Sub TxtEpoch_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtEpoch.KeyUp
+        If e.KeyCode = Keys.Return Then
             If TxtEpoch.Text <> "" Or Not IsDBNull(TxtEpoch.Text) Then
                 julian_epoch1 = Julian_Date_of_Epoch(TxtEpoch.Text)
                 TxtEpochDate.Text = Calendar_Date(julian_epoch1, 0) & " " & Time_of_Day(julian_epoch1, 1, 0)

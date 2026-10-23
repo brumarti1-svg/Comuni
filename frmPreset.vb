@@ -50,12 +50,11 @@ Public Class FrmPreset
 
     Private Sub CmdOK_Click(sender As Object, e As EventArgs) Handles CmdOK.Click
         InviaComando()
-        Me.Close()
     End Sub
 
-    ' Invio del comando all'ACU, senza chiudere la maschera: usato sia dal
-    ' bottone Execute (che poi chiude) sia dalle frecce di incremento (che
-    ' devono restare aperte per permettere aggiustamenti successivi).
+    ' Invio del comando all'ACU, senza chiudere la maschera: sia il bottone
+    ' Execute sia le frecce di incremento restano aperti per permettere
+    ' aggiustamenti successivi — si esce solo con Exit (CmdAnnulla_Click).
     Private Sub InviaComando()
         Dim s_Polar As String
         Dim s_program As String
@@ -88,15 +87,19 @@ Public Class FrmPreset
         b_Ricezione(ACU) = False
         Select Case i_Assi
             Case 0
+                ' Spazio finale richiesto dal protocollo (confronta i pattern
+                ' " P "/"AP "/"EP " usati in Ricezione.vb): senza, Len(s_program)
+                ' risulta 1 carattere più corto e il prefisso di lunghezza
+                ' inviato all'ACU è sbagliato.
                 s_program = " P " & Format$(ParseGrad(MskAzimuth.Text), "000.000") & " " &
-                Format$(ParseGrad(MskElevazione.Text), "00.000")
+                Format$(ParseGrad(MskElevazione.Text), "00.000") & " "
                 FrmRicezione.LblElevazione.Text = Format$(ParseGrad(MskElevazione.Text), "0.000")
                 FrmRicezione.LblAzimuth.Text = Format$(ParseGrad(MskAzimuth.Text), "0.000")
             Case 1
-                s_program = "AP " & Format$(ParseGrad(MskAzimuth.Text), "000.000")
+                s_program = "AP " & Format$(ParseGrad(MskAzimuth.Text), "000.000") & " "
                 FrmRicezione.LblAzimuth.Text = Format$(ParseGrad(MskAzimuth.Text), "0.000")
             Case 2
-                s_program = "EP " & Format$(ParseGrad(MskElevazione.Text), "00.000")
+                s_program = "EP " & Format$(ParseGrad(MskElevazione.Text), "00.000") & " "
                 FrmRicezione.LblElevazione.Text = Format$(ParseGrad(MskElevazione.Text), "0.000")
         End Select
         i = Len(s_program) + 6

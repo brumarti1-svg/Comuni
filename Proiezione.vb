@@ -274,11 +274,11 @@ SkipPivot:
 
             If Not AzInibhit And Not ElInibhit Then
                 s_program = " P " & Format$(nextPt.az, "000.000") & " " &
-                Format$(nextPt.el, "00.000")
+                Format$(nextPt.el, "00.000") & " "
             ElseIf ElInibhit Then
-                s_program = "AP " & Format$(nextPt.az, "000.000")
+                s_program = "AP " & Format$(nextPt.az, "000.000") & " "
             ElseIf AzInibhit Then
-                s_program = "EP " & Format$(nextPt.el, "00.000")
+                s_program = "EP " & Format$(nextPt.el, "00.000") & " "
             End If
             i = Len(s_program) + 6
             SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))

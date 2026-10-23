@@ -188,13 +188,13 @@ Public Class FrmSatelliti
     ' -------------------------------------------------------
     ' CmbSatelliti
     ' -------------------------------------------------------
-    Private Sub CmbSatelliti_KeyUp(KeyCode As Integer, Shift As Integer)
-        If KeyCode = CR Then
+    Private Sub CmbSatelliti_KeyUp(sender As Object, e As KeyEventArgs) Handles CmbSatelliti.KeyUp
+        If e.KeyCode = Keys.Return Then
             s_Satellite = CmbSatelliti.Text
         End If
     End Sub
 
-    Private Sub CmbSatelliti_LostFocus()
+    Private Sub CmbSatelliti_LostFocus(sender As Object, e As EventArgs) Handles CmbSatelliti.LostFocus
         s_Satellite = CmbSatelliti.Text
     End Sub
 

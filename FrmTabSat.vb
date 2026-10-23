@@ -9,6 +9,20 @@
         ' datTMath.Absat / tdbTMath.Absat VB6 data controls not migrated
     End Sub
 
+    ' Voci di menu (ex array VB6 MnuMemory(Index)): agganciate all'handler
+    ' condiviso MnuMemory_Click, stesso schema di frmNorad.vb.
+    Private Sub MnuClose_Click(sender As Object, e As EventArgs) Handles MnuClose.Click
+        MnuMemory_Click(0)
+    End Sub
+
+    Private Sub MnuLoad_Click(sender As Object, e As EventArgs) Handles MnuLoad.Click
+        MnuMemory_Click(1)
+    End Sub
+
+    Private Sub MnuPrint_Click(sender As Object, e As EventArgs) Handles MnuPrint.Click
+        MnuMemory_Click(2)
+    End Sub
+
     Public Function ValoreSat(Messaggio As String) As Boolean
         Dim rs_Sat As Object
         Dim TabAz As String, TabEl As String, TabPol As String, Port As Integer, s_segn As String

@@ -74,10 +74,14 @@ Public Class FrmProgram
                 g_AzTable = CDbl(frmRicezione.LblAzimuth.Text)
                 g_ElTable = CDbl(frmRicezione.LblElevazione.Text)
                 If g_ElTable < g_ElMin Then g_ElTable = g_ElMin
-                ' Invia posizione iniziale all'ACU e congela i_Cont
+                ' Invia posizione iniziale all'ACU e congela i_Cont.
+                ' Spazio finale richiesto dal protocollo (confronta i pattern
+                ' " P "/"AP "/"EP " usati in Ricezione.vb): senza, Len(s_program)
+                ' risulta 1 carattere più corto e il prefisso di lunghezza
+                ' inviato all'ACU è sbagliato.
                 Dim s_program As String = " P " &
                     Format$(g_AzTable, "000.000") & " " &
-                    Format$(g_ElTable, "00.000")
+                    Format$(g_ElTable, "00.000") & " "
                 Dim msgLen As Integer = Len(s_program) + 6
                 SEND_ACU = CheckSum(Format$(msgLen, "00") & Mid$(s_program, 1, Len(s_program)))
                 frmRicezione.TmrTimeoutMSG(ACU).Enabled = False

@@ -10,6 +10,20 @@
     Dim i_Memory As System.Single
 
 
+    ' Voci di menu (ex array VB6 MnuMemory(Index)): agganciate all'handler
+    ' condiviso MnuMemory_Click, stesso schema di frmNorad.vb/FrmTabSat.vb.
+    Private Sub MnuClose_Click(sender As Object, e As EventArgs) Handles MnuClose.Click
+        MnuMemory_Click(0)
+    End Sub
+
+    Private Sub MnuLoad_Click(sender As Object, e As EventArgs) Handles MnuLoad.Click
+        MnuMemory_Click(1)
+    End Sub
+
+    Private Sub MnuPrint_Click(sender As Object, e As EventArgs) Handles MnuPrint.Click
+        MnuMemory_Click(2)
+    End Sub
+
     Private Sub frmMemoryTrack_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' datMemoryTrack.DatabaseName = g_Database   ' VB6 Data control — not available in VB.NET
         ' datMemoryTrack.RecordSource = "SELECT * FROM [MemoryTrack] ORDER BY Ora"

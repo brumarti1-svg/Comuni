@@ -293,6 +293,7 @@ Module Predisposizioni
     Public f_FrqBeacon As System.Single
     Public b_frequency As Boolean               '12/11/2022
     Public f_PowerOut As System.Single
+    Public f_DCType As Byte                      'Tipo Down Converter nel frame di stato MAC (mai impostato, resta 0)
     Public g_Assi As Integer
     Public g_Validi As Integer
     Public g_ValTLE As Integer

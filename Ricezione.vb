@@ -2037,11 +2037,11 @@ Rangeout:
                 s_program = ""
                 If Not AzInibhit And Not ElInibhit Then
                     s_program = " P " & Format$(Az_prov, "000.000") & " " &
-                Format$(El_Prov, "00.000")
+                Format$(El_Prov, "00.000") & " "
                 ElseIf ElInibhit Then
-                    s_program = "AP " & Format$(Az_prov, "000.000")
+                    s_program = "AP " & Format$(Az_prov, "000.000") & " "
                 ElseIf AzInibhit Then
-                    s_program = "EP " & Format$(El_Prov, "00.000")
+                    s_program = "EP " & Format$(El_Prov, "00.000") & " "
                 End If
                 i = Len(s_program) + 6
                 SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
