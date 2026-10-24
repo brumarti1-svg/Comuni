@@ -49,6 +49,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)frmOffset.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmPhase.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmPreset.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmPreset.Http.vb">
+      <DependentUpon>frmPreset.vb</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)frmProgram.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmRegressione.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmSatelliti.vb" />
