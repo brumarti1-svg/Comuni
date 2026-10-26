@@ -54,6 +54,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)frmProgram.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmRegressione.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)frmRicevitore.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmSatelliti.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmSimulazione.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)frmSplash.vb" />
@@ -130,6 +131,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)frmRegressione.Designer.vb">
       <DependentUpon>frmRegressione.vb</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)frmRicevitore.Designer.vb">
+      <DependentUpon>frmRicevitore.vb</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)frmSatelliti.Designer.vb">
       <DependentUpon>frmSatelliti.vb</DependentUpon>
     </Compile>
@@ -194,6 +198,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmRegressione.resx">
       <DependentUpon>frmRegressione.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmRicevitore.resx">
+      <DependentUpon>frmRicevitore.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)frmSatelliti.resx">
       <DependentUpon>frmSatelliti.vb</DependentUpon>

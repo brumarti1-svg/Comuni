@@ -2050,10 +2050,13 @@ Rangeout:
                 InvioACU(SEND_ACU)
     End If
         Else
+            ' "Program" (LblAzimuthC/LblElevazioneC) resta vuoto quando non si
+            ' è davvero in Program Track (i_ProgTrack <> 1/4): AzCalc/ElCalc
+            ' vengono comunque calcolati sopra (servono ad altri usi, es.
+            ' l'offset in LblAzError/LblElError), ma non vanno mostrati come
+            ' se fosse attivo un tracking predittivo che non sta avvenendo.
             frmRicezione.LblAzimuth.Text = " "
             frmRicezione.LblElevazione.Text = " "
-            frmRicezione.LblAzimuthC.Text = Format$(AzCalc, "000.000")
-            frmRicezione.LblElevazioneC.Text = Format$(ElCalc, "00.000")
         End If
     End Function
     Public Function Calcolo_Coordinate1(Data1 As Date) As Boolean
