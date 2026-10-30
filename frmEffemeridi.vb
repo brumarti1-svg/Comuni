@@ -240,6 +240,7 @@ Partial Public Class FrmEffemeridi
         Dim vel As Vector = NewVector()
         Dim timec As Double, minu As Integer
         EffNORAD = False
+        If Minuti <= 0 Then Return False
         Try
             If Minuti = 15 Then
                 i_mill = 0
@@ -340,11 +341,22 @@ Partial Public Class FrmEffemeridi
     ' -------------------------------------------------------
     Private Function EffCASSIOPEA(Minuti As Double) As Boolean
 
-        If Minuti = 0 Then Return False
+        ' <= 0 e non solo = 0: con Minuti negativo il "Do While Count <= tsince1 ...
+        ' Count += Minuti" sotto diverge invece di avvicinarsi a tsince1 e non
+        ' termina mai (nel VB6 originale era un For/Step, che con step negativo
+        ' esegue zero iterazioni automaticamente; qui quella sicurezza va ricreata).
+        If Minuti <= 0 Then Return False
         EffCASSIOPEA = False
         Try
             i_Sec = CInt((Minuti - CInt(Minuti)) * 100)
-            Dim dataIni As Date = DateTime.ParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+            Dim dataIni As Date
+            If Not DateTime.TryParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss",
+                                          System.Globalization.CultureInfo.InvariantCulture,
+                                          System.Globalization.DateTimeStyles.None, dataIni) Then
+                MskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                MessageBox.Show("Invalid date. Enter it in the format dd/MM/yyyy HH:mm:ss", "Effemeridi", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return False
+            End If
             seceffemeridi = CDbl(TxtOre.Text) * 3600
             Data1 = dataIni.AddSeconds(seceffemeridi)
             With ts
@@ -397,11 +409,22 @@ Partial Public Class FrmEffemeridi
     ' Calcolo effemeridi LUNA
     ' -------------------------------------------------------
     Private Function EffMOON(Minuti As Double) As Boolean
-        If Minuti = 0 Then Return False
+        ' <= 0 e non solo = 0: con Minuti negativo il "Do While Count <= tsince1 ...
+        ' Count += Minuti" sotto diverge invece di avvicinarsi a tsince1 e non
+        ' termina mai (nel VB6 originale era un For/Step, che con step negativo
+        ' esegue zero iterazioni automaticamente; qui quella sicurezza va ricreata).
+        If Minuti <= 0 Then Return False
         EffMOON = False
         Try
             i_Sec = CInt((Minuti - CInt(Minuti)) * 100)
-            Dim dataIni As Date = DateTime.ParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+            Dim dataIni As Date
+            If Not DateTime.TryParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss",
+                                          System.Globalization.CultureInfo.InvariantCulture,
+                                          System.Globalization.DateTimeStyles.None, dataIni) Then
+                MskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                MessageBox.Show("Invalid date. Enter it in the format dd/MM/yyyy HH:mm:ss", "Effemeridi", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return False
+            End If
             seceffemeridi = CDbl(TxtOre.Text) * 3600
             Data1 = dataIni.AddSeconds(seceffemeridi)
             With ts
@@ -454,11 +477,22 @@ Partial Public Class FrmEffemeridi
     ' Calcolo effemeridi SOLE
     ' -------------------------------------------------------
     Private Function EffSUN(Minuti As Double) As Boolean
-        If Minuti = 0 Then Return False
+        ' <= 0 e non solo = 0: con Minuti negativo il "Do While Count <= tsince1 ...
+        ' Count += Minuti" sotto diverge invece di avvicinarsi a tsince1 e non
+        ' termina mai (nel VB6 originale era un For/Step, che con step negativo
+        ' esegue zero iterazioni automaticamente; qui quella sicurezza va ricreata).
+        If Minuti <= 0 Then Return False
         EffSUN = False
         Try
             i_Sec = CInt((Minuti - CInt(Minuti)) * 100)
-            Dim dataIni As Date = DateTime.ParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+            Dim dataIni As Date
+            If Not DateTime.TryParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss",
+                                          System.Globalization.CultureInfo.InvariantCulture,
+                                          System.Globalization.DateTimeStyles.None, dataIni) Then
+                MskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                MessageBox.Show("Invalid date. Enter it in the format dd/MM/yyyy HH:mm:ss", "Effemeridi", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return False
+            End If
             seceffemeridi = CDbl(TxtOre.Text) * 3600
             Data1 = dataIni.AddSeconds(seceffemeridi)
             With ts
@@ -511,11 +545,22 @@ Partial Public Class FrmEffemeridi
     ' Calcolo effemeridi PIANETI (Venere)
     ' -------------------------------------------------------
     Private Function EffPLANETS(Minuti As Double) As Boolean
-        If Minuti = 0 Then Return False
+        ' <= 0 e non solo = 0: con Minuti negativo il "Do While Count <= tsince1 ...
+        ' Count += Minuti" sotto diverge invece di avvicinarsi a tsince1 e non
+        ' termina mai (nel VB6 originale era un For/Step, che con step negativo
+        ' esegue zero iterazioni automaticamente; qui quella sicurezza va ricreata).
+        If Minuti <= 0 Then Return False
         EffPLANETS = False
         Try
             i_Sec = CInt((Minuti - CInt(Minuti)) * 100)
-            Dim dataIni As Date = DateTime.ParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+            Dim dataIni As Date
+            If Not DateTime.TryParseExact(MskDataIni.Text.Replace(".", ":"), "dd/MM/yyyy HH:mm:ss",
+                                          System.Globalization.CultureInfo.InvariantCulture,
+                                          System.Globalization.DateTimeStyles.None, dataIni) Then
+                MskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
+                MessageBox.Show("Invalid date. Enter it in the format dd/MM/yyyy HH:mm:ss", "Effemeridi", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return False
+            End If
             seceffemeridi = CDbl(TxtOre.Text) * 3600
             Data1 = dataIni.AddSeconds(seceffemeridi)
             With ts
