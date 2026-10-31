@@ -37,6 +37,10 @@ Partial Public Class FrmEffemeridi
         MnuSalva.Enabled = True
         MnuStampa.Enabled = True
         TxtOre.Text = "24"
+        ' Senza un default, TxtMinuti parte vuoto e MnuCalcola_Click esce
+        ' silenziosamente al primo controllo (IsNumeric("")=False) — nessun
+        ' errore visibile, sembra che "Calcola" non faccia nulla.
+        If String.IsNullOrWhiteSpace(TxtMinuti.Text) Then TxtMinuti.Text = "15"
         LblAntenna.Text = Antenna
     End Sub
 
@@ -150,6 +154,10 @@ Partial Public Class FrmEffemeridi
             dgvEffemeridi.Columns("Elevation").DataPropertyName = "elevation"
             dgvEffemeridi.Columns("Long").DataPropertyName = "long"
             dgvEffemeridi.Columns("Lat").DataPropertyName = "lat"
+            dgvEffemeridi.Columns("Azimuth").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
+            dgvEffemeridi.Columns("Elevation").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
+            dgvEffemeridi.Columns("Long").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
+            dgvEffemeridi.Columns("Lat").DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight
         End If
         dgvEffemeridi.DataSource = dt
     End Sub
