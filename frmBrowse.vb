@@ -41,15 +41,22 @@ Partial Public Class frmBrowse
     End Sub
 
     ' -------------------------------------------------------
-    ' Bottone Sfoglia cartella (sostituisce DriveListBox + DirListBox)
+    ' Bottone Sfoglia (ricerca file su tutto il PC)
+    ' La ListBox/FolderBrowserDialog (vecchio albero cartelle, senza casella
+    ' di ricerca) costringeva a girare a vista per trovare un file fuori
+    ' dalla cartella parametri di default. OpenFileDialog è il file picker
+    ' standard di Windows: barra indirizzi, ricerca, Questo PC/tutte le
+    ' unità - si trova il file ovunque sia, poi si seleziona e basta
+    ' (non serve più il doppio clic in lista).
     ' -------------------------------------------------------
     Private Sub btnSfoglia_Click(sender As Object, e As EventArgs) Handles btnSfoglia.Click
-        Using dlg As New FolderBrowserDialog()
-            dlg.Description = "Seleziona la cartella dei parametri"
-            dlg.SelectedPath = If(Not String.IsNullOrWhiteSpace(g_DirPar) AndAlso Directory.Exists(g_DirPar), g_DirPar, Application.StartupPath)
+        Using dlg As New OpenFileDialog()
+            dlg.Title = "Cerca file parametri"
+            dlg.Filter = "File parametri (*.par;*.txt;*.csv)|*.par;*.txt;*.csv|Tutti i file (*.*)|*.*"
+            dlg.InitialDirectory = If(Not String.IsNullOrWhiteSpace(g_DirPar) AndAlso Directory.Exists(g_DirPar), g_DirPar, Application.StartupPath)
             If dlg.ShowDialog() = DialogResult.OK Then
-                CaricaFile(dlg.SelectedPath)
-                LblPreview.Text = dlg.SelectedPath
+                g_Parametri = dlg.FileName
+                Me.Close()
             End If
         End Using
     End Sub
