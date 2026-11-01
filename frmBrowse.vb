@@ -24,7 +24,20 @@ Partial Public Class frmBrowse
     ' -------------------------------------------------------
     Private Sub frmBrowse_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.Text = "Parameter List"
-        CaricaFile(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments))
+        ' VB6: la DirListBox partiva dalla cartella corrente dell'exe (nessun
+        ' Path impostato in Designer) - qui l'equivalente è g_DirPar (la
+        ' cartella parametri configurata in Configurazione/INI, "Server" >
+        ' "Directory"), dove si trovano davvero i file .par. "Documenti" di
+        ' Windows non li contiene mai: la lista restava vuota/sbagliata e il
+        ' file voluto non si poteva selezionare.
+        Dim cartellaIniziale As String
+        If Not String.IsNullOrWhiteSpace(g_DirPar) AndAlso Directory.Exists(g_DirPar) Then
+            cartellaIniziale = g_DirPar
+        Else
+            cartellaIniziale = Application.StartupPath
+        End If
+        CaricaFile(cartellaIniziale)
+        LblPreview.Text = cartellaIniziale
     End Sub
 
     ' -------------------------------------------------------
@@ -33,7 +46,7 @@ Partial Public Class frmBrowse
     Private Sub btnSfoglia_Click(sender As Object, e As EventArgs) Handles btnSfoglia.Click
         Using dlg As New FolderBrowserDialog()
             dlg.Description = "Seleziona la cartella dei parametri"
-            dlg.SelectedPath = Application.StartupPath
+            dlg.SelectedPath = If(Not String.IsNullOrWhiteSpace(g_DirPar) AndAlso Directory.Exists(g_DirPar), g_DirPar, Application.StartupPath)
             If dlg.ShowDialog() = DialogResult.OK Then
                 CaricaFile(dlg.SelectedPath)
                 LblPreview.Text = dlg.SelectedPath
@@ -51,7 +64,7 @@ Partial Public Class frmBrowse
             Dim files = Directory.GetFiles(folderPath, "*.*")
             For Each f As String In files
                 Dim ext As String = System.IO.Path.GetExtension(f).ToLower()
-                If ext = ".par" OrElse ext = ".Txt" OrElse ext = ".csv" Then
+                If ext = ".par" OrElse ext = ".txt" OrElse ext = ".csv" Then
                     lstMdb.Items.Add(f)
                 End If
             Next
