@@ -17,6 +17,7 @@ Partial Class FrmRicevitore
 
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FrmRicevitore))
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.components = New System.ComponentModel.Container()
         Me.MenuStrip1 = New System.Windows.Forms.MenuStrip()
@@ -936,6 +937,8 @@ Partial Class FrmRicevitore
         Me.Image1.Location = New System.Drawing.Point(67, 46)
         Me.Image1.Size = New System.Drawing.Size(37, 34)
         Me.Image1.Name = "Image1"
+        Me.Image1.Image = CType(resources.GetObject("Image1.Image"), System.Drawing.Image)
+        Me.Image1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         '
         'LblTesto
         '

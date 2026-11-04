@@ -117,4 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Image1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAC8AAAAvCAIAAAD8RQT7AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnMAABJzAYwiuQcAAADmSURBVFhH7c7LEcMgDEVR918VpQWPrkggFokEK0Zn47F+vKvscF2b7vBdUKMI/heclYYgimrUQWmI0KMXkmls8WUef8KE3ylpBO8rqlGZxpZpbJnGlmls5v6f12WsoWqbj40NmW6o7sNdRVW9/+l7sNmj58GmpKHmJycG9PxWdm/y/IBezMq+PD+g53fvyomKmgebPXoebH6mEfQV1X24q6gq873H6W8y1lC1zcd+78/J9YZqVKaxZRpbprFlGlt8n/efMOF3SpqKx3v0QjKNbWm5IoKiGnVWmoogy1Gq49JUW6KUUl6IhrEiz+fZbQAAAABJRU5ErkJggg==
+    </value>
+  </data>
 </root>
