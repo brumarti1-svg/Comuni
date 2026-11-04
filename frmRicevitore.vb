@@ -2,6 +2,11 @@ Imports System.Reflection.Emit
 
 Public Class FrmRicevitore
     ' Le dichiarazioni dei controlli sono in FrmRicevitore.Designer.vb
+
+    Public Sub New()
+        InitializeComponent()
+    End Sub
+
     Friend tmrTimeoutMSG1() As System.Windows.Forms.Timer
 
     Dim d_Valore As String
