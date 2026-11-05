@@ -5,6 +5,18 @@ Public Class FrmRicevitore
 
     Public Sub New()
         InitializeComponent()
+        ' Allocato qui (non più in FrmRicevitore_Load) così esiste fin da
+        ' subito: MonComponent/Phasing/InvioPhase (Gestione.vb, chiamate dal
+        ' TmrPhase di FrmMain) lo armano ad ogni invio anche se l'operatore
+        ' non ha mai aperto questa finestra - prima restava Nothing e
+        ' l'armamento veniva saltato in silenzio (vedi anche InvioRX in
+        ' SocketManager.vb). Indicizzato 0..6 come le costanti LanMon..LanCal
+        ' (1..6, Predisposizioni.vb).
+        ReDim tmrTimeoutMSG1(6)
+        For k As Integer = 0 To 6
+            tmrTimeoutMSG1(k) = New System.Windows.Forms.Timer(components) With {.Interval = 30000}
+            AddHandler tmrTimeoutMSG1(k).Tick, AddressOf TmrTimeoutMSG1_Tick
+        Next
     End Sub
 
     Friend tmrTimeoutMSG1() As System.Windows.Forms.Timer
@@ -592,16 +604,7 @@ Public Class FrmRicevitore
 
     Private Sub FrmRicevitore_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Form_Initialize()
-        ' Indicizzato con le costanti LanMon..LanCal (1..6, Predisposizioni.vb):
-        ' dimensionato a 4 mancavano gli indici 5 (LanPhase) e 6 (LanCal),
-        ' usati ad es. da PortaRx = LanPhase/LanCal, causando un
-        ' IndexOutOfRangeException. In VB6 il control array tmrTimeoutMSG1
-        ' ha infatti Index 1..6 (frmRicevitore.frm).
-        ReDim tmrTimeoutMSG1(6)
-        For k As Integer = 0 To 6
-            tmrTimeoutMSG1(k) = New System.Windows.Forms.Timer(components) With {.Interval = 30000}
-            AddHandler tmrTimeoutMSG1(k).Tick, AddressOf TmrTimeoutMSG1_Tick
-        Next
+        ' tmrTimeoutMSG1 è ora allocato in New() (vedi lì), non più qui.
         Dim rs_Ric As Object
         TxtPhase.Text = CStr(g_PhaseEl)
         TxtPhAz.Text = CStr(g_PhaseAz)
