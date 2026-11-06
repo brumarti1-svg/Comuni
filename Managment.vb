@@ -290,10 +290,13 @@ ByVal nSize As Long) As Long
         End Try
 End Function
     Public Function InitPar11() As Boolean
-        On Error GoTo Par11Error
+        ' On Error GoTo Par11Error → Try/Catch: nessun Resume, l'etichetta
+        ' è solo un handler "mostra il messaggio e basta", conversione
+        ' meccanica sicura.
         Dim rs_INITPAR As Object
         Dim d_partenza As Date, d_nonvalido As Date
         InitPar11 = False
+        Try
         rs_INITPAR = dbOrbite.OpenRecordset("Sat11Par", dbOpenDynaset)
         rs_INITPAR.FindFirst("Name ='" & s_Satellite & "'")
     If Not rs_INITPAR.NoMatch Then
@@ -334,11 +337,11 @@ End Function
             FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
             FrmMain.TmrMsg.Enabled = True
         End If
-        Exit Function
-Par11Error:
-        '    Response = MessageBox.Show("Non sono disponibili i parametri per il Satellite selezionato!", vbOKOnly)
-        FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
-        FrmMain.TmrMsg.Enabled = True
+        Catch
+            '    Response = MessageBox.Show("Non sono disponibili i parametri per il Satellite selezionato!", vbOKOnly)
+            FrmMain.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
+            FrmMain.TmrMsg.Enabled = True
+        End Try
     End Function
 
     '////////////////////////////////////////////////////////////////////////////

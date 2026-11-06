@@ -59,7 +59,9 @@ Public Class FrmPreset
         Dim s_Polar As String
         Dim s_program As String
         Dim i As Integer
-        On Error Resume Next
+        ' On Error Resume Next → Try/Catch: flusso lineare, nessun Resume/
+        ' GoTo, conversione meccanica sicura.
+        Try
         s_program = ""
         ' Format$(stringa, "000.000") con una STRINGA come primo argomento
         ' restituisce sempre "000.000"/zero (verificato: non riconverte la
@@ -110,6 +112,9 @@ Public Class FrmPreset
         b_int(ACU) = True
         KeyPreview = True
         TxtFreccia.Focus()
+        Catch ex As Exception
+            WriteError(0, "FrmPreset.InviaComando: " & ex.Message)
+        End Try
     End Sub
 
     ' Visibilità assi + coordinate attuali: fattorizzata per poter essere

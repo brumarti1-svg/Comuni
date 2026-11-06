@@ -2459,8 +2459,12 @@ frmRicezione.LblAzimuth.Text = ""
         Dim rs_Acq As Object
         Dim s_program As String = "", i_lun As Integer
         '06/06/2022
-        On Error Resume Next
-
+        ' On Error Resume Next → Try/Catch: nessun Resume/GoTo in questa
+        ' funzione (flusso lineare, un Case alla volta), conversione
+        ' meccanica sicura — a differenza di Calcolo_Aquire/AggiornaTLE
+        ' (lasciate On Error, vedi commenti lì) non c'è alcuna dipendenza
+        ' dal "continua comunque alla riga dopo" tra le istruzioni.
+        Try
         Select Case i_ConStato
             Case 0
                 i_ConStato += 1
@@ -2659,6 +2663,9 @@ frmRicezione.LblAzimuth.Text = ""
                 i_ConStato = 0
                 frmRicezione.TmrSpiralAcquire.Enabled = False
         End Select
+        Catch ex As Exception
+            WriteError(0, "Calcolo_StepTrack: " & ex.Message)
+        End Try
     End Function
     Public Sub PulisciAverage()
         Dim i As Integer

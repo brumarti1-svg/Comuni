@@ -1380,7 +1380,9 @@ esci:
 
     Public Sub TmrTimeoutMSG1_Timer(Index As Integer)
         Dim s_Device As String = ""
-        On Error Resume Next
+        ' On Error Resume Next → Try/Catch: flusso lineare, nessun Resume/
+        ' GoTo, conversione meccanica sicura.
+        Try
         If Index = LanPhase Then
             NoPhasing = False
             '        frmMain.tmrPhase.interval = 300
@@ -1431,6 +1433,9 @@ esci:
             ' frmRicezione.tdbLog.Me.Refresh()
         End If
         FrmMain.TmrPhase.Enabled = True
+        Catch ex As Exception
+            WriteError(0, "TmrTimeoutMSG1_Timer: " & ex.Message)
+        End Try
     End Sub
     Private Sub AutoPhase()
         Dim s_program As String, iix As Integer, i As Integer
