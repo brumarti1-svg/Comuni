@@ -334,21 +334,23 @@ Module Ricezione
         '09/06/2022
         ' TEMPORANEO (test): simulazione del ricevitore che trova il beacon
         ' del satellite, in assenza di hardware reale collegato — per poter
-        ' testare anche il ramo "Lock"/Augmented dello Spiral Acquire. Dopo
-        ' un paio di giri di ricerca grossolana (i_Spiral >= 2) si simula il
-        ' segnale trovato: l'errore Az/El "misurato dal ricevitore" viene
-        ' preso uguale all'offset corrente della spirale rispetto al centro
-        ' (fisicamente corretto se si assume che il segnale sia proprio nel
-        ' punto di ricentraggio) — quando la spirale fine ripassa vicino al
-        ' centro l'errore scende sotto soglia e si ottiene un aggancio pieno
-        ' (OP_AUGMENTED), come avverrebbe con un segnale reale. Da rimuovere
-        ' a test finito.
-        If i_Spiral >= 2 Then
+        ' testare anche il ramo "Lock"/Augmented dello Spiral Acquire.
+        ' L'errore Az/El "misurato dal ricevitore" (d_SimBeaconErr) parte
+        ' volutamente FUORI soglia e si riduce di un piccolo passo ad ogni
+        ' ciclo: il beacon simula un segnale che si avvicina lentamente,
+        ' così la ricerca resta visibile per diversi giri nel grafico
+        ' "Acquire Trace" invece di agganciarsi di colpo al 2° giro. Solo
+        ' quando scende sotto le soglie (g_ThrAz/g_ThrEl) si ottiene
+        ' l'aggancio pieno (OP_AUGMENTED), come avverrebbe con un segnale
+        ' reale in progressivo avvicinamento. Da rimuovere a test finito.
+        If i_Spiral >= 1 Then
+            If d_SimBeaconErr = 0 Then d_SimBeaconErr = (g_ThrAz + g_ThrEl) * 4 ' valore iniziale, fuori soglia
+            d_SimBeaconErr = Math.Max(0, d_SimBeaconErr - 0.3) ' avvicinamento lento, un passo per ciclo
             b_Lock = True
             s_Lev1 = CStr(g_ThrAuto + 5)
             frmRicezione.LblLock.Text = "LOCK"
-            s_LevAz1 = CStr(i_AzOffsetLock)
-            s_LevEl1 = CStr(i_ElOffsetLock)
+            s_LevAz1 = CStr(d_SimBeaconErr)
+            s_LevEl1 = CStr(d_SimBeaconErr)
         End If
         If b_Lock Then
             If Val(s_Lev1) > g_ThrAuto And RTrim(frmRicezione.LblLock.Text) = "LOCK" And Math.Abs(Val(s_LevAz1)) < g_ThrAz And Math.Abs(Val(s_LevEl1)) < g_ThrEl Then     '26/10/2022

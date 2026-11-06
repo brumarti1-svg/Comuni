@@ -227,6 +227,7 @@ Partial Public Class frmAcquire
         ElOffset = 0
         b_Lock = False
         b_LockOn = False
+        d_SimBeaconErr = 0 ' TEMPORANEO (test): riparte da "fuori soglia" ad ogni nuovo Acquire
 
         If frmRicezioneRef IsNot Nothing Then
             frmRicezioneRef.LblAzErrEn.Visible = True

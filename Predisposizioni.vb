@@ -199,6 +199,10 @@ Module Predisposizioni
     Public b_RangeAz As Boolean, b_RangeEl As Boolean     'Variabili per il controllo del Range
     '09/06/2022
     Public b_Lock As Boolean
+    ' TEMPORANEO (test): errore di beacon simulato, usato da Calcolo_Aquire
+    ' per avvicinarsi gradualmente alla soglia invece di agganciarsi di colpo.
+    ' Da rimuovere insieme al resto della simulazione quando il test finisce.
+    Public d_SimBeaconErr As Double
     '15/12/2021 Vengono impostati i contatori per il calcolo dell'off nello stato operativo Spiral Acquire
     Public i_Quadrati As Integer  'Contatore di quadrati
     Public i_Step As Integer       'Contatori di Step per lato
