@@ -204,6 +204,10 @@ Module Predisposizioni
     Public i_Step As Integer       'Contatori di Step per lato
     Public i_ConStato As Integer 'Contatore di stato - Indica a che punto della spirale mi trovo
     Public d_SpiralAngolo As Double 'Angolo continuo (radianti) della spirale circolare di Calcolo_Aquire
+    ' Modo di ricerca per Calcolo_Aquire, scelto dall'operatore in FrmAcquire.
+    Public Const MODO_ACQUIRE_SPIRALE As Integer = 0
+    Public Const MODO_ACQUIRE_QUADRATI As Integer = 1
+    Public i_ModoAcquire As Integer = MODO_ACQUIRE_SPIRALE
     Public i_StepTrack As Integer 'Contiene lo stato dello step track
     '14/06/2022
     Public i_LockThr As Integer     'soglia per accettare il lock

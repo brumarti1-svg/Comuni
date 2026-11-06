@@ -163,6 +163,7 @@ Partial Public Class frmAcquire
         b_Acquire = optPreset.Checked
         Debug.WriteLine("frmAcquire.CmdEnd_Click: optPreset.Checked=" & optPreset.Checked & " optProgram.Checked=" & optProgram.Checked & " b_Acquire=" & b_Acquire & " Algoritmo=" & Algoritmo) ' TEMPORANEO: da rimuovere dopo la diagnosi
         If Not b_Acquire Then i_ProgTrack = 1
+        i_ModoAcquire = If(optQuadrati.Checked, MODO_ACQUIRE_QUADRATI, MODO_ACQUIRE_SPIRALE)
         i_Quadrati = 1
         i_ConStato = 0
         d_SpiralAngolo = 0

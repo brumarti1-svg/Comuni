@@ -37,6 +37,8 @@ Partial Class frmAcquire
         Me.TxtCoorAcq    = New System.Windows.Forms.TextBox()
         Me.TxtLockThr    = New System.Windows.Forms.TextBox()
         Me.grpAcqPar     = New System.Windows.Forms.GroupBox()
+        Me.optSpirale    = New System.Windows.Forms.RadioButton()
+        Me.optQuadrati   = New System.Windows.Forms.RadioButton()
         ' Labels
         Dim LblDataIni   As New System.Windows.Forms.Label()
         Dim LblAz        As New System.Windows.Forms.Label()
@@ -51,6 +53,7 @@ Partial Class frmAcquire
         Dim LblTout      As New System.Windows.Forms.Label()
         Dim LblCoor      As New System.Windows.Forms.Label()
         Dim LblLock      As New System.Windows.Forms.Label()
+        Dim LblModo      As New System.Windows.Forms.Label()
         Me.grpAcqPar.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -214,12 +217,34 @@ Partial Class frmAcquire
         Me.TxtLockThr.TabIndex = 9
         Me.TxtLockThr.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
 
+        LblModo.Location = New System.Drawing.Point(8, 118)
+        LblModo.Size = New System.Drawing.Size(80, 20)
+        LblModo.Text = "Search Mode:"
+        '
+        ' optSpirale
+        '
+        Me.optSpirale.Location = New System.Drawing.Point(96, 115)
+        Me.optSpirale.Name = "optSpirale"
+        Me.optSpirale.Size = New System.Drawing.Size(90, 24)
+        Me.optSpirale.TabIndex = 10
+        Me.optSpirale.Text = "Spiral"
+        Me.optSpirale.Checked = True
+        '
+        ' optQuadrati
+        '
+        Me.optQuadrati.Location = New System.Drawing.Point(190, 115)
+        Me.optQuadrati.Name = "optQuadrati"
+        Me.optQuadrati.Size = New System.Drawing.Size(100, 24)
+        Me.optQuadrati.TabIndex = 11
+        Me.optQuadrati.Text = "Square"
+
         Me.grpAcqPar.Controls.AddRange(New System.Windows.Forms.Control() {
             LblAzRange, Me.TxtAzRange, LblElRange, Me.TxtElRange,
             LblAzStep, Me.TxtAzStep, LblElStep, Me.TxtElStep,
             LblAzLock, Me.TxtAzStepLock, LblElLock, Me.TxtElStepLock,
             LblDelta, Me.TxtDeltaTime, LblTout, Me.TxtTout,
-            LblCoor, Me.TxtCoorAcq, LblLock, Me.TxtLockThr})
+            LblCoor, Me.TxtCoorAcq, LblLock, Me.TxtLockThr,
+            LblModo, Me.optSpirale, Me.optQuadrati})
         '
         ' CmdEnd
         '
@@ -270,5 +295,7 @@ Partial Class frmAcquire
     Friend TxtCoorAcq               As System.Windows.Forms.TextBox
     Friend TxtLockThr               As System.Windows.Forms.TextBox
     Friend grpAcqPar                As System.Windows.Forms.GroupBox
+    Friend WithEvents optSpirale    As System.Windows.Forms.RadioButton
+    Friend WithEvents optQuadrati   As System.Windows.Forms.RadioButton
 
 End Class
