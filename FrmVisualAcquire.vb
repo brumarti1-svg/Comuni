@@ -149,12 +149,20 @@ Public Class FrmVisualAcquire
         If Val(mskOraFin.Text) < 0 OrElse Val(mskOraFin.Text) >= 24 Then
             mskOraFin.Focus() : Return False
         End If
-        If CDate(mskDataIni.Text & " " & mskOraIni.Text.Replace("."c, ":"c) & ":00") >
-           CDate(mskDataFin.Text & " " & mskOraFin.Text.Replace("."c, ":"c) & ":00") Then
+        Dim dtIni As Date = CDate(mskDataIni.Text & " " & mskOraIni.Text.Replace("."c, ":"c) & ":00")
+        Dim dtFin As Date = CDate(mskDataFin.Text & " " & mskOraFin.Text.Replace("."c, ":"c) & ":00")
+        If dtIni > dtFin Then
             mskDataIni.Focus() : Return False
         End If
-        If Val(mskDataIni.Text) = Val(mskDataFin.Text) AndAlso
-           (Val(mskOraFin.Text) - Val(mskOraIni.Text)) < 0.5 Then
+        ' Era "Val(mskOraFin.Text) - Val(mskOraIni.Text)) < 0.5": Val() legge
+        ' "HH.mm" come un numero decimale letterale (es. "14.45" = 14,45),
+        ' non come 45 minuti (= 0,75 ore) — un salto da "14.05" a "14.40"
+        ' (35 minuti reali, >= 30) veniva respinto perché 0.40-0.05=0.35<0.5,
+        ' mentre "14.55"→"15.05" (10 minuti reali, <30) passava perché
+        ' 15.05-14.55=0.5 non è <0.5. "Elabora" falliva così in silenzio
+        ' (nessun errore, nessun grafico) per finestre reali perfettamente
+        ' valide. Confronto ora sulla durata vera in minuti.
+        If (dtFin - dtIni).TotalMinutes < 30 Then
             mskOraFin.Focus() : Return False
         End If
         Return True
@@ -774,11 +782,26 @@ Public Class FrmVisualAcquire
             Cursor = Cursors.WaitCursor
             Try
                 VisualizzaGrafico()
+                ' TEMPORANEO (test): "Elabora" non mostrava nulla senza alcuna
+                ' indicazione del motivo (dati assenti nella finestra Dal/Al?
+                ' PictureBox non ancora dimensionata?). Un solo log per click,
+                ' non per ogni tick di tmrAcquire. Da rimuovere a test finito.
+                WriteError(0, "FrmVisualAcquire.CmdElabora_Click: NPunti=" & NPunti &
+                    " PicW=" & PicW & " PicH=" & PicH &
+                    " Dal=" & mskDataIni.Text & " " & mskOraIni.Text &
+                    " Al=" & mskDataFin.Text & " " & mskOraFin.Text)
             Catch ex As Exception
                 WriteError(0, "FrmVisualAcquire.CmdElabora_Click: " & ex.Message)
             Finally
                 Cursor = Cursors.Default
             End Try
+        Else
+            ' TEMPORANEO (test): ControllaDati() fallita — mskOraFin aveva un
+            ' bug (vedi commento in ControllaDati) che la faceva fallire in
+            ' silenzio per finestre valide: senza questo log, "Elabora" non
+            ' faceva nulla di visibile e nessuno sapeva perché.
+            WriteError(0, "FrmVisualAcquire.CmdElabora_Click: ControllaDati() ha respinto i dati - Dal=" &
+                mskDataIni.Text & " " & mskOraIni.Text & " Al=" & mskDataFin.Text & " " & mskOraFin.Text)
         End If
     End Sub
 
