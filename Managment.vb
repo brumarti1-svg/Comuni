@@ -643,6 +643,13 @@ End Sub
         Dim Ind As Integer, i_lun As Integer, s_msg As String, Messaggio As String
         Dim lunMax As Integer, pos As Integer, i As Integer
         ScriviLOG3 = True
+        ' TEMPORANEO (test): chiamata ogni i_Log secondi (5s in SMOD1574.ini,
+        ' IntLog) da TmrOrologio_Tick — intervallo che coincide con i gap di
+        ' 3+ secondi osservati dalla sonda su TmrOrologio_Tick. Misura se è
+        ' questa la causa diretta o solo una coincidenza di tempistica. Da
+        ' rimuovere a diagnosi finita.
+        Dim swDiag As New System.Diagnostics.Stopwatch()
+        swDiag.Start()
         Try
             hFile = FreeFile()
             If b_Parametri Then Exit Function
@@ -664,6 +671,9 @@ End Sub
             FileOpen(hFile, Application.StartupPath + "\" + f_Log, OpenMode.Append)
             PrintLine(hFile, Buffer)
             FileClose(hFile)
+            If swDiag.ElapsedMilliseconds > 50 Then
+                WriteError(0, "ScriviLOG3: " & swDiag.ElapsedMilliseconds & " ms (file " & f_Log & ")")
+            End If
         Catch ex As Exception
             WriteError(0, "ScriviLOG3: " & ex.Message)
         End Try
