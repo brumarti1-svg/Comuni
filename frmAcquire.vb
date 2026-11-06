@@ -228,6 +228,7 @@ Partial Public Class frmAcquire
         b_Lock = False
         b_LockOn = False
         d_SimBeaconErr = 0 ' TEMPORANEO (test): riparte da "fuori soglia" ad ogni nuovo Acquire
+        d_SimBeaconLevel = -95 ' TEMPORANEO (test): livello simulato, parte sotto -90
 
         If frmRicezioneRef IsNot Nothing Then
             frmRicezioneRef.LblAzErrEn.Visible = True

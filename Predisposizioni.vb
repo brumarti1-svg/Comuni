@@ -203,6 +203,9 @@ Module Predisposizioni
     ' per avvicinarsi gradualmente alla soglia invece di agganciarsi di colpo.
     ' Da rimuovere insieme al resto della simulazione quando il test finisce.
     Public d_SimBeaconErr As Double
+    ' TEMPORANEO (test): livello di segnale simulato (dB), parte sotto -90
+    ' (fuori soglia) e sale gradualmente verso g_ThrAuto.
+    Public d_SimBeaconLevel As Double
     '15/12/2021 Vengono impostati i contatori per il calcolo dell'off nello stato operativo Spiral Acquire
     Public i_Quadrati As Integer  'Contatore di quadrati
     Public i_Step As Integer       'Contatori di Step per lato

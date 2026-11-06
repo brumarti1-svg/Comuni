@@ -335,19 +335,23 @@ Module Ricezione
         ' TEMPORANEO (test): simulazione del ricevitore che trova il beacon
         ' del satellite, in assenza di hardware reale collegato — per poter
         ' testare anche il ramo "Lock"/Augmented dello Spiral Acquire.
-        ' L'errore Az/El "misurato dal ricevitore" (d_SimBeaconErr) parte
-        ' volutamente FUORI soglia e si riduce di un piccolo passo ad ogni
-        ' ciclo: il beacon simula un segnale che si avvicina lentamente,
-        ' così la ricerca resta visibile per diversi giri nel grafico
-        ' "Acquire Trace" invece di agganciarsi di colpo al 2° giro. Solo
-        ' quando scende sotto le soglie (g_ThrAz/g_ThrEl) si ottiene
+        ' Sia il livello di segnale (d_SimBeaconLevel) che l'errore Az/El
+        ' (d_SimBeaconErr) partono volutamente FUORI soglia — il livello
+        ' sotto -90, ben al di sotto di g_ThrAuto — e si avvicinano di un
+        ' piccolo passo ad ogni ciclo: il beacon simula un segnale debole
+        ' che sale e si centra lentamente, così la ricerca resta visibile
+        ' per diversi giri nel grafico "Acquire Trace" invece di agganciarsi
+        ' di colpo al 2° giro. Solo quando il livello supera g_ThrAuto E
+        ' l'errore scende sotto le soglie (g_ThrAz/g_ThrEl) si ottiene
         ' l'aggancio pieno (OP_AUGMENTED), come avverrebbe con un segnale
         ' reale in progressivo avvicinamento. Da rimuovere a test finito.
         If i_Spiral >= 1 Then
             If d_SimBeaconErr = 0 Then d_SimBeaconErr = (g_ThrAz + g_ThrEl) * 4 ' valore iniziale, fuori soglia
             d_SimBeaconErr = Math.Max(0, d_SimBeaconErr - 0.3) ' avvicinamento lento, un passo per ciclo
+            If d_SimBeaconLevel = 0 Then d_SimBeaconLevel = -95 ' valore iniziale, sotto -90
+            d_SimBeaconLevel = Math.Min(g_ThrAuto + 5, d_SimBeaconLevel + 0.3) ' salita lenta, un passo per ciclo
             b_Lock = True
-            s_Lev1 = CStr(g_ThrAuto + 5)
+            s_Lev1 = CStr(d_SimBeaconLevel)
             frmRicezione.LblLock.Text = "LOCK"
             s_LevAz1 = CStr(d_SimBeaconErr)
             s_LevEl1 = CStr(d_SimBeaconErr)
