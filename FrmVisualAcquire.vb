@@ -800,6 +800,14 @@ Public Class FrmVisualAcquire
         ' senza aspettare il prossimo tick di tmrAcquire) mancava del tutto.
         If ControllaDati() Then
             Cursor = Cursors.WaitCursor
+            ' Il calcolo è così rapido (pochi ms, misurato) che il cursore di
+            ' attesa non arrivava mai a essere disegnato a video prima di
+            ' tornare a quello normale: impostare Cursor non forza un
+            ' ridisegno immediato, solo al prossimo giro del ciclo messaggi.
+            ' Senza alcun riscontro visibile, il click su "Process" sembrava
+            ' non essere stato nemmeno registrato. DoEvents forza quel giro
+            ' subito, rendendo visibile il cambio di cursore.
+            Application.DoEvents()
             ' TEMPORANEO (test): misura quanto impiega VisualizzaGrafico
             ' (query SQLite + disegno GDI+), per la segnalazione di ritardo
             ' percepibile anche su Visual Acquire. Da rimuovere a diagnosi
@@ -814,6 +822,8 @@ Public Class FrmVisualAcquire
                 ' non per ogni tick di tmrAcquire. Da rimuovere a test finito.
                 WriteError(0, "FrmVisualAcquire.CmdElabora_Click: " & swDiag.ElapsedMilliseconds & " ms, NPunti=" & NPunti &
                     " PicW=" & PicW & " PicH=" & PicH &
+                    " MinX=" & MinX & " MaxX=" & MaxX & " MinY=" & MinY & " MaxY=" & MaxY &
+                    " ScalaX=" & ScalaX & " ScalaY=" & ScalaY &
                     " Dal=" & mskDataIni.Text & " " & mskOraIni.Text &
                     " Al=" & mskDataFin.Text & " " & mskOraFin.Text)
             Catch ex As Exception

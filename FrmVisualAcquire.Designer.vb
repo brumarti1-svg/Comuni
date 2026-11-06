@@ -105,7 +105,7 @@ Partial Class FrmVisualAcquire
         Me.CmdElabora.Location  = New System.Drawing.Point(364, 8)
         Me.CmdElabora.Name      = "CmdElabora"
         Me.CmdElabora.Size      = New System.Drawing.Size(90, 22)
-        Me.CmdElabora.Text      = "Elabora"
+        Me.CmdElabora.Text      = "Process"
         Me.CmdElabora.BackColor = System.Drawing.Color.LightBlue
         ' CmdEsci
         Me.CmdEsci.Location  = New System.Drawing.Point(364, 34)

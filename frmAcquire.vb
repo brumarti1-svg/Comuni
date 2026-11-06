@@ -26,17 +26,27 @@ Partial Public Class frmAcquire
     ' Form Activate — reset stato
     ' -------------------------------------------------------
     Private Sub frmAcquire_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
+        ' TEMPORANEO (test): Activated scatta ad ogni cambio di focus sulla
+        ' finestra (non solo alla prima apertura) — se la "lentezza sulla
+        ' maschera Acquire" segnalata dall'utente dipende da qui, lo scatto
+        ' ripetuto di DbExecute/DELETE ad ogni ritorno del focus è un
+        ' sospetto diretto. Da rimuovere a diagnosi finita.
+        Dim swDiag As New System.Diagnostics.Stopwatch()
+        swDiag.Start()
         If frmRicezioneRef IsNot Nothing Then
             frmRicezioneRef.TmrSpiralAcquire.Enabled = False
         End If
         ' Scoped a source='ACQUIRE' (più le righe legacy senza source):
         ' non deve cancellare dati di un calcolo Effemeridi in corso.
+        Dim msPrimaDelete As Long = swDiag.ElapsedMilliseconds
         DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'ACQUIRE' OR source IS NULL")
+        Dim msDelete As Long = swDiag.ElapsedMilliseconds - msPrimaDelete
         mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
         mskDataIni.Focus()
         optPreset.Checked = False
         optProgram.Checked = False
         If i_Status = OP_SPIRALACQUIRE Then i_Status = 0
+        WriteError(0, "frmAcquire_Activated: DELETE " & msDelete & " ms, totale " & swDiag.ElapsedMilliseconds & " ms")
     End Sub
 
     ' -------------------------------------------------------
