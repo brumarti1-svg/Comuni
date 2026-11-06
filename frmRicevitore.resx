@@ -117,9 +117,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <metadata name="MenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <metadata name="tmrPhasing.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>153, 17</value>
+  </metadata>
+  <metadata name="tmrAlarm.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>287, 17</value>
+  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="Image1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAAC8AAAAvCAIAAAD8RQT7AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnMAABJzAYwiuQcAAADmSURBVFhH7c7LEcMgDEVR918VpQWPrkggFokEK0Zn47F+vKvscF2b7vBdUKMI/heclYYgimrUQWmI0KMXkmls8WUef8KE3ylpBO8rqlGZxpZpbJnGlmls5v6f12WsoWqbj40NmW6o7sNdRVW9/+l7sNmj58GmpKHmJycG9PxWdm/y/IBezMq+PD+g53fvyomKmgebPXoebH6mEfQV1X24q6gq873H6W8y1lC1zcd+78/J9YZqVKaxZRpbprFlGlt8n/efMOF3SpqKx3v0QjKNbWm5IoKiGnVWmoogy1Gq49JUW6KUUl6IhrEiz+fZbQAAAABJRU5ErkJggg==
-    </value>
+        iVBORw0KGgoAAAANSUhEUgAAAC8AAAAvCAIAAAD8RQT7AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAS
+        cQAAEnEB89x6jgAAAOZJREFUWEftzssRwyAMRVH3XxWlBY+uSCAWiQQrRmfjsX68q+xwXZvu8F1Qowj+
+        F5yVhiCKatRBaYjQoxeSaWzxZR5/woTfKWkE7yuqUZnGlmlsmcaWaWzm/p/XZayhapuPjQ2Zbqjuw11F
+        Vb3/6Xuw2aPnwaakoeYnJwb0/FZ2b/L8gF7Myr48P6Dnd+/KiYqaB5s9eh5sfqYR9BXVfbirqCrzvcfp
+        bzLWULXNx37vz8n1hmpUprFlGlumsWUaW3yf958w4XdKmorHe/RCMo1tabkigqIadVaaiiDLUarj0lRb
+        opRSXoiGsSLP59ltAAAAAElFTkSuQmCC
+</value>
   </data>
 </root>
