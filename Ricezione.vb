@@ -325,6 +325,15 @@ Module Ricezione
         '06/06/2022
         Dim tmpErrAz As System.Single, tmpErrEl As System.Single
         Debug.WriteLine("Calcolo_Aquire ENTRATA: i_ConStato=" & i_ConStato & " d_SpiralAngolo(gradi)=" & (d_SpiralAngolo * 180.0 / Math.PI) & " i_Status=" & i_Status & " i_AzStep=" & i_AzStep & " i_ElStep=" & i_ElStep & " i_AzRange=" & i_AzRange & " i_ElRange=" & i_ElRange & " b_Acquire=" & b_Acquire & " i_AzOffsetLock=" & i_AzOffsetLock & " i_ElOffsetLock=" & i_ElOffsetLock) ' TEMPORANEO: da rimuovere dopo la diagnosi
+        ' TEMPORANEO (test): Debug.WriteLine sopra non è visibile senza un
+        ' debugger attaccato (BTS1/FOC6.exe lanciato normalmente non lo
+        ' mostra da nessuna parte) — un solo marcatore in ErrSoft.Txt al
+        ' primo ciclo di ogni nuovo Acquire, per confermare che la funzione
+        ' viene davvero chiamata (e con quale i_ModoAcquire/i_Status) anche
+        ' senza allegare un debugger. Da rimuovere a test finito.
+        If i_Spiral = 1 AndAlso i_ConStato = 0 Then
+            WriteError(0, "Calcolo_Aquire: primo ciclo - i_ModoAcquire=" & i_ModoAcquire & " i_Status=" & i_Status & " b_Acquire=" & b_Acquire)
+        End If
         On Error Resume Next
         Err.Clear() ' TEMPORANEO: per la diagnosi sotto
         If IsDate(d_DataFineProg) Then
@@ -615,6 +624,16 @@ Rangeout:
             End If
             If i_ConStato < 2 Then ' fasi 0 (ricerca) e 1 (ritorno al centro); 2=verifica, nessun nuovo comando
                 If IsNumeric(frmRicezione.LblAzimuth.Text) And IsNumeric(frmRicezione.LblElevazione.Text) Then
+                    ' TEMPORANEO (test): questa scrittura è dentro il "On Error
+                    ' Resume Next" di tutta la funzione — un eventuale errore
+                    ' qui (es. tipo di colonna, record set invalido) veniva
+                    ' inghiottito in silenzio e il grafico "Visual Acquire"
+                    ' restava vuoto senza nessuna traccia del motivo. Try/Catch
+                    ' non è ammesso in un metodo con On Error (BC30544): si usa
+                    ' lo stesso stile non strutturato già in uso più sopra in
+                    ' questa funzione (Err.Clear/Err.Number). Da rimuovere a
+                    ' test finito insieme al resto.
+                    Err.Clear()
                     rs_Acq.AddNew
                     rs_Acq!date = Data1.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
                     rs_Acq!Time = Data1.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
@@ -632,6 +651,10 @@ Rangeout:
                     rs_Acq!source = "ACQUIRE"
                     rs_Acq.Update
                     rs_Acq.Close
+                    If Err.Number <> 0 Then
+                        WriteError(0, "Calcolo_Aquire: scrittura punto tmpEffemeridi fallita - " & Err.Number & " " & Err.Description)
+                        Err.Clear()
+                    End If
                 End If
             End If
         Else
