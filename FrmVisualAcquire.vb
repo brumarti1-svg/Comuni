@@ -77,6 +77,16 @@ Public Class FrmVisualAcquire
 
     Private Sub RefreshPic()
         picGrafico.Image = _bmp
+        ' TEMPORANEO (test): assegnare .Image segna solo il controllo come
+        ' "da ridisegnare" (Invalidate) — il disegno vero avviene quando il
+        ' ciclo messaggi arriva a elaborare quel WM_PAINT, in coda con
+        ' tutto il resto. Refresh() forza qui un ridisegno sincrono
+        ' immediato, prima di tornare al chiamante: se il ritardo
+        ' percepito sta nell'attesa del turno di disegno (non nel calcolo,
+        ' già misurato rapido), questo lo elimina. Da rimuovere a diagnosi
+        ' finita insieme al resto, lasciando solo l'assegnazione sopra se
+        ' il problema era altrove.
+        picGrafico.Refresh()
     End Sub
 
     Private Function MakePen() As Pen
