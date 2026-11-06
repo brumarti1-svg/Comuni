@@ -345,16 +345,32 @@ Module Ricezione
         ' l'errore scende sotto le soglie (g_ThrAz/g_ThrEl) si ottiene
         ' l'aggancio pieno (OP_AUGMENTED), come avverrebbe con un segnale
         ' reale in progressivo avvicinamento. Da rimuovere a test finito.
+        '
+        ' Scoperto durante il test: AggiornaBeaconLock (frmRicezione.
+        ' Visualizzazione.vb), chiamata dal ciclo periodico principale,
+        ' quando il canale ricevitore (RX) non è collegato sovrascrive
+        ' incondizionatamente s_Lev1/s_LevAz1/s_LevEl1 con i dati grezzi
+        ' ACU s_Lev/s_LevAz/s_LevEl — mai popolati in questo port, quindi
+        ' sempre "" — annullando il valore appena simulato qui prima che
+        ' arrivi a video. Si scrivono perciò anche i grezzi, con lo stesso
+        ' valore, e con separatore decimale invariante (Val() si aspetta
+        ' sempre il punto, indipendentemente dalla cultura corrente) così
+        ' il valore mostrato resta coerente qualunque sia il ramo preso.
         If i_Spiral >= 1 Then
             If d_SimBeaconErr = 0 Then d_SimBeaconErr = (g_ThrAz + g_ThrEl) * 4 ' valore iniziale, fuori soglia
             d_SimBeaconErr = Math.Max(0, d_SimBeaconErr - 0.3) ' avvicinamento lento, un passo per ciclo
             If d_SimBeaconLevel = 0 Then d_SimBeaconLevel = -95 ' valore iniziale, sotto -90
             d_SimBeaconLevel = Math.Min(g_ThrAuto + 5, d_SimBeaconLevel + 0.3) ' salita lenta, un passo per ciclo
             b_Lock = True
-            s_Lev1 = CStr(d_SimBeaconLevel)
+            Dim tmpSimLevTxt As String = d_SimBeaconLevel.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
+            Dim tmpSimErrTxt As String = d_SimBeaconErr.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
+            s_Lev1 = tmpSimLevTxt
+            s_Lev = tmpSimLevTxt
             frmRicezione.LblLock.Text = "LOCK"
-            s_LevAz1 = CStr(d_SimBeaconErr)
-            s_LevEl1 = CStr(d_SimBeaconErr)
+            s_LevAz1 = tmpSimErrTxt
+            s_LevEl1 = tmpSimErrTxt
+            s_LevAz = tmpSimErrTxt
+            s_LevEl = tmpSimErrTxt
         End If
         If b_Lock Then
             If Val(s_Lev1) > g_ThrAuto And RTrim(frmRicezione.LblLock.Text) = "LOCK" And Math.Abs(Val(s_LevAz1)) < g_ThrAz And Math.Abs(Val(s_LevEl1)) < g_ThrEl Then     '26/10/2022
