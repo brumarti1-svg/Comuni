@@ -667,6 +667,7 @@ Public Class FrmVisualAcquire
     ' ── eventi form ─────────────────────────────────────────────────────────────
 
     Private Sub Form_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Me.WindowState = FormWindowState.Maximized
         Try
             ' Questa form si apre anche da un menu indipendente (Acquire
             ' Trace), senza essere passati da frmAcquire: se non è mai stato
@@ -848,6 +849,17 @@ Public Class FrmVisualAcquire
     Private Sub TmrAcquire_Tick(sender As Object, e As EventArgs) Handles tmrAcquire.Tick
         Try
             VisualizzaGrafico()
+            ' TEMPORANEO (test): il "Process" manuale (CmdElabora_Click) ha
+            ' una diagnostica che mostra dati validi (NPunti>0, scala non
+            ' nulla), ma il grafico resta vuoto a video — possibile che
+            ' questo ridisegno automatico periodico sovrascriva subito dopo
+            ' quello manuale con un risultato diverso (stessa finestra
+            ' Dal/Al nelle maschere, ma magari tmpEffemeridi nel frattempo
+            ' è cambiata). Stesso log usato su CmdElabora_Click. Da
+            ' rimuovere a diagnosi finita.
+            WriteError(0, "FrmVisualAcquire.TmrAcquire_Tick: NPunti=" & NPunti &
+                " MinX=" & MinX & " MaxX=" & MaxX & " MinY=" & MinY & " MaxY=" & MaxY &
+                " ScalaX=" & ScalaX & " ScalaY=" & ScalaY)
         Catch ex As Exception
             WriteError(0, "FrmVisualAcquire.TmrAcquire_Tick: " & ex.Message)
         End Try
