@@ -101,7 +101,10 @@ Module Calcolo11Par
         Const V As String = " "
 
         With NowPar11
-            d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + V + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
+            If Not EpocaPar11Valida(d_partenza) Then
+                CalPar11 = False
+                Exit Function
+            End If
             d_nonvalido = d_partenza.AddDays(g_Validi - 1)
             If d_nonvalido.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = NowUTC().ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
                 '               FrmMain.StbMain1.ProgressBar("messaggio") = "File data not valid 24 hour"
@@ -255,6 +258,36 @@ Module Calcolo11Par
         Next Count
         rs_11Par.Close
     End Function
+    ''' <summary>
+    ''' Converte i campi EPOCDA/EPOCMO/EPOCYE/EPOCHO/EPOCMI/EPOCSE di
+    ''' NowPar11 in una Date, senza lanciare un'eccezione quando sono
+    ''' vuoti — satellite senza elementi orbitali a 11 parametri caricati
+    ''' (InitPar11 non ha trovato una riga in Sat11Par, o non è mai stato
+    ''' chiamato per questo satellite): CDate("// ::") andava in
+    ''' InvalidCastException, intercettata dal Try/Catch del chiamante ma
+    ''' segnalata solo nel log, mai all'operatore. Se i dati non sono
+    ''' disponibili mostra lo stesso messaggio già usato da InitPar11
+    ''' ("No parameters available for satellite: ...") e ritorna False.
+    ''' </summary>
+    Private Function EpocaPar11Valida(ByRef d_partenza As Date) As Boolean
+        With NowPar11
+            If String.IsNullOrWhiteSpace(.EPOCDA) OrElse String.IsNullOrWhiteSpace(.EPOCMO) OrElse String.IsNullOrWhiteSpace(.EPOCYE) OrElse
+               String.IsNullOrWhiteSpace(.EPOCHO) OrElse String.IsNullOrWhiteSpace(.EPOCMI) OrElse String.IsNullOrWhiteSpace(.EPOCSE) Then
+                MainForm.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
+                FrmMain.TmrMsg.Enabled = True
+                Return False
+            End If
+            Try
+                d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + " " + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
+            Catch
+                MainForm.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
+                FrmMain.TmrMsg.Enabled = True
+                Return False
+            End Try
+        End With
+        Return True
+    End Function
+
     '
     '       CALCOLO DELLE COORDINATE DI STAZIONE (GEOCENTRICHE)
     '       ---------------------------------------------------
@@ -265,7 +298,10 @@ Module Calcolo11Par
         CalPar11Now = True
         With NowPar11
             PTK = &H10         'Elementi validi
-            d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + " " + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
+            If Not EpocaPar11Valida(d_partenza) Then
+                CalPar11Now = False
+                Exit Function
+            End If
             d_nonvalido = d_partenza.AddDays(g_Validi - 1)
             If d_nonvalido.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) = NowUTC().ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture) Then
                 PTK = &H20     'Elementi non validi < 24 ore
@@ -437,7 +473,7 @@ Module Calcolo11Par
         ' TMath.Math.AbsinReg not migrated
         DbExecute("Delete * from [tmpMemory]")
         With NowPar11
-            d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + " " + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
+            If Not EpocaPar11Valida(d_partenza) Then Exit Function
             d_nonvalido = d_partenza.AddDays(g_Validi)
             If DateAdd("d", 1, d_nonvalido) < Now Then          ' Dati non validi
                 Exit Function
