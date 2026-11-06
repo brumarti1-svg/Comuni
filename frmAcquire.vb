@@ -99,6 +99,10 @@ Partial Public Class frmAcquire
     ' -------------------------------------------------------
     Private Sub CmdEnd_Click(sender As Object, e As EventArgs) Handles CmdEnd.Click
         If Not optPreset.Checked AndAlso Not optProgram.Checked Then Exit Sub
+        ' TEMPORANEO (test): vedi commento su optProgram_CheckedChanged,
+        ' qui sul bottone che avvia davvero l'Acquire.
+        Dim swDiag As New System.Diagnostics.Stopwatch()
+        swDiag.Start()
 
         ' Validazione data inizio
         If Not IsDate(mskDataIni.Text) Then
@@ -174,7 +178,9 @@ Partial Public Class frmAcquire
         ' "Acquire Trace" fin dal primo redraw, sembrando già completo.
         ' Scoped a source='ACQUIRE' (più le righe legacy senza source): non
         ' deve cancellare dati di un calcolo Effemeridi in corso.
+        Dim msPrimaDelete As Long = swDiag.ElapsedMilliseconds
         DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'ACQUIRE' OR source IS NULL")
+        WriteError(0, "CmdEnd_Click: DELETE tmpEffemeridi " & (swDiag.ElapsedMilliseconds - msPrimaDelete) & " ms")
 
         ' VB6: Now - CDate(i_Offset/24) — i_Offset è intero in ore, /24
         ' convertiva in giorni OLE (stesso bug già corretto altrove, es.
@@ -243,6 +249,7 @@ Partial Public Class frmAcquire
             frmRicezioneRef.TmrSpiralAcquire.Enabled = True
         End If
 
+        WriteError(0, "CmdEnd_Click: totale " & swDiag.ElapsedMilliseconds & " ms (prima di Me.Close)")
         Me.Close()
     End Sub
 
@@ -283,6 +290,9 @@ Partial Public Class frmAcquire
     ' -------------------------------------------------------
     Private Sub optPreset_CheckedChanged(sender As Object, e As EventArgs) Handles optPreset.CheckedChanged
         If Not optPreset.Checked Then Exit Sub
+        ' TEMPORANEO (test): vedi commento su optProgram_CheckedChanged.
+        Dim swDiag As New System.Diagnostics.Stopwatch()
+        swDiag.Start()
         Try
             If frmRicezioneRef IsNot Nothing Then
                 If IsNumeric(frmRicezioneRef.TxtAz.Text) Then
@@ -295,6 +305,7 @@ Partial Public Class frmAcquire
             grpAcqPar.Visible = True
             CmdEnd.Visible = True
             ImpostaValori()
+            WriteError(0, "optPreset_CheckedChanged: totale " & swDiag.ElapsedMilliseconds & " ms")
         Catch ex As Exception
             WriteError(0, "optPreset: " & ex.Message)
         End Try
@@ -305,12 +316,19 @@ Partial Public Class frmAcquire
     ' -------------------------------------------------------
     Private Sub optProgram_CheckedChanged(sender As Object, e As EventArgs) Handles optProgram.CheckedChanged
         If Not optProgram.Checked Then Exit Sub
+        ' TEMPORANEO (test): misura dove va il tempo tra il click su
+        ' "Program" e la fine del gestore, per la segnalazione di ritardo
+        ' percepibile. Da rimuovere a diagnosi finita.
+        Dim swDiag As New System.Diagnostics.Stopwatch()
+        swDiag.Start()
         Try
             mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
             If IsDate(mskDataIni.Text) Then
                 AzOffset = 0 : ElOffset = 0
                 i_AzOffsetLock = 0 : i_ElOffsetLock = 0
+                Dim msPrimaCalcolo As Long = swDiag.ElapsedMilliseconds
                 Calcolo_Coordinate1(mskDataIni.Text)
+                WriteError(0, "optProgram_CheckedChanged: Calcolo_Coordinate1 " & (swDiag.ElapsedMilliseconds - msPrimaCalcolo) & " ms")
                 If frmRicezioneRef IsNot Nothing Then
                     ' Calcolo_Coordinate1 scrive il risultato in LblAzimuthC/
                     ' LblElevazioneC (colonna "Program"), non in LblAzimuth/
@@ -340,9 +358,11 @@ Partial Public Class frmAcquire
                     ' disponibile.
                 End If
             End If
+            Dim msPrimaValori As Long = swDiag.ElapsedMilliseconds
             grpAcqPar.Visible = True
             CmdEnd.Visible = True
             ImpostaValori()
+            WriteError(0, "optProgram_CheckedChanged: Visible+ImpostaValori " & (swDiag.ElapsedMilliseconds - msPrimaValori) & " ms, totale " & swDiag.ElapsedMilliseconds & " ms")
         Catch ex As Exception
             WriteError(0, "optProgram: " & ex.Message)
         End Try

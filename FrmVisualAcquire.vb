@@ -790,13 +790,19 @@ Public Class FrmVisualAcquire
         ' senza aspettare il prossimo tick di tmrAcquire) mancava del tutto.
         If ControllaDati() Then
             Cursor = Cursors.WaitCursor
+            ' TEMPORANEO (test): misura quanto impiega VisualizzaGrafico
+            ' (query SQLite + disegno GDI+), per la segnalazione di ritardo
+            ' percepibile anche su Visual Acquire. Da rimuovere a diagnosi
+            ' finita.
+            Dim swDiag As New System.Diagnostics.Stopwatch()
+            swDiag.Start()
             Try
                 VisualizzaGrafico()
                 ' TEMPORANEO (test): "Elabora" non mostrava nulla senza alcuna
                 ' indicazione del motivo (dati assenti nella finestra Dal/Al?
                 ' PictureBox non ancora dimensionata?). Un solo log per click,
                 ' non per ogni tick di tmrAcquire. Da rimuovere a test finito.
-                WriteError(0, "FrmVisualAcquire.CmdElabora_Click: NPunti=" & NPunti &
+                WriteError(0, "FrmVisualAcquire.CmdElabora_Click: " & swDiag.ElapsedMilliseconds & " ms, NPunti=" & NPunti &
                     " PicW=" & PicW & " PicH=" & PicH &
                     " Dal=" & mskDataIni.Text & " " & mskOraIni.Text &
                     " Al=" & mskDataFin.Text & " " & mskOraFin.Text)
