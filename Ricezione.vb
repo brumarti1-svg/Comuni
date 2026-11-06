@@ -2236,6 +2236,13 @@ Rangeout:
                 ElseIf AzCalc > 360 Then
                     AzCalc -= 360
                 End If
+            Else
+                ' Satellite senza TLE convertito (b_Sat=False: mai caricato
+                ' con "Carica"/EXE, o conversione fallita) — Az_prov/El_Prov
+                ' restavano fermi al valore precedente (0 se mai calcolati
+                ' prima), senza alcun avviso all'operatore. Stesso trattamento
+                ' già dato al path 11 parametri in EpocaPar11Valida.
+                SegnalaParametriSatelliteAssenti()
             End If
         ElseIf Algoritmo = 0 Or Algoritmo = 2 Then
             CalPar11Now()

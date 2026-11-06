@@ -273,20 +273,38 @@ Module Calcolo11Par
         With NowPar11
             If String.IsNullOrWhiteSpace(.EPOCDA) OrElse String.IsNullOrWhiteSpace(.EPOCMO) OrElse String.IsNullOrWhiteSpace(.EPOCYE) OrElse
                String.IsNullOrWhiteSpace(.EPOCHO) OrElse String.IsNullOrWhiteSpace(.EPOCMI) OrElse String.IsNullOrWhiteSpace(.EPOCSE) Then
-                MainForm.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
-                FrmMain.TmrMsg.Enabled = True
+                SegnalaParametriSatelliteAssenti()
                 Return False
             End If
             Try
                 d_partenza = CDate(.EPOCDA + "/" + .EPOCMO + "/" + .EPOCYE + " " + .EPOCHO + ":" + .EPOCMI + ":" + .EPOCSE)
             Catch
-                MainForm.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
-                FrmMain.TmrMsg.Enabled = True
+                SegnalaParametriSatelliteAssenti()
                 Return False
             End Try
         End With
         Return True
     End Function
+
+    ''' <summary>
+    ''' Segnala all'operatore l'assenza di parametri orbitali per il
+    ''' satellite corrente e, se uno Spiral/Automatic Acquire è in corso,
+    ''' lo interrompe (stesso effetto del tasto Stand By): continuare a
+    ''' cercare un satellite di cui non si può calcolare la posizione
+    ''' Program non ha senso e lascerebbe l'antenna a cercare alla cieca.
+    ''' Public perché usata anche dal path TLE/SGP4 (Algoritmo=1,
+    ''' Ricezione.vb) quando b_Sat è False: la mancanza di dati non è un
+    ''' problema specifico dei satelliti 11 parametri, è la stessa
+    ''' situazione — "dati orbitali non disponibili per questo
+    ''' satellite" — qualunque sia l'algoritmo di calcolo selezionato.
+    ''' </summary>
+    Public Sub SegnalaParametriSatelliteAssenti()
+        MainForm.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
+        FrmMain.TmrMsg.Enabled = True
+        If i_Status = OP_SPIRALACQUIRE OrElse i_Status = OP_AUTOMATICAQUIRE Then
+            frmRicezione.CmdSTBY_Click(Nothing, EventArgs.Empty)
+        End If
+    End Sub
 
     '
     '       CALCOLO DELLE COORDINATE DI STAZIONE (GEOCENTRICHE)
