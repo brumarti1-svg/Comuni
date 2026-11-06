@@ -411,8 +411,17 @@ Module Calcolo11Par
         LONSAT = Int(LONSAT * 10000 + 0.5) / 10000
         LATSAT = Int(LATSAT * 10000 + 0.5) / 10000
         data = d_partenza.AddDays(T)
-        If Not AzInibhit Then AzComandato = az
-        If Not ElInibhit Then ElComandato = el
+        ' Bug di porting: il VB6 originale scriveva qui az/el nelle label
+        ' lblAzimuth/lblElevazione (frmRicezione.lblAzimuth.Caption = ...),
+        ' lette subito dopo da Calcolo_Coordinate (ramo Algoritmo=0/2) per
+        ' ricavare Az_prov/El_Prov. Il porting le assegnava invece a
+        ' AzComandato/ElComandato, due variabili mai lette da nessun'altra
+        ' parte del codice: Calcolo_Coordinate leggeva quindi il valore
+        ' vecchio (o vuoto) già nelle label, non quello appena calcolato —
+        ' posizione Program sbagliata o, con le label ancora vuote/a zero,
+        ' El_Prov finiva sotto g_ElMin e il comando non veniva mai inviato.
+        If Not AzInibhit Then frmRicezione.LblAzimuth.Text = Format$(az, "0.000")
+        If Not ElInibhit Then frmRicezione.LblElevazione.Text = Format$(el, "0.000")
     End Function
     Public Function ObsNew(geodetic As Vector) As Boolean
         ObsNew = True
