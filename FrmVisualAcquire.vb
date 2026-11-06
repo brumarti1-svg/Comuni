@@ -689,14 +689,24 @@ Public Class FrmVisualAcquire
             ' tmpEffemeridi — la tabella viene azzerata e ripopolata dai
             ' calcoli effemeridi a partire da quella data.
             If IsDate(d_DataInizioProg) Then
-                ' d_DataInizioProg è in ora locale (Now), ma le righe in
-                ' tmpEffemeridi sono in UTC (NowUTC, vedi Calcolo_Aquire):
-                ' senza questa conversione la finestra Dal/Al non si
-                ' sovrapponeva mai ai dati reali, SelezionaSingoliDati non
-                ' trovava nessuna riga e il grafico restava vuoto (MinX/MaxX
-                ' restavano ai valori sentinella iniziali).
+                ' d_DataInizioProg (frmAcquire.vb) = mskDataIni.Text, già
+                ' impostato lì a "Now.AddHours(-i_Offset)" — cioè già UTC,
+                ' non ora locale: i_Offset è lo stesso scarto UTC usato in
+                ' tutto frmAcquire (confronti con InizProg/oraNow) proprio
+                ' per rappresentare l'ora in UTC con la vecchia convenzione
+                ' di questo progetto. Sottrarre QUI un secondo scarto UTC
+                ' (TimeZoneInfo.Local.GetUtcOffset) convertiva una seconda
+                ' volta un valore già convertito, spostando la finestra
+                ' Dal/Al di un multiplo dello scarto reale (es. 2 ore
+                ' invece di 1 in ora solare) rispetto ai dati veri in
+                ' tmpEffemeridi (scritti in UTC da NowUTC(), Calcolo_Aquire).
+                ' La doppia conversione comparve quando un'altra correzione
+                ' (Gestione.vb, i_Offset = TimeZoneOffset) ha reso i_Offset
+                ' finalmente diverso da zero: prima restava sempre 0, e
+                ' quindi — per puro caso — d_DataInizioProg coincideva con
+                ' l'ora locale, rendendo la conversione qui sotto corretta
+                ' con quel bug ancora presente.
                 Dim dtIni As Date = CDate(d_DataInizioProg)
-                dtIni = dtIni.Subtract(TimeZoneInfo.Local.GetUtcOffset(dtIni))
                 mskDataIni.Text = dtIni.ToString("dd/MM/yyyy")
                 mskOraIni.Text = dtIni.ToString("HH.mm")
             Else
@@ -719,9 +729,9 @@ Public Class FrmVisualAcquire
                 End Using
             End If
             If IsDate(d_DataFineProg) Then
-                ' Stessa conversione di d_DataInizioProg sopra: ora locale -> UTC.
+                ' Stesso motivo di d_DataInizioProg sopra: già UTC, nessuna
+                ' conversione aggiuntiva.
                 Dim dtFin As Date = CDate(d_DataFineProg)
-                dtFin = dtFin.Subtract(TimeZoneInfo.Local.GetUtcOffset(dtFin))
                 mskDataFin.Text = dtFin.ToString("dd/MM/yyyy")
                 mskOraFin.Text  = dtFin.ToString("HH.mm")
             End If

@@ -271,9 +271,25 @@ Module Time
             ' s_Ora = "L" (ora locale, nessuna conversione) era una modalità
             ' in disuso: tutti i dati del sistema sono in UTC, quindi lo
             ' scarto va applicato sempre, a prescindere da s_Ora.
-            Dim off As Integer = CInt((TZInfo.Bias / 60) * -1)
-            If DSTInEffect Then off += 1
-            Return off
+            '
+            ' Era: CInt((TZInfo.Bias / 60) * -1) + 1 se DSTInEffect, con
+            ' TZInfo/TZStructure popolati una sola volta all'avvio (Refresh(),
+            ' chiamata da Inizializza()) via la vecchia GetTimeZoneInformation
+            ' di Win32 — dichiarata "As Long" in un Declare VB6-style, che in
+            ' VB.NET è Int64 (64 bit) invece dei 32 bit del vero valore
+            ' restituito dall'API (un DWORD), un classico mismatch di
+            ' porting. Soprattutto, +1 ora "se DST" era un'assunzione fissa
+            ' indipendente dal vero StandardBias/DaylightBias della zona.
+            ' Osservato in test (06/11/2026, dopo la fine dell'ora legale il
+            ' 25/10): l'offset restava a 2 ore invece di 1.
+            '
+            ' TimeZoneInfo.Local.GetUtcOffset già usato con successo altrove
+            ' in questo stesso progetto (FrmVisualAcquire.Form_Load) per la
+            ' stessa identica conversione locale->UTC: nessun P/Invoke,
+            ' nessuna assunzione fissa, ricalcolato correttamente per la
+            ' data corrente ad ogni chiamata (gestisce da solo il cambio
+            ' dell'ora legale, oggi e in futuro).
+            Return CInt(TimeZoneInfo.Local.GetUtcOffset(DateTime.Now).TotalHours)
         End Get
     End Property
 
