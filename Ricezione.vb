@@ -622,7 +622,18 @@ Rangeout:
                     rs_Acq.Update
                 End If
             End If
-            If i_ConStato < 2 Then ' fasi 0 (ricerca) e 1 (ritorno al centro); 2=verifica, nessun nuovo comando
+            ' "i_ConStato < 2" era corretto solo per la spirale circolare
+            ' (3 soli stati: 0=ricerca, 1=ritorno al centro, 2=verifica).
+            ' In modo Quadrati lo stesso i_ConStato attraversa 9 stati
+            ' (CalcolaPassoQuadrati, Case 0-8): 0-7 muovono tutti l'antenna
+            ' (lati del quadrato), solo l'8 è pura verifica. Con la
+            ' condizione invariata, il grafico smetteva di ricevere nuovi
+            ' punti subito dopo il Case 1 — osservato in test: NPunti
+            ' fermo a 2 per l'intera ricerca, anche con l'antenna ancora in
+            ' movimento sui lati successivi del quadrato.
+            Dim registraPuntoGrafico As Boolean =
+                If(i_ModoAcquire = MODO_ACQUIRE_QUADRATI, i_ConStato < 8, i_ConStato < 2)
+            If registraPuntoGrafico Then ' fasi di ricerca/movimento; ultimo stato di ciascun modo = sola verifica, nessun nuovo comando
                 If IsNumeric(frmRicezione.LblAzimuth.Text) And IsNumeric(frmRicezione.LblElevazione.Text) Then
                     ' TEMPORANEO (test): questa scrittura è dentro il "On Error
                     ' Resume Next" di tutta la funzione — un eventuale errore
