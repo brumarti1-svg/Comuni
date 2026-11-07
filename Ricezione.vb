@@ -356,9 +356,9 @@ Module Ricezione
         ' il valore mostrato resta coerente qualunque sia il ramo preso.
         If i_Spiral >= 1 Then
             If d_SimBeaconErr = 0 Then d_SimBeaconErr = (g_ThrAz + g_ThrEl) * 4 ' valore iniziale, fuori soglia
-            d_SimBeaconErr = Math.Max(0, d_SimBeaconErr - 0.3) ' avvicinamento lento, un passo per ciclo
+            d_SimBeaconErr = Math.Max(0, d_SimBeaconErr - 0.6) ' avvicinamento un po' più veloce, un passo per ciclo
             If d_SimBeaconLevel = 0 Then d_SimBeaconLevel = -95 ' valore iniziale, sotto -90
-            d_SimBeaconLevel = Math.Min(g_ThrAuto + 5, d_SimBeaconLevel + 0.3) ' salita lenta, un passo per ciclo
+            d_SimBeaconLevel = Math.Min(g_ThrAuto + 5, d_SimBeaconLevel + 0.6) ' salita un po' più veloce, un passo per ciclo
             b_Lock = True
             Dim tmpSimLevTxt As String = d_SimBeaconLevel.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
             Dim tmpSimErrTxt As String = d_SimBeaconErr.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
