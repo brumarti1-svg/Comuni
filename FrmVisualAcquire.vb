@@ -204,6 +204,25 @@ Public Class FrmVisualAcquire
         Return If(Numero >= 0, CInt(t), -CInt(t))
     End Function
 
+    ''' <summary>
+    ''' Causa vera di "Visual Acquire non disegna": DyVisual("Azimuth")
+    ''' (l'indicizzatore/GetValue del SQLiteDataReader) converte da solo la
+    ''' colonna TEXT in Double usando il punto come separatore decimale,
+    ''' indipendentemente dalla cultura del thread — "283,654" (virgola,
+    ''' formato italiano scritto da Calcolo_Aquire/Format$) si fermava al
+    ''' primo carattere non numerico per quel parser, letto quindi come
+    ''' 283 e basta. Risultato confermato con un test diretto sul database:
+    ''' ogni riga veniva letta come lo stesso intero, MinX/MaxX collassavano
+    ''' sul minimo range possibile e ogni punto finiva sulla stessa X —
+    ''' nessuna traccia visibile pur con dati corretti nel database.
+    ''' GetString() forza invece la stringa grezza così come memorizzata
+    ''' ("283,654"), che CSng interpreta poi correttamente con la virgola
+    ''' secondo la cultura corrente (coerente con come è stata scritta).
+    ''' </summary>
+    Private Function CSngCampo(nomeColonna As String) As Single
+        Return CSng(DyVisual.GetString(DyVisual.GetOrdinal(nomeColonna)))
+    End Function
+
     Private Function SelezionaSingoliDati() As Boolean
         ' tmrAcquire scatta anche mentre l'utente sta ancora scrivendo la data
         ' o l'ora nelle maschere (__/__/____, __.__): finché non sono
@@ -258,15 +277,15 @@ Public Class FrmVisualAcquire
 
             If primoPunto Then
                 i_Intervallo = CSng(DyVisual("Intervallo"))
-                XPrec = CSng(DyVisual("Azimuth"))
+                XPrec = CSngCampo("Azimuth")
                 primoPunto = False
             End If
 
             Punti(0, 0, 0, NPunti).data = rawData
-            Punti(0, 0, 0, NPunti).Y = CSng(DyVisual("Elevation"))
-            Punti(0, 0, 0, NPunti).X = CSng(DyVisual("Azimuth"))
+            Punti(0, 0, 0, NPunti).Y = CSngCampo("Elevation")
+            Punti(0, 0, 0, NPunti).X = CSngCampo("Azimuth")
             Punti(0, 0, 0, NPunti).C = CInt(DyVisual("Orbite"))
-            XProv = CSng(DyVisual("Azimuth"))
+            XProv = CSngCampo("Azimuth")
             diffX = Math.Abs(XProv - XPrec)
             If diffX > 270 Then InvertiScala = True
             If Punti(0, 0, 0, NPunti).Y > MaxY Then MaxY = Int(Punti(0, 0, 0, NPunti).Y * 10) / 10 + 0.1F

@@ -4,6 +4,19 @@ Imports System.Drawing.Drawing2D
 
 Public Class FrmPolare
 
+    ''' <summary>
+    ''' DyVisual("Azimuth")/GetValue converte da solo la colonna TEXT in
+    ''' Double usando il punto come separatore decimale, indipendentemente
+    ''' dalla cultura del thread — "283,654" (virgola, formato italiano
+    ''' scritto da Format$) viene letto come 283 e basta (si ferma al primo
+    ''' carattere non numerico per quel parser). Stesso bug e stesso fix di
+    ''' FrmVisualAcquire.CSngCampo: GetString() forza la stringa grezza,
+    ''' che CSng interpreta poi correttamente con la virgola.
+    ''' </summary>
+    Private Function CSngCampo(nomeColonna As String) As Single
+        Return CSng(DyVisual.GetString(DyVisual.GetOrdinal(nomeColonna)))
+    End Function
+
     Const MaxPunti As Integer = 6000
     Const nCerchi As Integer = 10
     Const nAngoli As Integer = 24
@@ -170,7 +183,7 @@ Public Class FrmPolare
 
         DyVisual.Read()
         NPunti = 1
-        XPrec = CSng(DyVisual("Azimuth"))
+        XPrec = CSngCampo("Azimuth")
 
 
         ' Riapre per iterare dall'inizio
@@ -190,9 +203,9 @@ Public Class FrmPolare
             ' tabella, se i campi sono vuoti/incompleti).
             If dtCurr < tmpDataIni OrElse dtCurr > tmpDataFin Then Continue Do
             Punti(1, 1, NPunti).data = dtCurr
-            Punti(1, 1, NPunti).y = CSng(DyVisual("Elevation"))
-            Punti(1, 1, NPunti).X = CSng(DyVisual("Azimuth"))
-            XProv = CSng(DyVisual("Azimuth"))
+            Punti(1, 1, NPunti).y = CSngCampo("Elevation")
+            Punti(1, 1, NPunti).X = CSngCampo("Azimuth")
+            XProv = CSngCampo("Azimuth")
             diffX = Math.Abs(XProv - XPrec)
 
             ' Un'effemeride su 24 ore di un satellite basso contiene più
@@ -209,8 +222,8 @@ Public Class FrmPolare
             _dtPrec = dtCurr
             DataProv = CSng(dtCurr.Minute + dtCurr.Second / 100.0)
             OraIni = dtCurr.Hour.ToString("D2") & "." & dtCurr.Minute.ToString("D2")
-            tmp_Azi = CSng(DyVisual("Azimuth"))
-            tmp_Ele = CSng(DyVisual("Elevation"))
+            tmp_Azi = CSngCampo("Azimuth")
+            tmp_Ele = CSngCampo("Elevation")
             VisualizzaPunto()
             If Punti(1, 1, NPunti).y > MaxY Then MaxY = Int(Punti(1, 1, NPunti).y * 10) / 10 + 0.1F
             If Punti(1, 1, NPunti).y < MinY Then MinY = Int(Punti(1, 1, NPunti).y * 10) / 10

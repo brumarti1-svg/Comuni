@@ -4,6 +4,19 @@ Imports System.Data.SQLite
 
 Public Class FrmVisualizzazione
 
+    ''' <summary>
+    ''' DyVisual("Azimuth")/GetValue converte da solo la colonna TEXT in
+    ''' Double usando il punto come separatore decimale, indipendentemente
+    ''' dalla cultura del thread — "283,654" (virgola, formato italiano
+    ''' scritto da Format$) viene letto come 283 e basta (si ferma al primo
+    ''' carattere non numerico per quel parser). Stesso bug e stesso fix di
+    ''' FrmVisualAcquire.CSngCampo: GetString() forza la stringa grezza,
+    ''' che CSng interpreta poi correttamente con la virgola.
+    ''' </summary>
+    Private Function CSngCampo(nomeColonna As String) As Single
+        Return CSng(DyVisual.GetString(DyVisual.GetOrdinal(nomeColonna)))
+    End Function
+
     ' ── campi dati ─────────────────────────────────────────────────────────────
     Private DyVisual As SQLiteDataReader
     Private _Cmd As SQLiteCommand
@@ -229,7 +242,7 @@ Public Class FrmVisualizzazione
         DyVisual.Read()
         i_Intervallo = CSng(DyVisual("Intervallo"))
         NPunti = 1
-        XPrec = CSng(DyVisual("Azimuth"))
+        XPrec = CSngCampo("Azimuth")
         InvertiScala = False
 
         ' Riapre per iterare dall'inizio
@@ -249,9 +262,9 @@ Public Class FrmVisualizzazione
             ' correttamente in SQL), quindi va applicato qui riga per riga.
             If _dtFull < tmpDataIni OrElse _dtFull > tmpDataFin Then Continue Do
             Punti(1, 1, 1, NPunti).data = _dtFull
-            Punti(1, 1, 1, NPunti).y = CSng(DyVisual("Elevation"))
-            Punti(1, 1, 1, NPunti).X = CSng(DyVisual("Azimuth"))
-            XProv = CSng(DyVisual("Azimuth"))
+            Punti(1, 1, 1, NPunti).y = CSngCampo("Elevation")
+            Punti(1, 1, 1, NPunti).X = CSngCampo("Azimuth")
+            XProv = CSngCampo("Azimuth")
             diffX = Math.Abs(XProv - XPrec)
             If diffX > 270 Then InvertiScala = True
             If Punti(1, 1, 1, NPunti).y > MaxY Then MaxY = Int(Punti(1, 1, 1, NPunti).y * 10) / 10 + 0.1F

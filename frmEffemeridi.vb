@@ -628,10 +628,17 @@ Partial Public Class FrmEffemeridi
                     Dim rowCount As Integer = 0
                     Do While dr.Read()
                         If rowCount = LastMemory Then
+                            ' dr("azimuth")/GetValue converte da solo la colonna
+                            ' TEXT in Double col punto come decimale: "283,654"
+                            ' (virgola, formato italiano scritto da Format$)
+                            ' veniva letto come 283 e basta — comando MS inviato
+                            ' all'ACU con la posizione troncata. GetString()
+                            ' forza la stringa grezza, letta poi correttamente
+                            ' da CDbl secondo la cultura corrente.
                             Dim s_program As String = "MS " &
                                 Format(CDate(dr("time")), "HH:mm") & " " &
-                                Format(CDbl(dr("azimuth")), "000.000") & " " &
-                                Format(CDbl(dr("elevation")), "00.000")
+                                Format(CDbl(dr.GetString(dr.GetOrdinal("azimuth"))), "000.000") & " " &
+                                Format(CDbl(dr.GetString(dr.GetOrdinal("elevation"))), "00.000")
                             Dim i As Integer = Len(s_program) + 6
                             SEND_ACU = CheckSum(Format(i, "00") & Mid(s_program, 1, Len(s_program)))
                             Return SEND_ACU
@@ -665,10 +672,13 @@ Partial Public Class FrmEffemeridi
                 Using Cmd As New SQLiteCommand("SELECT date, time, azimuth, elevation FROM tmpEffemeridi WHERE source = 'EFFEMERIDI' ORDER BY date, time", CType(dbOrbite, DAODatabase).Connection)
                     Using dr = Cmd.ExecuteReader()
                         Do While dr.Read()
+                            ' Stesso bug di InviaTabella sopra: GetString() invece
+                            ' di dr("azimuth") per non troncare al primo carattere
+                            ' non numerico (la virgola decimale italiana).
                             sw.WriteLine(dr("date").ToString() & "  " &
                                          dr("time").ToString() & " " &
-                                         Format(CDbl(dr("azimuth")), "000.000") & " " &
-                                         Format(CDbl(dr("elevation")), "00.000"))
+                                         Format(CDbl(dr.GetString(dr.GetOrdinal("azimuth"))), "000.000") & " " &
+                                         Format(CDbl(dr.GetString(dr.GetOrdinal("elevation"))), "00.000"))
                         Loop
                     End Using
                 End Using
