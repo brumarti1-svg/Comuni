@@ -167,13 +167,19 @@ Partial Public Class frmAcquire
         End If
 
         ' Coordinate antenna
-        ' CDbl(mskAzimuth.Text) sotto locale italiano legge il "." come
-        ' separatore delle migliaia (non decimale): "180.373" diventava
-        ' 180373 invece di 180,373. Val() usa sempre il punto come
-        ' decimale, indipendentemente dal locale (stesso bug già noto
-        ' altrove in questo progetto, es. CLAUDE.md).
-        If IsNumeric(mskAzimuth.Text) Then g_AzTable = CDbl(Val(mskAzimuth.Text))
-        If IsNumeric(mskElevazione.Text) Then g_ElTable = CDbl(Val(mskElevazione.Text))
+        ' mskAzimuth/mskElevazione mostrano il valore in cultura italiana
+        ' (virgola decimale, es. "257,165" — scritto con Format(...,
+        ' "000.000") sia dal refresh Program sopra sia dalla lettura
+        ' Preset). Val() capisce SOLO il punto come decimale: Val("257,165")
+        ' si ferma alla virgola e restituisce 257, troncando tutto il resto
+        ' — causa del seed "arrotondato" (257,000/52,000 invece del vero
+        ' valore calcolato) segnalato dall'utente. CDbl() diretto, che
+        ' interpreta correttamente la virgola secondo la cultura corrente
+        ' (coerente con come il testo è stato scritto), va usato qui — non
+        ' Val(), che servirebbe solo per un testo con il punto come
+        ' decimale (non questo caso).
+        If IsNumeric(mskAzimuth.Text) Then g_AzTable = CDbl(mskAzimuth.Text)
+        If IsNumeric(mskElevazione.Text) Then g_ElTable = CDbl(mskElevazione.Text)
 
         ' Timeout programma
         If IsNumeric(TxtTout.Text) Then
