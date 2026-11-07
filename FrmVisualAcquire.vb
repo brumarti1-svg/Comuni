@@ -576,6 +576,15 @@ Public Class FrmVisualAcquire
     ' resta a cerchio"), con la finestra comunque chiudibile perché il
     ' thread UI non era davvero fermo, solo il disegno corrotto a metà.
     Private disegnoGraficoInCorso As Boolean
+    ' TEMPORANEO (test): contatori diagnostici sul ciclo di disegno della
+    ' traccia, vedi commenti dentro VisualizzaGrafico. Da rimuovere a
+    ' diagnosi finita.
+    Private diagNPunti As Integer
+    Private diagN As Integer
+    Private diagLineToCount As Integer
+    Private diagDrawCircleCount As Integer
+    Private diagTmpXMin As Single
+    Private diagTmpXMax As Single
 
     Public Sub VisualizzaGrafico()
         ' Form minimizzata: ClientSize diventa (0,0) ma Visible resta True,
@@ -604,11 +613,23 @@ Public Class FrmVisualAcquire
         VisualizzaAsseX()
         VisualizzaAsseY()
 
+        ' TEMPORANEO (test): nessun segno nella zona centrale del grafico,
+        ' confermato pixel-per-pixel su VisualAcquireDebug.png — il ciclo
+        ' che disegna la traccia non produce nulla di visibile. Contatori
+        ' per capire se il ciclo entra, quante volte LineTo/DrawCircle
+        ' vengono davvero chiamate, e le coordinate calcolate. Da
+        ' rimuovere a diagnosi finita.
+        diagNPunti = NPunti
+        diagLineToCount = 0
+        diagDrawCircleCount = 0
+        diagTmpXMin = Single.MaxValue
+        diagTmpXMax = Single.MinValue
         If NPunti > 1 Then
             n = 1
             Do While Punti(0, 0, 0, n).Y = 99999 AndAlso n <= NPunti
                 n += 1
             Loop
+            diagN = n
             XPrec = Punti(0, 0, 0, n).X
             If InvertiScala AndAlso XPrec < MinX Then XPrec += 360
             YPrec = Punti(0, 0, 0, n).Y
@@ -654,15 +675,21 @@ Public Class FrmVisualAcquire
                     ' iniziali: in entrambi i casi la linea retta tra i due
                     ' punti non rappresenterebbe un reale movimento continuo
                     ' dell'antenna da tracciare.
+                    diagTmpXMin = Math.Min(diagTmpXMin, tmpX)
+                    diagTmpXMax = Math.Max(diagTmpXMax, tmpX)
                     If Punti(0, 0, 0, i).C <> CPrec Then
                         _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
                         MoveTo(tmpX, tmpY)
+                        diagDrawCircleCount += 1
                     ElseIf Math.Abs(Val(d_Calcolo) - Val(DataPrec)) < i_Intervallo + 1 Then
                         LineTo(tmpX, tmpY)
                         _fillSolid = True : DrawCircle(tmpX, tmpY, 0.6F) : _fillSolid = False
+                        diagLineToCount += 1
+                        diagDrawCircleCount += 1
                     Else
                         _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
                         MoveTo(tmpX, tmpY)
+                        diagDrawCircleCount += 1
                     End If
                     XPrec = Punti(0, 0, 0, i).X
                     If InvertiScala AndAlso XPrec < MinX Then XPrec += 360
@@ -856,7 +883,10 @@ Public Class FrmVisualAcquire
                     " MinX=" & MinX & " MaxX=" & MaxX & " MinY=" & MinY & " MaxY=" & MaxY &
                     " ScalaX=" & ScalaX & " ScalaY=" & ScalaY &
                     " Dal=" & mskDataIni.Text & " " & mskOraIni.Text &
-                    " Al=" & mskDataFin.Text & " " & mskOraFin.Text)
+                    " Al=" & mskDataFin.Text & " " & mskOraFin.Text &
+                    " | diagNPunti=" & diagNPunti & " diagN=" & diagN &
+                    " diagLineToCount=" & diagLineToCount & " diagDrawCircleCount=" & diagDrawCircleCount &
+                    " diagTmpXMin=" & diagTmpXMin & " diagTmpXMax=" & diagTmpXMax)
             Catch ex As Exception
                 WriteError(0, "FrmVisualAcquire.CmdElabora_Click: " & ex.Message)
             Finally
