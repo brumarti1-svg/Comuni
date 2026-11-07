@@ -761,15 +761,6 @@ Public Class FrmVisualAcquire
             End If
         End If
         RefreshPic()
-        ' TEMPORANEO (test): salva il bitmap disegnato su file, così può
-        ' essere ispezionato direttamente (byte per byte) invece di
-        ' continuare a dedurre dal codice se "non disegna" è un problema
-        ' di dati, di scala o di rendering vero e proprio. Da rimuovere a
-        ' diagnosi finita.
-        Try
-            _bmp.Save(System.IO.Path.Combine(Application.StartupPath, "VisualAcquireDebug.png"), Imaging.ImageFormat.Png)
-        Catch
-        End Try
         Finally
             disegnoGraficoInCorso = False
         End Try
