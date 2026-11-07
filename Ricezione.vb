@@ -547,7 +547,7 @@ Module Ricezione
             Else
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
-                Calcolo_Coordinate(Data1, mSec, True)
+                Calcolo_Coordinate(Data1, mSec)
             End If
 
             If Err.Number <> 0 Then
@@ -581,7 +581,7 @@ Module Ricezione
                 frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
                 i_ElOffsetLock = 0
                 frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
-                Calcolo_Coordinate(Data1, mSec, True)
+                Calcolo_Coordinate(Data1, mSec)
             End If
             i_ConStato = 2
         Else ' i_ConStato = 2: verifica (stesso comportamento del vecchio Case 8)
@@ -604,19 +604,6 @@ Module Ricezione
                 d_SpiralAngolo = 0
                 i_ConStato = 0
                 i_Spiral += 1
-                ' Program: ricalcola la posizione "congelata" di riferimento
-                ' alla ripartenza (nuovo tentativo dopo giro completo senza
-                ' aggancio), così il prossimo ciclo riparte dal satellite
-                ' reale aggiornato "al momento" — stesso calcolo
-                ' (Calcolo_Coordinate1) usato al primo avvio in
-                ' frmAcquire.CmdEnd_Click. Preset riparte sempre dallo stesso
-                ' g_AzTable iniziale, quindi qui non tocca nulla.
-                If Not b_Acquire Then
-                    If Calcolo_Coordinate1(NowUTC()) Then
-                        If IsNumeric(frmRicezione.LblAzimuthC.Text) Then g_AzTable = CDbl(Val(frmRicezione.LblAzimuthC.Text))
-                        If IsNumeric(frmRicezione.LblElevazioneC.Text) Then g_ElTable = CDbl(Val(frmRicezione.LblElevazioneC.Text))
-                    End If
-                End If
             End If
         End If
 Rangeout:
@@ -745,7 +732,7 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
-                    Calcolo_Coordinate(Data1, mSec, True)
+                    Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_ConStato += 1
                 i_Step = 1
@@ -767,7 +754,7 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
-                    Calcolo_Coordinate(Data1, mSec, True)
+                    Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Step -= 1
                 If i_Step = 0 Then
@@ -793,7 +780,7 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
-                    Calcolo_Coordinate(Data1, mSec, True)
+                    Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Step -= 1
                 If i_Step = 0 Then
@@ -820,7 +807,7 @@ Rangeout:
                         b_Ricezione(ACU) = False
                         InvioACU(SEND_ACU)
                     Else
-                        Calcolo_Coordinate(Data1, mSec, True)
+                        Calcolo_Coordinate(Data1, mSec)
                     End If
                 Else
                     frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
@@ -864,7 +851,7 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
-                    Calcolo_Coordinate(Data1, mSec, True)
+                    Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Step -= 1
                 If i_Step = 0 Then
@@ -917,7 +904,7 @@ Rangeout:
                         b_Ricezione(ACU) = False
                         InvioACU(SEND_ACU)
                     Else
-                        Calcolo_Coordinate(Data1, mSec, True)
+                        Calcolo_Coordinate(Data1, mSec)
                     End If
                     i_Quadrati += 1
                     If b_RangeEl Then
@@ -940,7 +927,7 @@ Rangeout:
                         b_Ricezione(ACU) = False
                         InvioACU(SEND_ACU)
                     Else
-                        Calcolo_Coordinate(Data1, mSec, True)
+                        Calcolo_Coordinate(Data1, mSec)
                     End If
                     i_Step -= 1
                     If i_Step = 0 Then
@@ -970,7 +957,7 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
-                    Calcolo_Coordinate(Data1, mSec, True)
+                    Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Quadrati += 1
                 If b_RangeEl Then
@@ -996,7 +983,7 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
-                    Calcolo_Coordinate(Data1, mSec, True)
+                    Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_ConStato += 1
             Case 8
@@ -1010,16 +997,6 @@ Rangeout:
                         i_Quadrati = 1
                         i_ConStato = 0
                         i_Spiral += 1
-                        ' Program: stesso ricalcolo "al momento" della
-                        ' posizione congelata di riferimento, vedi commento
-                        ' analogo nella spirale circolare (Ricezione.vb,
-                        ' ramo i_ConStato=2/"verifica").
-                        If Not b_Acquire Then
-                            If Calcolo_Coordinate1(NowUTC()) Then
-                                If IsNumeric(frmRicezione.LblAzimuthC.Text) Then g_AzTable = CDbl(Val(frmRicezione.LblAzimuthC.Text))
-                                If IsNumeric(frmRicezione.LblElevazioneC.Text) Then g_ElTable = CDbl(Val(frmRicezione.LblElevazioneC.Text))
-                            End If
-                        End If
                     End If
                     ' Se la tolleranza non è soddisfatta lo stato resta
                     ' invariato: al prossimo tick si rientra in Case 8 e si
@@ -2285,7 +2262,7 @@ Rangeout:
                 Exit Function
         End Select
     End Function
-    Public Function Calcolo_Coordinate(Data1 As Date, mSec As Integer, Optional usaPosizioneCongelata As Boolean = False) As Boolean
+    Public Function Calcolo_Coordinate(Data1 As Date, mSec As Integer) As Boolean
         'Apportata modifica per avere un calcolo differenziato sia sulla data, che viene inviata sulla chiamata
         'sia su un valore 0 (invia) 1 (non inviare), per permettere un calcolo delle coordinate ad un tempo
         'qualsiasi senza interessare l'ACU
@@ -2318,24 +2295,7 @@ Rangeout:
         '    Time_to_UTC ts
         Timen = Julian_Date(ts1)
         tsincex = (Timen - julian_epoch) * xmnpda
-        ' Chiamata dalla ricerca Acquire in modo Program (CalcolaPassoQuadrati/
-        ' spirale circolare, usaPosizioneCongelata=True): la posizione di
-        ' riferimento NON va ricalcolata ad ogni tick dal TLE/11-par (il
-        ' satellite reale si muove durante la ricerca, sommando il proprio
-        ' moto allo scostamento della ricerca e deformando quadrato/spirale,
-        ' segnalato dall'utente confrontando test consecutivi). Va invece
-        ' usata la posizione congelata una sola volta all'attivazione
-        ' dell'Acquire (g_AzTable/g_ElTable, frmAcquire.CmdEnd_Click) — esatto
-        ' parallelo di come il ramo Preset (b_Acquire=True) usa già g_AzTable
-        ' fisso più l'offset, invece di ricalcolare. Lo scostamento della
-        ' ricerca (i_AzOffsetLock/i_ElOffsetLock) viene comunque sommato più
-        ' sotto come sempre.
-        If usaPosizioneCongelata Then
-            Az_prov = g_AzTable
-            El_Prov = g_ElTable
-            AzCalc = g_AzTable
-            ElCalc = g_ElTable
-        ElseIf Algoritmo = 1 Then
+        If Algoritmo = 1 Then
             tmpSQL = "SELECT * FROM [Sat2line] order by Sat_Name"
             rs_Ricez = dbOrbite.OpenRecordset(tmpSQL, dbOpenDynaset)
             rs_Ricez.FindFirst("Sat_Name ='" & s_Satellite & "'")
