@@ -564,6 +564,19 @@ Public Class FrmVisualAcquire
 
     ' ── disegno grafico principale ───────────────────────────────────────────────
 
+    ' Protezione da rientranza: VisualizzaGrafico scrive su campi mutabili
+    ' condivisi (_bmp/_g, _cx/_cy, l'array Punti, Min/MaxX/Y...). Se un
+    ' secondo ridisegno (es. tmrAcquire.Tick, che scatta periodicamente da
+    ' solo) parte MENTRE uno precedente è ancora in corso — possibile dal
+    ' click manuale "Process" dopo l'aggiunta di Application.DoEvents(),
+    ' che lascia girare il ciclo messaggi, inclusi altri timer, a metà
+    ' disegno — InitBitmap() del secondo chiama Dispose() sulla stessa
+    ' Graphics ancora in uso dal primo: a seconda del punto in cui cade,
+    ' questo poteva manifestarsi come un blocco apparente ("il cursore
+    ' resta a cerchio"), con la finestra comunque chiudibile perché il
+    ' thread UI non era davvero fermo, solo il disegno corrotto a metà.
+    Private disegnoGraficoInCorso As Boolean
+
     Public Sub VisualizzaGrafico()
         ' Form minimizzata: ClientSize diventa (0,0) ma Visible resta True,
         ' quindi il chiamante (TmrSpiralAcquire_Tick) continua a invocare il
@@ -571,6 +584,9 @@ Public Class FrmVisualAcquire
         ' da disegnare finché la finestra non torna visibile con una
         ' dimensione reale.
         If picGrafico.ClientSize.Width <= 0 OrElse picGrafico.ClientSize.Height <= 0 Then Exit Sub
+        If disegnoGraficoInCorso Then Return
+        disegnoGraficoInCorso = True
+        Try
         InitBitmap()
         tmpSelezione = SelezionaSingoliDati()
 
@@ -662,6 +678,9 @@ Public Class FrmVisualAcquire
             End If
         End If
         RefreshPic()
+        Finally
+            disegnoGraficoInCorso = False
+        End Try
     End Sub
 
     ' ── eventi form ─────────────────────────────────────────────────────────────
@@ -801,14 +820,16 @@ Public Class FrmVisualAcquire
         ' senza aspettare il prossimo tick di tmrAcquire) mancava del tutto.
         If ControllaDati() Then
             Cursor = Cursors.WaitCursor
-            ' Il calcolo è così rapido (pochi ms, misurato) che il cursore di
-            ' attesa non arrivava mai a essere disegnato a video prima di
-            ' tornare a quello normale: impostare Cursor non forza un
-            ' ridisegno immediato, solo al prossimo giro del ciclo messaggi.
-            ' Senza alcun riscontro visibile, il click su "Process" sembrava
-            ' non essere stato nemmeno registrato. DoEvents forza quel giro
-            ' subito, rendendo visibile il cambio di cursore.
-            Application.DoEvents()
+            ' Era qui un Application.DoEvents() per rendere visibile il
+            ' cursore di attesa (il calcolo è troppo rapido perché il
+            ' cambio di cursore faccia in tempo a disegnarsi da solo) — ma
+            ' DoEvents lascia girare il ciclo messaggi A META' DISEGNO,
+            ' incluso tmrAcquire che scatta da solo: una rientranza in
+            ' VisualizzaGrafico (ora impedita direttamente lì, vedi
+            ' disegnoGraficoInCorso) che si manifestava come un blocco
+            ' apparente della finestra ("il cursore resta a cerchio").
+            ' Rimosso: il cursore di attesa resta invisibile per
+            ' un'operazione così breve, ma non blocca più nulla.
             ' TEMPORANEO (test): misura quanto impiega VisualizzaGrafico
             ' (query SQLite + disegno GDI+), per la segnalazione di ritardo
             ' percepibile anche su Visual Acquire. Da rimuovere a diagnosi
