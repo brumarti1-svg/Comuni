@@ -144,12 +144,26 @@ Partial Public Class frmAcquire
         ' di un valore datato — coerente con quello che Calcolo_Aquire
         ' calcolerà al primo ciclo subito dopo.
         If optProgram.Checked Then
-            If Calcolo_Coordinate1(NowUTC()) Then
+            Dim okCalc As Boolean = Calcolo_Coordinate1(NowUTC())
+            ' TEMPORANEO (test): l'utente segnala che il punto iniziale (seed)
+            ' del grafico Acquire parte spesso con un valore "sbagliato" (es.
+            ' esattamente arrotondato, 257,000/52,000) — per capire se
+            ' Calcolo_Coordinate1 fallisce silenziosamente qui (Algoritmo non
+            ' gestito, b_Sat=False, TLE non caricato) lasciando mskAzimuth/
+            ' mskElevazione al valore precedente, invece di propagare un vero
+            ' errore. Da rimuovere a diagnosi finita.
+            WriteError(0, "CmdEnd_Click Program: Calcolo_Coordinate1=" & okCalc &
+                " Algoritmo=" & Algoritmo & " b_Sat=" & b_Sat & " s_Satellite=" & s_Satellite &
+                " LblAzimuthC=" & If(frmRicezioneRef Is Nothing, "(no ref)", frmRicezioneRef.LblAzimuthC.Text) &
+                " LblElevazioneC=" & If(frmRicezioneRef Is Nothing, "(no ref)", frmRicezioneRef.LblElevazioneC.Text) &
+                " mskAzimuth(prima)=" & mskAzimuth.Text & " mskElevazione(prima)=" & mskElevazione.Text)
+            If okCalc Then
                 If frmRicezioneRef IsNot Nothing AndAlso IsNumeric(frmRicezioneRef.LblElevazioneC.Text) Then
                     mskAzimuth.Text = frmRicezioneRef.LblAzimuthC.Text
                     mskElevazione.Text = frmRicezioneRef.LblElevazioneC.Text
                 End If
             End If
+            WriteError(0, "CmdEnd_Click Program: mskAzimuth(dopo)=" & mskAzimuth.Text & " mskElevazione(dopo)=" & mskElevazione.Text)
         End If
 
         ' Coordinate antenna
