@@ -113,6 +113,11 @@ Partial Public Class frmAcquire
         If Not ValidaRange(TxtElRange, 1, 30, i_ElRange) Then Exit Sub
         If Not ValidaRange(TxtAzStep, 0.01, 1, i_AzStep) Then Exit Sub
         If Not ValidaRange(TxtElStep, 0.01, 1, i_ElStep) Then Exit Sub
+        ' Copia congelata: Calcolo_Aquire sovrascrive i_AzStep/i_ElStep con
+        ' i_AzStepLock/i_ElStepLock all'aggancio del beacon — questa copia
+        ' resta invece quella scelta qui, per il pannello di FrmVisualAcquire.
+        i_AzStepConfigurato = i_AzStep
+        i_ElStepConfigurato = i_ElStep
         If Not ValidaRange(TxtAzStepLock, 0.01, 1, i_AzStepLock) Then Exit Sub
         If Not ValidaRange(TxtElStepLock, 0.01, 1, i_ElStepLock) Then Exit Sub
         If Not ValidaRange(TxtDeltaTime, 1, 5, i_InterAcq) Then Exit Sub

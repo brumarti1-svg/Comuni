@@ -823,8 +823,13 @@ Public Class FrmVisualAcquire
             tmrAcquire.Enabled = True
             TxtAzRange.Text = i_AzRange.ToString()
             TxtElRange.Text = i_ElRange.ToString()
-            TxtAzStep.Text = i_AzStep.ToString()
-            TxtElStep.Text = i_ElStep.ToString()
+            ' i_AzStep/i_ElStep sono i valori LIVE: Calcolo_Aquire li
+            ' sovrascrive con i_AzStepLock/i_ElStepLock all'aggancio del
+            ' beacon, facendo sembrare che il passo scelto in frmAcquire
+            ' non sia mai stato usato. i_AzStepConfigurato/i_ElStepConfigurato
+            ' restano invece quelli impostati all'avvio (frmAcquire.CmdEnd_Click).
+            TxtAzStep.Text = i_AzStepConfigurato.ToString()
+            TxtElStep.Text = i_ElStepConfigurato.ToString()
             TxtAzStepLock.Text = i_AzStepLock.ToString()
             TxtElStepLock.Text = i_ElStepLock.ToString()
             TxtDeltaTime.Text = i_InterAcq.ToString()
@@ -919,9 +924,14 @@ Public Class FrmVisualAcquire
         If e.KeyCode = Keys.Return Then
             If IsNumeric(TxtAzStep.Text) Then
                 Dim v = CDbl(Val(TxtAzStep.Text))
-                If v >= 0.01 AndAlso v <= 1 Then i_AzStep = CSng(v) Else TxtAzStep.Text = i_AzStep.ToString()
+                If v >= 0.01 AndAlso v <= 1 Then
+                    i_AzStep = CSng(v)
+                    i_AzStepConfigurato = CSng(v)
+                Else
+                    TxtAzStep.Text = i_AzStepConfigurato.ToString()
+                End If
             Else
-                TxtAzStep.Text = i_AzStep.ToString()
+                TxtAzStep.Text = i_AzStepConfigurato.ToString()
             End If
         End If
     End Sub
@@ -982,9 +992,14 @@ Public Class FrmVisualAcquire
         If e.KeyCode = Keys.Return Then
             If IsNumeric(TxtElStep.Text) Then
                 Dim v = CDbl(Val(TxtElStep.Text))
-                If v >= 0.01 AndAlso v <= 1 Then i_ElStep = CSng(v) Else TxtElStep.Text = i_ElStep.ToString()
+                If v >= 0.01 AndAlso v <= 1 Then
+                    i_ElStep = CSng(v)
+                    i_ElStepConfigurato = CSng(v)
+                Else
+                    TxtElStep.Text = i_ElStepConfigurato.ToString()
+                End If
             Else
-                TxtElStep.Text = i_ElStep.ToString()
+                TxtElStep.Text = i_ElStepConfigurato.ToString()
             End If
         End If
     End Sub

@@ -193,6 +193,15 @@ Module Predisposizioni
     Public i_ElStep As System.Single          'Elevation step per spostamento antenna in Acquire
     Public i_AzStepLock As System.Single         'Azimuth Step per spostamento antenna in Acquire
     Public i_ElStepLock As System.Single          'Elevation step per spostamento antenna in Acquire
+    ' Copia di i_AzStep/i_ElStep congelata al momento dell'avvio (frmAcquire.
+    ' CmdEnd_Click): Calcolo_Aquire sovrascrive i_AzStep/i_ElStep con
+    ' i_AzStepLock/i_ElStepLock quando il beacon viene agganciato (per
+    ' restringere la ricerca) — da quel momento i due valori combaciano,
+    ' facendo sembrare che il passo configurato in frmAcquire non sia mai
+    ' stato applicato. Il pannello di FrmVisualAcquire mostra questa copia,
+    ' non il valore live, cosi resta coerente con quanto configurato.
+    Public i_AzStepConfigurato As System.Single
+    Public i_ElStepConfigurato As System.Single
     Public i_Spiral As Integer          'Spirali effettuate
     Public i_AzOffsetLock As Double, i_ElOffsetLock As Double  'Memorizza gli off in caso di lock su Acquire
     Public b_LockOn As Boolean              ' Indica se è stato già visto un lock
