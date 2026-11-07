@@ -869,6 +869,50 @@ Rangeout:
             Case 5
                 If i_Step = 0 Then
                     i_ConStato += 1
+                ElseIf i_Step = 1 Then
+                    ' Ultimo passo di chiusura del giro: invece di completare
+                    ' per intero il lato (ultimo passo El, qui sotto) e poi,
+                    ' in un comando separato, espandersi al giro successivo
+                    ' (passo Az, ex Case 6 sotto) — il "gradino" visto in
+                    ' test — i due passi vengono uniti in un solo comando:
+                    ' l'antenna salta in diagonale dalla fine di un
+                    ' quadrato all'inizio del successivo, senza chiuderlo.
+                    ' Stessi incrementi (un i_ElStep e un i_AzStep) di
+                    ' sempre, nessuna lunghezza diversa dagli altri passi:
+                    ' a differenza del vecchio passo diagonale (mai
+                    ' compensato, causa della deriva asimmetrica già
+                    ' risolta una volta), qui la distanza totale per asse
+                    ' resta identica a prima — cambia solo che un tick
+                    ' invece di due la percorre.
+                    frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
+                    i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
+                    If i_Quadrati * i_AzStep >= i_AzRange Then
+                        b_RangeAz = True 'controllo se superato il range in azimuth
+                    End If
+                    If Not b_RangeAz Then
+                        frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
+                        i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
+                    End If
+                    frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
+                    frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
+                    If b_Acquire Then
+                        s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
+                         Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
+                        i = Len(s_program) + 6
+                        SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
+                        b_int(ACU) = True
+                        b_Ricezione(ACU) = False
+                        InvioACU(SEND_ACU)
+                    Else
+                        Calcolo_Coordinate(Data1, mSec)
+                    End If
+                    i_Quadrati += 1
+                    If b_RangeEl Then
+                        i_Step = i_ElRange / i_ElStep
+                    Else
+                        i_Step = i_Quadrati
+                    End If
+                    i_ConStato = 1
                 Else
                     frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
                     frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
@@ -891,10 +935,10 @@ Rangeout:
                     End If
                 End If
             Case 6
-                ' Espande il quadrato per il giro successivo: solo passo Az
-                ' (simmetrico col Case 0, che fa lo stesso per il primo
-                ' giro) — l'El è già arrivato al suo valore finale nel
-                ' Case 5 appena sopra, niente più passo diagonale.
+                ' Non più raggiunto nel flusso normale: il passo di
+                ' espansione è ora fuso nell'ultimo passo di Case 5 sopra
+                ' (comando diagonale). Resta solo come stato di sicurezza
+                ' per l'eventuale i_Step=0 d'ingresso in Case 5.
                 If i_Quadrati * i_AzStep >= i_AzRange Then
                     b_RangeAz = True 'controllo se superato il range in azimuth
                 End If

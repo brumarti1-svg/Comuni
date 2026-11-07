@@ -260,7 +260,16 @@ Public Class FrmVisualAcquire
         ' il filtro source='ACQUIRE' esclude le righe scritte da
         ' frmEffemeridi/Calcolo11Par, che altrimenti produrrebbero una
         ' curva che non c'entra nulla con lo Spiral Acquire.
-        tmpSql = "SELECT * FROM tmpEffemeridi WHERE source = 'ACQUIRE' ORDER BY date, time"
+        ' Intervallo <> 0 esclude la singola riga "seed" inserita da
+        ' frmAcquire.CmdEnd_Click (posizione di partenza, scattata PRIMA
+        ' che la ricerca cominci — unica riga con Intervallo=0, le righe
+        ' vere scritte da Calcolo_Aquire hanno sempre Intervallo=i_InterAcq).
+        ' In Program questa posizione iniziale è spesso lontana da dove
+        ' converge il tracking live: inclusa nel grafico, allargava il
+        ' range Min/Max fino a schiacciare la ricerca vera tutta su un
+        ' lato (grafico "non centrato") e produceva una lunga diagonale
+        ' estranea fino a quel punto isolato.
+        tmpSql = "SELECT * FROM tmpEffemeridi WHERE source = 'ACQUIRE' AND Intervallo <> 0 ORDER BY date, time"
 
         _Cmd?.Dispose()
         DyVisual?.Close()
