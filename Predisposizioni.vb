@@ -210,6 +210,13 @@ Module Predisposizioni
     Public i_Quadrati As Integer  'Contatore di quadrati
     Public i_Step As Integer       'Contatori di Step per lato
     Public i_ConStato As Integer 'Contatore di stato - Indica a che punto della spirale mi trovo
+    ' Tracciano, durante la scansione di un quadrato, il punto dove il
+    ' livello beacon (s_Lev1) è stato più alto — quando il quadrato finisce
+    ' senza aver raggiunto la soglia piena, la ricerca successiva riparte
+    ' centrata lì invece che sul punto di partenza originale (CalcolaPassoQuadrati, Case 8).
+    Public d_MaxBeaconLevel As Double = Double.MinValue
+    Public d_MaxBeaconAz As Double
+    Public d_MaxBeaconEl As Double
     Public d_SpiralAngolo As Double 'Angolo continuo (radianti) della spirale circolare di Calcolo_Aquire
     ' Modo di ricerca per Calcolo_Aquire, scelto dall'operatore in FrmAcquire.
     Public Const MODO_ACQUIRE_SPIRALE As Integer = 0

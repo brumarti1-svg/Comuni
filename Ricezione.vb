@@ -397,8 +397,18 @@ Module Ricezione
             Else                'lock ma non nelle soglie
                 If Not b_LockOn Then
                     b_LockOn = True         'è passato
-                    g_AzTable = CDbl(frmRicezione.LblAzimuth.Text)
-                    g_ElTable = CDbl(frmRicezione.LblElevazione.Text)
+                    ' Ricentra sul punto dove il beacon è stato più forte
+                    ' finora (tracciato durante la scansione), non sulla
+                    ' posizione attuale dell'antenna — se non è stato ancora
+                    ' tracciato nulla (es. primissimo tick), resta la
+                    ' posizione attuale come prima.
+                    If d_MaxBeaconLevel > Double.MinValue Then
+                        g_AzTable = d_MaxBeaconAz
+                        g_ElTable = d_MaxBeaconEl
+                    Else
+                        g_AzTable = CDbl(frmRicezione.LblAzimuth.Text)
+                        g_ElTable = CDbl(frmRicezione.LblElevazione.Text)
+                    End If
                     i_AzStep = i_AzStepLock
                     i_ElStep = i_ElStepLock
                     '                   If b_Acquire Then
@@ -624,6 +634,18 @@ Rangeout:
                 If(i_ModoAcquire = MODO_ACQUIRE_QUADRATI, i_ConStato < 8, i_ConStato < 2)
             If registraPuntoGrafico Then ' fasi di ricerca/movimento; ultimo stato di ciascun modo = sola verifica, nessun nuovo comando
                 If IsNumeric(frmRicezione.LblAzimuth.Text) And IsNumeric(frmRicezione.LblElevazione.Text) Then
+                    ' Tiene traccia del punto con il livello beacon più alto
+                    ' visitato durante la scansione del quadrato corrente —
+                    ' usato da CalcolaPassoQuadrati (Case 8) per ricentrare lì
+                    ' la ricerca successiva se il quadrato finisce senza
+                    ' aggancio.
+                    If i_ModoAcquire = MODO_ACQUIRE_QUADRATI AndAlso IsNumeric(s_Lev1) Then
+                        If Val(s_Lev1) > d_MaxBeaconLevel Then
+                            d_MaxBeaconLevel = Val(s_Lev1)
+                            d_MaxBeaconAz = CDbl(frmRicezione.LblAzimuth.Text)
+                            d_MaxBeaconEl = CDbl(frmRicezione.LblElevazione.Text)
+                        End If
+                    End If
                     ' Azzera Err prima dell'AddNew: tutta la funzione è in "On
                     ' Error Resume Next" (Try/Catch non ammesso nello stesso
                     ' metodo, BC30544), quindi un Err.Number residuo di
