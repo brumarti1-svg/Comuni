@@ -276,6 +276,7 @@ Public Class FrmVisualAcquire
 
         NPunti = 1
         Dim primoPunto As Boolean = True
+        Dim idxSeed As Integer = -1
         Do While DyVisual.Read()
             Dim rawData As String = DyVisual("date").ToString() & " " & DyVisual("Time").ToString()
             If Not IsDate(rawData) Then Continue Do
@@ -288,6 +289,17 @@ Public Class FrmVisualAcquire
                 primoPunto = False
             End If
 
+            ' Il punto "seed" (Intervallo=0, posizione calcolata al momento
+            ' dell'attivazione dell'Acquire) va disegnato con il suo
+            ' collegamento al primo punto vero, ma può trovarsi lontano dal
+            ' cluster della ricerca: se entra nel calcolo di MinX/MaxX/MinY/
+            ' MaxY, lo zoom si allarga per includerlo e la traccia reale
+            ' finisce compressa in un angolo (bug di centraggio segnalato
+            ' dall'utente). Va quindi escluso SOLO da questo calcolo, non
+            ' dall'array Punti (resta visibile).
+            Dim isSeed As Boolean = (CSng(DyVisual("Intervallo")) = 0)
+            If isSeed Then idxSeed = NPunti
+
             Punti(0, 0, 0, NPunti).data = rawData
             Punti(0, 0, 0, NPunti).Y = CSngCampo("Elevation")
             Punti(0, 0, 0, NPunti).X = CSngCampo("Azimuth")
@@ -295,10 +307,12 @@ Public Class FrmVisualAcquire
             XProv = CSngCampo("Azimuth")
             diffX = Math.Abs(XProv - XPrec)
             If diffX > 270 Then InvertiScala = True
-            If Punti(0, 0, 0, NPunti).Y > MaxY Then MaxY = Int(Punti(0, 0, 0, NPunti).Y * 10) / 10 + 0.1F
-            If Punti(0, 0, 0, NPunti).Y < MinY Then MinY = Int(Punti(0, 0, 0, NPunti).Y * 10) / 10
-            If Punti(0, 0, 0, NPunti).X > MaxX Then MaxX = Int(Punti(0, 0, 0, NPunti).X * 10) / 10 + 0.1F
-            If Punti(0, 0, 0, NPunti).X < MinX Then MinX = Int(Punti(0, 0, 0, NPunti).X * 10) / 10
+            If Not isSeed Then
+                If Punti(0, 0, 0, NPunti).Y > MaxY Then MaxY = Int(Punti(0, 0, 0, NPunti).Y * 10) / 10 + 0.1F
+                If Punti(0, 0, 0, NPunti).Y < MinY Then MinY = Int(Punti(0, 0, 0, NPunti).Y * 10) / 10
+                If Punti(0, 0, 0, NPunti).X > MaxX Then MaxX = Int(Punti(0, 0, 0, NPunti).X * 10) / 10 + 0.1F
+                If Punti(0, 0, 0, NPunti).X < MinX Then MinX = Int(Punti(0, 0, 0, NPunti).X * 10) / 10
+            End If
             XPrec = XProv
             NPunti += 1
             If NPunti > MaxPunti Then Exit Do
@@ -312,9 +326,22 @@ Public Class FrmVisualAcquire
                 XProv = Punti(0, 0, 0, i).X
                 ' Ruota i punti sotto 180° sommando 360° (traiettoria che passa per lo 0)
                 If XProv <= 180 Then Punti(0, 0, 0, i).X = XProv + 360
-                If Punti(0, 0, 0, i).X > MaxX Then MaxX = Int(Punti(0, 0, 0, i).X * 10) / 10 + 0.1F
-                If Punti(0, 0, 0, i).X < MinX Then MinX = Int(Punti(0, 0, 0, i).X * 10) / 10
+                If i <> idxSeed Then
+                    If Punti(0, 0, 0, i).X > MaxX Then MaxX = Int(Punti(0, 0, 0, i).X * 10) / 10 + 0.1F
+                    If Punti(0, 0, 0, i).X < MinX Then MinX = Int(Punti(0, 0, 0, i).X * 10) / 10
+                End If
             Next
+        End If
+
+        ' Se per qualche motivo TUTTI i punti fossero il seed (caso limite,
+        ' non dovrebbe capitare con una ricerca avviata), MinX/MaxX/MinY/MaxY
+        ' resterebbero ai valori sentinella: ricadi sul seed stesso per non
+        ' propagare -99999/99999 al calcolo di scala sotto.
+        If MinX = 99999 AndAlso idxSeed >= 1 Then
+            MinX = Int(Punti(0, 0, 0, idxSeed).X * 10) / 10
+            MaxX = Int(Punti(0, 0, 0, idxSeed).X * 10) / 10 + 0.1F
+            MinY = Int(Punti(0, 0, 0, idxSeed).Y * 10) / 10
+            MaxY = Int(Punti(0, 0, 0, idxSeed).Y * 10) / 10 + 0.1F
         End If
 
         ' NON seminare MinX/MaxX/MinY/MaxY sul range configurato: il grafico
