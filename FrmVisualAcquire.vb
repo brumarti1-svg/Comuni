@@ -685,18 +685,21 @@ Public Class FrmVisualAcquire
                     If Val(d_Calcolo) < Val(DataPrec) Then
                         d_Calcolo = Format(Val(DataProv) + 60, "##0.00")
                     End If
-                    ' Cambio di giro (Orbite): tra la fine di un giro (ritorno
-                    ' al centro) e l'inizio del successivo si interrompe
-                    ' sempre la linea (MoveTo) invece di congiungerla, sia in
-                    ' Program che in Preset — in Program il punto di
-                    ' ripartenza viene ricalcolato (il satellite si è
-                    ' spostato), in Preset si riprendono le coordinate
-                    ' iniziali: in entrambi i casi la linea retta tra i due
-                    ' punti non rappresenterebbe un reale movimento continuo
-                    ' dell'antenna da tracciare.
+                    ' Cambio di giro (Orbite): tra la fine di un giro e
+                    ' l'inizio del successivo si interrompeva sempre la
+                    ' linea (MoveTo) invece di congiungerla — corretto per
+                    ' la spirale circolare, dove il giro finisce con un
+                    ' ritorno al centro (il punto di ripartenza non è un
+                    ' movimento continuo dell'antenna da tracciare), ma non
+                    ' per la ricerca a quadrati: lì CalcolaPassoQuadrati
+                    ' passa da un giro al successivo con un singolo passo
+                    ' di espansione (Case 6), l'antenna si muove davvero in
+                    ' modo continuo — interrompere la linea creava il
+                    ' "gradino" visto in test invece della diagonale
+                    ' attesa tra un quadrato e il successivo.
                     diagTmpXMin = Math.Min(diagTmpXMin, tmpX)
                     diagTmpXMax = Math.Max(diagTmpXMax, tmpX)
-                    If Punti(0, 0, 0, i).C <> CPrec Then
+                    If Punti(0, 0, 0, i).C <> CPrec AndAlso i_ModoAcquire <> MODO_ACQUIRE_QUADRATI Then
                         _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
                         MoveTo(tmpX, tmpY)
                         diagDrawCircleCount += 1
