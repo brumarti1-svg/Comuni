@@ -26,27 +26,17 @@ Partial Public Class frmAcquire
     ' Form Activate — reset stato
     ' -------------------------------------------------------
     Private Sub frmAcquire_Activated(sender As Object, e As EventArgs) Handles MyBase.Activated
-        ' TEMPORANEO (test): Activated scatta ad ogni cambio di focus sulla
-        ' finestra (non solo alla prima apertura) — se la "lentezza sulla
-        ' maschera Acquire" segnalata dall'utente dipende da qui, lo scatto
-        ' ripetuto di DbExecute/DELETE ad ogni ritorno del focus è un
-        ' sospetto diretto. Da rimuovere a diagnosi finita.
-        Dim swDiag As New System.Diagnostics.Stopwatch()
-        swDiag.Start()
         If frmRicezioneRef IsNot Nothing Then
             frmRicezioneRef.TmrSpiralAcquire.Enabled = False
         End If
         ' Scoped a source='ACQUIRE' (più le righe legacy senza source):
         ' non deve cancellare dati di un calcolo Effemeridi in corso.
-        Dim msPrimaDelete As Long = swDiag.ElapsedMilliseconds
         DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'ACQUIRE' OR source IS NULL")
-        Dim msDelete As Long = swDiag.ElapsedMilliseconds - msPrimaDelete
         mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
         mskDataIni.Focus()
         optPreset.Checked = False
         optProgram.Checked = False
         If i_Status = OP_SPIRALACQUIRE Then i_Status = 0
-        WriteError(0, "frmAcquire_Activated: DELETE " & msDelete & " ms, totale " & swDiag.ElapsedMilliseconds & " ms")
     End Sub
 
     ' -------------------------------------------------------
@@ -109,10 +99,6 @@ Partial Public Class frmAcquire
     ' -------------------------------------------------------
     Private Sub CmdEnd_Click(sender As Object, e As EventArgs) Handles CmdEnd.Click
         If Not optPreset.Checked AndAlso Not optProgram.Checked Then Exit Sub
-        ' TEMPORANEO (test): vedi commento su optProgram_CheckedChanged,
-        ' qui sul bottone che avvia davvero l'Acquire.
-        Dim swDiag As New System.Diagnostics.Stopwatch()
-        swDiag.Start()
 
         ' Validazione data inizio
         If Not IsDate(mskDataIni.Text) Then
@@ -144,26 +130,12 @@ Partial Public Class frmAcquire
         ' di un valore datato — coerente con quello che Calcolo_Aquire
         ' calcolerà al primo ciclo subito dopo.
         If optProgram.Checked Then
-            Dim okCalc As Boolean = Calcolo_Coordinate1(NowUTC())
-            ' TEMPORANEO (test): l'utente segnala che il punto iniziale (seed)
-            ' del grafico Acquire parte spesso con un valore "sbagliato" (es.
-            ' esattamente arrotondato, 257,000/52,000) — per capire se
-            ' Calcolo_Coordinate1 fallisce silenziosamente qui (Algoritmo non
-            ' gestito, b_Sat=False, TLE non caricato) lasciando mskAzimuth/
-            ' mskElevazione al valore precedente, invece di propagare un vero
-            ' errore. Da rimuovere a diagnosi finita.
-            WriteError(0, "CmdEnd_Click Program: Calcolo_Coordinate1=" & okCalc &
-                " Algoritmo=" & Algoritmo & " b_Sat=" & b_Sat & " s_Satellite=" & s_Satellite &
-                " LblAzimuthC=" & If(frmRicezioneRef Is Nothing, "(no ref)", frmRicezioneRef.LblAzimuthC.Text) &
-                " LblElevazioneC=" & If(frmRicezioneRef Is Nothing, "(no ref)", frmRicezioneRef.LblElevazioneC.Text) &
-                " mskAzimuth(prima)=" & mskAzimuth.Text & " mskElevazione(prima)=" & mskElevazione.Text)
-            If okCalc Then
+            If Calcolo_Coordinate1(NowUTC()) Then
                 If frmRicezioneRef IsNot Nothing AndAlso IsNumeric(frmRicezioneRef.LblElevazioneC.Text) Then
                     mskAzimuth.Text = frmRicezioneRef.LblAzimuthC.Text
                     mskElevazione.Text = frmRicezioneRef.LblElevazioneC.Text
                 End If
             End If
-            WriteError(0, "CmdEnd_Click Program: mskAzimuth(dopo)=" & mskAzimuth.Text & " mskElevazione(dopo)=" & mskElevazione.Text)
         End If
 
         ' Coordinate antenna
@@ -195,7 +167,6 @@ Partial Public Class frmAcquire
         End If
 
         b_Acquire = optPreset.Checked
-        Debug.WriteLine("frmAcquire.CmdEnd_Click: optPreset.Checked=" & optPreset.Checked & " optProgram.Checked=" & optProgram.Checked & " b_Acquire=" & b_Acquire & " Algoritmo=" & Algoritmo) ' TEMPORANEO: da rimuovere dopo la diagnosi
         If Not b_Acquire Then i_ProgTrack = 1
         i_ModoAcquire = If(optQuadrati.Checked, MODO_ACQUIRE_QUADRATI, MODO_ACQUIRE_SPIRALE)
         i_Quadrati = 1
@@ -208,9 +179,7 @@ Partial Public Class frmAcquire
         ' "Acquire Trace" fin dal primo redraw, sembrando già completo.
         ' Scoped a source='ACQUIRE' (più le righe legacy senza source): non
         ' deve cancellare dati di un calcolo Effemeridi in corso.
-        Dim msPrimaDelete As Long = swDiag.ElapsedMilliseconds
         DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'ACQUIRE' OR source IS NULL")
-        WriteError(0, "CmdEnd_Click: DELETE tmpEffemeridi " & (swDiag.ElapsedMilliseconds - msPrimaDelete) & " ms")
 
         ' VB6: Now - CDate(i_Offset/24) — i_Offset è intero in ore, /24
         ' convertiva in giorni OLE (stesso bug già corretto altrove, es.
@@ -271,48 +240,32 @@ Partial Public Class frmAcquire
             frmRicezioneRef.LblElErrEn.Visible = True
             frmRicezioneRef.CmdOffset.Enabled = True
             frmRicezioneRef.CmdOffset.Visible = True
-            ' Timer.Interval=0 (o negativo) è illegale e lancia eccezione:
-            ' con ValidaRange bypassato per i test, DeltaT potrebbe non
-            ' essere nel range 1-5 originale. Minimo di sicurezza 1000ms.
+            ' Timer.Interval=0 (o negativo) è illegale e lancia eccezione.
             Dim intervalMs As Integer = CInt(i_InterAcq * 1000)
             frmRicezioneRef.TmrSpiralAcquire.Interval = If(intervalMs > 0, intervalMs, 1000)
             frmRicezioneRef.TmrSpiralAcquire.Enabled = True
         End If
 
-        WriteError(0, "CmdEnd_Click: totale " & swDiag.ElapsedMilliseconds & " ms (prima di Me.Close)")
         Me.Close()
     End Sub
 
     ' -------------------------------------------------------
     ' Helper — valida un campo numerico in un range
     ' -------------------------------------------------------
-    ' TEMPORANEO (test): il controllo di range (minVal/maxVal) è disattivato
-    ' per poter avviare lo Spiral Acquire anche con valori fuori soglia o
-    ' "sporchi", così da testare il comportamento di Calcolo_Aquire/Visual
-    ' Acquire senza dover rispettare i vincoli reali. Resta il solo
-    ' controllo IsNumeric, altrimenti CDbl più sotto crasherebbe. Da
-    ' ripristinare (basta decommentare il blocco originale) a test finito.
     Private Function ValidaRange(Txt As TextBox, minVal As Double, maxVal As Double,
                                   ByRef target As Double) As Boolean
         ' CDbl(Txt.Text) sotto locale italiano legge il "." come separatore
         ' delle migliaia, non decimale (es. "0.5" diventa 5): Val() usa
         ' sempre il punto come decimale, indipendentemente dal locale.
         If IsNumeric(Txt.Text) Then
-            target = CDbl(Val(Txt.Text))
-            Return True
+            Dim v As Double = CDbl(Val(Txt.Text))
+            If v >= minVal AndAlso v <= maxVal Then
+                target = v
+                Return True
+            End If
         End If
         Txt.Focus()
         Return False
-        ' --- controllo originale, da ripristinare a test finito ---
-        'If IsNumeric(Txt.Text) Then
-        '    Dim v As Double = CDbl(Val(Txt.Text))
-        '    If v >= minVal AndAlso v <= maxVal Then
-        '        target = v
-        '        Return True
-        '    End If
-        'End If
-        'Txt.Focus()
-        'Return False
     End Function
 
     ' -------------------------------------------------------
@@ -320,9 +273,6 @@ Partial Public Class frmAcquire
     ' -------------------------------------------------------
     Private Sub optPreset_CheckedChanged(sender As Object, e As EventArgs) Handles optPreset.CheckedChanged
         If Not optPreset.Checked Then Exit Sub
-        ' TEMPORANEO (test): vedi commento su optProgram_CheckedChanged.
-        Dim swDiag As New System.Diagnostics.Stopwatch()
-        swDiag.Start()
         Try
             If frmRicezioneRef IsNot Nothing Then
                 If IsNumeric(frmRicezioneRef.TxtAz.Text) Then
@@ -335,7 +285,6 @@ Partial Public Class frmAcquire
             grpAcqPar.Visible = True
             CmdEnd.Visible = True
             ImpostaValori()
-            WriteError(0, "optPreset_CheckedChanged: totale " & swDiag.ElapsedMilliseconds & " ms")
         Catch ex As Exception
             WriteError(0, "optPreset: " & ex.Message)
         End Try
@@ -346,19 +295,12 @@ Partial Public Class frmAcquire
     ' -------------------------------------------------------
     Private Sub optProgram_CheckedChanged(sender As Object, e As EventArgs) Handles optProgram.CheckedChanged
         If Not optProgram.Checked Then Exit Sub
-        ' TEMPORANEO (test): misura dove va il tempo tra il click su
-        ' "Program" e la fine del gestore, per la segnalazione di ritardo
-        ' percepibile. Da rimuovere a diagnosi finita.
-        Dim swDiag As New System.Diagnostics.Stopwatch()
-        swDiag.Start()
         Try
             mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
             If IsDate(mskDataIni.Text) Then
                 AzOffset = 0 : ElOffset = 0
                 i_AzOffsetLock = 0 : i_ElOffsetLock = 0
-                Dim msPrimaCalcolo As Long = swDiag.ElapsedMilliseconds
                 Calcolo_Coordinate1(mskDataIni.Text)
-                WriteError(0, "optProgram_CheckedChanged: Calcolo_Coordinate1 " & (swDiag.ElapsedMilliseconds - msPrimaCalcolo) & " ms")
                 If frmRicezioneRef IsNot Nothing Then
                     ' Calcolo_Coordinate1 scrive il risultato in LblAzimuthC/
                     ' LblElevazioneC (colonna "Program"), non in LblAzimuth/
@@ -388,11 +330,9 @@ Partial Public Class frmAcquire
                     ' disponibile.
                 End If
             End If
-            Dim msPrimaValori As Long = swDiag.ElapsedMilliseconds
             grpAcqPar.Visible = True
             CmdEnd.Visible = True
             ImpostaValori()
-            WriteError(0, "optProgram_CheckedChanged: Visible+ImpostaValori " & (swDiag.ElapsedMilliseconds - msPrimaValori) & " ms, totale " & swDiag.ElapsedMilliseconds & " ms")
         Catch ex As Exception
             WriteError(0, "optProgram: " & ex.Message)
         End Try

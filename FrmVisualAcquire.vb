@@ -77,15 +77,9 @@ Public Class FrmVisualAcquire
 
     Private Sub RefreshPic()
         picGrafico.Image = _bmp
-        ' TEMPORANEO (test): assegnare .Image segna solo il controllo come
-        ' "da ridisegnare" (Invalidate) — il disegno vero avviene quando il
-        ' ciclo messaggi arriva a elaborare quel WM_PAINT, in coda con
-        ' tutto il resto. Refresh() forza qui un ridisegno sincrono
-        ' immediato, prima di tornare al chiamante: se il ritardo
-        ' percepito sta nell'attesa del turno di disegno (non nel calcolo,
-        ' già misurato rapido), questo lo elimina. Da rimuovere a diagnosi
-        ' finita insieme al resto, lasciando solo l'assegnazione sopra se
-        ' il problema era altrove.
+        ' Assegnare .Image segna solo il controllo come "da ridisegnare"
+        ' (Invalidate) — Refresh() forza un ridisegno sincrono immediato,
+        ' invece di aspettare il turno di WM_PAINT nel ciclo messaggi.
         picGrafico.Refresh()
     End Sub
 
@@ -629,15 +623,6 @@ Public Class FrmVisualAcquire
     ' resta a cerchio"), con la finestra comunque chiudibile perché il
     ' thread UI non era davvero fermo, solo il disegno corrotto a metà.
     Private disegnoGraficoInCorso As Boolean
-    ' TEMPORANEO (test): contatori diagnostici sul ciclo di disegno della
-    ' traccia, vedi commenti dentro VisualizzaGrafico. Da rimuovere a
-    ' diagnosi finita.
-    Private diagNPunti As Integer
-    Private diagN As Integer
-    Private diagLineToCount As Integer
-    Private diagDrawCircleCount As Integer
-    Private diagTmpXMin As Single
-    Private diagTmpXMax As Single
 
     Public Sub VisualizzaGrafico()
         ' Form minimizzata: ClientSize diventa (0,0) ma Visible resta True,
@@ -662,27 +647,14 @@ Public Class FrmVisualAcquire
 
         ScalaX = (MaxX - MinX) / (PicW - 2 * DimCornice)
         ScalaY = (MaxY - MinY) / (PicH - 2 * DimCornice)
-        Debug.WriteLine("VisualizzaGrafico: NPunti=" & NPunti & " MinX=" & MinX & " MaxX=" & MaxX & " MinY=" & MinY & " MaxY=" & MaxY & " ScalaX=" & ScalaX & " ScalaY=" & ScalaY & " PassoX=" & PassoX & " PassoY=" & PassoY & " NPAsseX=" & NPAsseX & " NPAsseY=" & NPAsseY & " PicW=" & PicW & " PicH=" & PicH) ' TEMPORANEO: da rimuovere dopo la diagnosi
         VisualizzaAsseX()
         VisualizzaAsseY()
 
-        ' TEMPORANEO (test): nessun segno nella zona centrale del grafico,
-        ' confermato pixel-per-pixel su VisualAcquireDebug.png — il ciclo
-        ' che disegna la traccia non produce nulla di visibile. Contatori
-        ' per capire se il ciclo entra, quante volte LineTo/DrawCircle
-        ' vengono davvero chiamate, e le coordinate calcolate. Da
-        ' rimuovere a diagnosi finita.
-        diagNPunti = NPunti
-        diagLineToCount = 0
-        diagDrawCircleCount = 0
-        diagTmpXMin = Single.MaxValue
-        diagTmpXMax = Single.MinValue
         If NPunti > 1 Then
             n = 1
             Do While Punti(0, 0, 0, n).Y = 99999 AndAlso n <= NPunti
                 n += 1
             Loop
-            diagN = n
             XPrec = Punti(0, 0, 0, n).X
             If InvertiScala AndAlso XPrec < MinX Then XPrec += 360
             YPrec = Punti(0, 0, 0, n).Y
@@ -731,21 +703,15 @@ Public Class FrmVisualAcquire
                     ' modo continuo — interrompere la linea creava il
                     ' "gradino" visto in test invece della diagonale
                     ' attesa tra un quadrato e il successivo.
-                    diagTmpXMin = Math.Min(diagTmpXMin, tmpX)
-                    diagTmpXMax = Math.Max(diagTmpXMax, tmpX)
                     If Punti(0, 0, 0, i).C <> CPrec AndAlso i_ModoAcquire <> MODO_ACQUIRE_QUADRATI Then
                         _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
                         MoveTo(tmpX, tmpY)
-                        diagDrawCircleCount += 1
                     ElseIf Math.Abs(Val(d_Calcolo) - Val(DataPrec)) < i_Intervallo + 1 Then
                         LineTo(tmpX, tmpY)
                         _fillSolid = True : DrawCircle(tmpX, tmpY, 0.6F) : _fillSolid = False
-                        diagLineToCount += 1
-                        diagDrawCircleCount += 1
                     Else
                         _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
                         MoveTo(tmpX, tmpY)
-                        diagDrawCircleCount += 1
                     End If
                     XPrec = Punti(0, 0, 0, i).X
                     If InvertiScala AndAlso XPrec < MinX Then XPrec += 360
@@ -913,39 +879,13 @@ Public Class FrmVisualAcquire
             ' apparente della finestra ("il cursore resta a cerchio").
             ' Rimosso: il cursore di attesa resta invisibile per
             ' un'operazione così breve, ma non blocca più nulla.
-            ' TEMPORANEO (test): misura quanto impiega VisualizzaGrafico
-            ' (query SQLite + disegno GDI+), per la segnalazione di ritardo
-            ' percepibile anche su Visual Acquire. Da rimuovere a diagnosi
-            ' finita.
-            Dim swDiag As New System.Diagnostics.Stopwatch()
-            swDiag.Start()
             Try
                 VisualizzaGrafico()
-                ' TEMPORANEO (test): "Elabora" non mostrava nulla senza alcuna
-                ' indicazione del motivo (dati assenti nella finestra Dal/Al?
-                ' PictureBox non ancora dimensionata?). Un solo log per click,
-                ' non per ogni tick di tmrAcquire. Da rimuovere a test finito.
-                WriteError(0, "FrmVisualAcquire.CmdElabora_Click: " & swDiag.ElapsedMilliseconds & " ms, NPunti=" & NPunti &
-                    " PicW=" & PicW & " PicH=" & PicH &
-                    " MinX=" & MinX & " MaxX=" & MaxX & " MinY=" & MinY & " MaxY=" & MaxY &
-                    " ScalaX=" & ScalaX & " ScalaY=" & ScalaY &
-                    " Dal=" & mskDataIni.Text & " " & mskOraIni.Text &
-                    " Al=" & mskDataFin.Text & " " & mskOraFin.Text &
-                    " | diagNPunti=" & diagNPunti & " diagN=" & diagN &
-                    " diagLineToCount=" & diagLineToCount & " diagDrawCircleCount=" & diagDrawCircleCount &
-                    " diagTmpXMin=" & diagTmpXMin & " diagTmpXMax=" & diagTmpXMax)
             Catch ex As Exception
                 WriteError(0, "FrmVisualAcquire.CmdElabora_Click: " & ex.Message)
             Finally
                 Cursor = Cursors.Default
             End Try
-        Else
-            ' TEMPORANEO (test): ControllaDati() fallita — mskOraFin aveva un
-            ' bug (vedi commento in ControllaDati) che la faceva fallire in
-            ' silenzio per finestre valide: senza questo log, "Elabora" non
-            ' faceva nulla di visibile e nessuno sapeva perché.
-            WriteError(0, "FrmVisualAcquire.CmdElabora_Click: ControllaDati() ha respinto i dati - Dal=" &
-                mskDataIni.Text & " " & mskOraIni.Text & " Al=" & mskDataFin.Text & " " & mskOraFin.Text)
         End If
     End Sub
 
@@ -956,17 +896,6 @@ Public Class FrmVisualAcquire
     Private Sub TmrAcquire_Tick(sender As Object, e As EventArgs) Handles tmrAcquire.Tick
         Try
             VisualizzaGrafico()
-            ' TEMPORANEO (test): il "Process" manuale (CmdElabora_Click) ha
-            ' una diagnostica che mostra dati validi (NPunti>0, scala non
-            ' nulla), ma il grafico resta vuoto a video — possibile che
-            ' questo ridisegno automatico periodico sovrascriva subito dopo
-            ' quello manuale con un risultato diverso (stessa finestra
-            ' Dal/Al nelle maschere, ma magari tmpEffemeridi nel frattempo
-            ' è cambiata). Stesso log usato su CmdElabora_Click. Da
-            ' rimuovere a diagnosi finita.
-            WriteError(0, "FrmVisualAcquire.TmrAcquire_Tick: NPunti=" & NPunti &
-                " MinX=" & MinX & " MaxX=" & MaxX & " MinY=" & MinY & " MaxY=" & MaxY &
-                " ScalaX=" & ScalaX & " ScalaY=" & ScalaY)
         Catch ex As Exception
             WriteError(0, "FrmVisualAcquire.TmrAcquire_Tick: " & ex.Message)
         End Try

@@ -324,18 +324,7 @@ Module Ricezione
         Dim s_program As String = "", i_lun As Integer, d_FineProg As Date
         '06/06/2022
         Dim tmpErrAz As System.Single, tmpErrEl As System.Single
-        Debug.WriteLine("Calcolo_Aquire ENTRATA: i_ConStato=" & i_ConStato & " d_SpiralAngolo(gradi)=" & (d_SpiralAngolo * 180.0 / Math.PI) & " i_Status=" & i_Status & " i_AzStep=" & i_AzStep & " i_ElStep=" & i_ElStep & " i_AzRange=" & i_AzRange & " i_ElRange=" & i_ElRange & " b_Acquire=" & b_Acquire & " i_AzOffsetLock=" & i_AzOffsetLock & " i_ElOffsetLock=" & i_ElOffsetLock) ' TEMPORANEO: da rimuovere dopo la diagnosi
-        ' TEMPORANEO (test): Debug.WriteLine sopra non è visibile senza un
-        ' debugger attaccato (BTS1/FOC6.exe lanciato normalmente non lo
-        ' mostra da nessuna parte) — un solo marcatore in ErrSoft.Txt al
-        ' primo ciclo di ogni nuovo Acquire, per confermare che la funzione
-        ' viene davvero chiamata (e con quale i_ModoAcquire/i_Status) anche
-        ' senza allegare un debugger. Da rimuovere a test finito.
-        If i_Spiral = 1 AndAlso i_ConStato = 0 Then
-            WriteError(0, "Calcolo_Aquire: primo ciclo - i_ModoAcquire=" & i_ModoAcquire & " i_Status=" & i_Status & " b_Acquire=" & b_Acquire)
-        End If
         On Error Resume Next
-        Err.Clear() ' TEMPORANEO: per la diagnosi sotto
         If IsDate(d_DataFineProg) Then
             d_FineProg = CDate(d_DataFineProg)
         End If
@@ -551,7 +540,7 @@ Module Ricezione
             End If
 
             If Err.Number <> 0 Then
-                Debug.WriteLine("Calcolo_Aquire ERRORE (silenziato da On Error Resume Next): " & Err.Number & " - " & Err.Description) ' TEMPORANEO: da rimuovere dopo la diagnosi
+                WriteError(0, "Calcolo_Aquire: " & Err.Number & " - " & Err.Description)
                 Err.Clear()
             End If
             If b_RangeAz And b_RangeEl Then i_ConStato = 1
@@ -635,15 +624,11 @@ Rangeout:
                 If(i_ModoAcquire = MODO_ACQUIRE_QUADRATI, i_ConStato < 8, i_ConStato < 2)
             If registraPuntoGrafico Then ' fasi di ricerca/movimento; ultimo stato di ciascun modo = sola verifica, nessun nuovo comando
                 If IsNumeric(frmRicezione.LblAzimuth.Text) And IsNumeric(frmRicezione.LblElevazione.Text) Then
-                    ' TEMPORANEO (test): questa scrittura è dentro il "On Error
-                    ' Resume Next" di tutta la funzione — un eventuale errore
-                    ' qui (es. tipo di colonna, record set invalido) veniva
-                    ' inghiottito in silenzio e il grafico "Visual Acquire"
-                    ' restava vuoto senza nessuna traccia del motivo. Try/Catch
-                    ' non è ammesso in un metodo con On Error (BC30544): si usa
-                    ' lo stesso stile non strutturato già in uso più sopra in
-                    ' questa funzione (Err.Clear/Err.Number). Da rimuovere a
-                    ' test finito insieme al resto.
+                    ' Azzera Err prima dell'AddNew: tutta la funzione è in "On
+                    ' Error Resume Next" (Try/Catch non ammesso nello stesso
+                    ' metodo, BC30544), quindi un Err.Number residuo di
+                    ' un'istruzione precedente verrebbe attribuito per errore
+                    ' a questo blocco.
                     Err.Clear()
                     rs_Acq.AddNew
                     rs_Acq!date = Data1.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
@@ -2390,7 +2375,6 @@ Rangeout:
             End If
         End If
         Calcolo_Coordinate = True
-        Debug.WriteLine("Calcolo_Coordinate: Algoritmo=" & Algoritmo & " b_Sat=" & b_Sat & " s_Satellite=" & s_Satellite & " Az_prov=" & Az_prov & " El_Prov=" & El_Prov & " g_ElMin=" & g_ElMin & " i_ProgTrack=" & i_ProgTrack & " AzInibhit=" & AzInibhit & " ElInibhit=" & ElInibhit) ' TEMPORANEO: da rimuovere dopo la diagnosi
         If i_ProgTrack = 1 Or i_ProgTrack = 4 Then
             Az_prov = Format$(Az_prov + i_AzOffsetLock, "0.000")
             El_Prov = Format$(El_Prov + i_ElOffsetLock, "0.000")
