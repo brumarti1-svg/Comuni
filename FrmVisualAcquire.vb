@@ -389,7 +389,7 @@ Public Class FrmVisualAcquire
         _dashStyle = DashStyle.Solid
         _penWidth = 1
         _penColor = Color.Black
-        MoveTo(PicW - DimCornice - 15, PicH - DimCornice + 5)
+        MoveTo(DimCornice, PicH - DimCornice + 18)
         DrawStr("Azimuth", i_Size3)
 
         _penColor = Color.Red
@@ -529,7 +529,7 @@ Public Class FrmVisualAcquire
         _dashStyle = DashStyle.Solid
         tmp2x = DimCornice
         LineAbs(tmp2x, PicH - DimCornice, tmp2x, DimCornice)
-        MoveTo(tmp2x - DimCornice, DimCornice - 6) : DrawStr(tmpUnita, i_Size2)
+        MoveTo(tmp2x - DimCornice, DimCornice - 20) : DrawStr(tmpUnita, i_Size2)
 
         _penWidth = 1
         MoveTo(tmp2x - DimCornice - i_Size2 * tmpUnita.Length * 0.6F + 1, DimCornice - 4)
