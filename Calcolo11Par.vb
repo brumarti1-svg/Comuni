@@ -301,13 +301,9 @@ Module Calcolo11Par
     Public Sub SegnalaParametriSatelliteAssenti()
         MainForm.stpMessaggio.Text = "No parameters available for satellite: " & s_Satellite
         FrmMain.TmrMsg.Enabled = True
-#If Not EFFEMERIDI Then
-        ' Effemeridi non ha l'Acquire (né CmdSTBY_Click in FrmRicezione):
-        ' lì la chiamata è esclusa in compilazione.
         If i_Status = OP_SPIRALACQUIRE OrElse i_Status = OP_AUTOMATICAQUIRE Then
             frmRicezione.CmdSTBY_Click(Nothing, EventArgs.Empty)
         End If
-#End If
     End Sub
 
     '
