@@ -5,6 +5,7 @@ Module Ricezione
     Dim i As Integer, lun As Integer, d_Az As String, d_El As String, d_Po As String
     Dim rs_Ricez As Object
     Dim Az_prov As Double, El_Prov As Double
+    Dim rndSimBeacon As New Random()
 
 
     '13/03/2024 Viene creato un modulo comune a tutti i programmi ACU che raccoglie le routine di calcolo dei vari algoritmi uguali per tutti
@@ -319,59 +320,208 @@ Module Ricezione
         g_aggOrdini = False
     End Function
 
+    ''' <summary>
+    ''' Simulazione del ricevitore che trova il beacon del satellite, in
+    ''' assenza di hardware reale collegato — usata sia durante la ricerca
+    ''' Acquire che dopo, in Augmented/AutoTrack.
+    ''' L'AVVICINAMENTO verso la soglia (fase di ricerca) va fatto avanzare
+    ''' SOLO da Calcolo_Aquire (un passo per ogni suo tick, come in origine):
+    ''' chiamarlo anche dal ciclo periodico sempre attivo di frmMain.vb (più
+    ''' frequente di TmrSpiralAcquire) faceva avvicinare il beacon al proprio
+    ''' ritmo, scollegato da quanto la ricerca fosse realmente avanzata — in
+    ''' test si è visto l'aggancio scattare subito, senza che la ricerca
+    ''' avesse ancora coperto nulla. La piccola oscillazione DOPO l'aggancio
+    ''' invece va tenuta viva anche dal ciclo periodico (permettiAvvicinamento
+    ''' As False): serve perché TmrSpiralAcquire si ferma in Augmented, e con
+    ''' un ricevitore reale il segnale continuerebbe comunque ad arrivare.
+    ''' </summary>
+    Public Sub AvanzaSimulazioneBeacon(Optional permettiAvvicinamento As Boolean = True)
+        ' NIENTE "If i_Spiral < 1 Then Return" qui: b_Lock deve restare
+        ' sempre valido (confrontato dal vivo con i_LockThr) anche FUORI da
+        ' un Acquire attivo, altrimenti fuori Acquire b_Lock resta "congelato"
+        ' sul suo ultimo valore (es. ancora True da una ricerca precedente,
+        ' o addirittura True di default perché Level=0 non ancora
+        ' inizializzato sembra "più forte" di qualunque soglia negativa) -
+        ' segnalato: lock mostrato con beacon sotto soglia. Solo la fase di
+        ' SALITA (il segnale che si avvicina) resta legata a i_Spiral >= 1
+        ' più sotto, perché ha senso solo durante una ricerca in corso.
+        ' Inizializzazione con un flag dedicato, non più "If d_SimBeaconErr =
+        ' 0" come sentinella: un errore perfettamente convergente può
+        ' legittimamente arrivare a ESATTAMENTE 0 (clampato da Math.Max(0,
+        ' ...) nel ramo giaAgganciato sotto), e in quel caso il vecchio
+        ' controllo lo scambiava per "mai inizializzato", rispedendolo al
+        ' valore peggiore (32) e congelando la simulazione (segnalato:
+        ' "quando ha il lock Acquire non deve tornare al punto di
+        ' partenza" - visto nel log: Err da ~0.15 a 32 di colpo, poi Level
+        ' ed Err congelati identici per oltre un minuto).
+        If Not simBeaconInizializzato Then
+            d_SimBeaconErr = (g_ThrAz + g_ThrEl) * 4 ' valore iniziale, fuori soglia
+            d_SimBeaconLevel = -95 ' valore iniziale, sotto -90
+            simBeaconInizializzato = True
+        End If
+
+        Dim sogliaErr As Double = Math.Min(g_ThrAz, g_ThrEl)
+        ' Soglia di primo aggancio: SEMPRE ScalaMin (soglia minima del
+        ' ricevitore, pannello principale) - chiarito dall'utente: "ScalaMin
+        ' per trovare il lock, che dice il satellite è agganciato. Da qui
+        ' parte la ricerca fine intorno al punto trovato, fino a quando non
+        ' si raggiunge i_LockThr che determina l'augmented". i_LockThr non è
+        ' più la soglia di primo aggancio (era un fraintendimento mio
+        ' precedente) - è la soglia di ARRIVO della ricerca fine, vedi
+        ' sogliaPlateauAttuale sotto e il gate in Calcolo_Aquire.
+        Dim sogliaLockAttuale As Double = ScalaMin
+        ' Soglia di "aggancio pieno"/plateau, usata per il tetto di salita e
+        ' il plateau di oscillazione della simulazione: i_LockThr SOLO
+        ' durante un Acquire attivo (è la soglia che determina Augmented,
+        ' non più g_ThrAuto), altrimenti ScalaMax (soglia massima del
+        ' ricevitore, fuori ricerca non esiste un concetto di "Augmented").
+        Dim sogliaPlateauAttuale As Double = If(i_Spiral >= 1, i_LockThr, ScalaMax)
+        Dim giaAgganciato As Boolean = (d_SimBeaconLevel >= sogliaPlateauAttuale AndAlso d_SimBeaconErr <= sogliaErr)
+        ' permettiAvvicinamento=False (ciclo periodico di frmMain.vb, SOLO
+        ' quando un Acquire è attivo: lì la salita la fa già Calcolo_Aquire,
+        ' al proprio ritmo) NON deve far avanzare la fase di salita, ma deve
+        ' comunque RISCRIVERE sotto i campi col valore preciso attuale:
+        ' altrimenti, durante la salita, un'altra scrittura nel frattempo
+        ' (AggiornaBeaconLock, dal frame ACU simulato con livello
+        ' arrotondato a intero) resta l'ultima e il valore mostrato appare
+        ' bloccato anche se la salita interna continua — lo stesso problema
+        ' già risolto per la fase di oscillazione post-aggancio, presente
+        ' anche qui. Fuori Acquire, invece, il ciclo periodico passa
+        ' permettiAvvicinamento:=True (nessun altro chiamante può far
+        ' avanzare due volte), altrimenti il beacon resta fermo per sempre a
+        ' -95 (segnalato: "il valore beacon rimane a -95 e non si
+        ' incrementa").
+        ' Tetto della salita: deve superare la soglia più alta tra le due
+        ' impostate (il plateau attuale e la soglia di lock attuale), non
+        ' solo il plateau - altrimenti se la soglia di lock è più severa, il
+        ' livello simulato non riesce proprio a raggiungerla e il lock non
+        ' scatta mai (bug di simulazione, non di logica).
+        Dim tettoSalita As Double = Math.Max(sogliaPlateauAttuale, sogliaLockAttuale) + 5
+        If d_SimBeaconLivelloFisso <> 0 Then
+            ' Livello FISSO per i test (es. "la spirale deve ripetersi più
+            ' volte senza mai agganciare") - niente salita né oscillazione,
+            ' resta bloccato qui indipendentemente dalle soglie configurate.
+            d_SimBeaconLevel = d_SimBeaconLivelloFisso
+        ElseIf Not giaAgganciato AndAlso permettiAvvicinamento Then
+            ' Livello: sale sempre, indipendentemente dalla soglia di lock -
+            ' rappresenta il segnale che si rafforza man mano che l'antenna
+            ' si avvicina, visibile anche durante la ricerca a passo largo
+            ' (prima del primo aggancio).
+            d_SimBeaconLevel = Math.Min(tettoSalita, d_SimBeaconLevel + 0.6)
+
+            ' b_Lock (primo aggancio) va impostato SOLO quando il livello
+            ' supera davvero la soglia di lock attuale - prima era
+            ' incondizionato, quindi scattava fin dal primissimo tick,
+            ' saltando subito allo step Lock (0.1) e bypassando del tutto la
+            ' ricerca a passo largo configurata dall'operatore (segnalato in
+            ' test: lo step non poteva essere 0.1 fin dall'inizio, la prima
+            ' soglia non veniva mai davvero verificata).
+            If d_SimBeaconLevel >= sogliaLockAttuale Then
+                ' Errore: comincia a convergere solo DOPO il primo aggancio
+                ' (prima non è ancora "misurabile"), con un passo calcolato
+                ' sui tick che restano al livello per raggiungere la soglia
+                ' di arrivo (sogliaPlateauAttuale, cioè i_LockThr durante la
+                ' ricerca) - invece di un passo fisso che convergeva da solo
+                ' in pochi tick, lasciando poi il solo livello a salire per
+                ' minuti e dando l'impressione di un aggancio pieno "di
+                ' scatto". Minimo 20 tick fissi, non più 1: se il livello ha
+                ' già superato la soglia di arrivo nel momento in cui scatta
+                ' l'aggancio debole, il calcolo risultava negativo e si
+                ' fermava sempre a 1 tick, facendo convergere l'intero
+                ' errore in un solo tick (segnalato: "rimane il problema
+                ' della ricerca fine").
+                ' I 20 tick fissi valgono SOLO se il livello ha già superato
+                ' la soglia di arrivo: come minimo sempre attivo, negli
+                ' ultimi 20 tick prima della soglia rallentava l'errore, che
+                ' arrivava sotto g_ThrAz/g_ThrEl ben dopo il livello -
+                ' Augmented scattava così a -45 invece che appena superato
+                ' -50 (segnalato in test). Ora l'errore arriva al
+                ' bersaglio nello stesso tick in cui il livello tocca la
+                ' soglia.
+                Dim tickAllaSoglia As Double = (sogliaPlateauAttuale - d_SimBeaconLevel) / 0.6
+                Dim tickRimanenti As Double = If(tickAllaSoglia > 0, Math.Max(1, tickAllaSoglia), 20)
+                Dim passoErr As Double = Math.Max(0.05, (d_SimBeaconErr - sogliaErr * 0.5) / tickRimanenti)
+                d_SimBeaconErr = Math.Max(0, d_SimBeaconErr - passoErr)
+            End If
+        ElseIf giaAgganciato Then
+            ' Aggancio raggiunto: piccola variazione realistica, sempre
+            ' dentro le soglie, invece di restare fissa. Permessa da
+            ' qualunque chiamante, anche dal ciclo periodico.
+            d_SimBeaconLevel += (rndSimBeacon.NextDouble() * 2.0 - 1.0) * 0.3
+            d_SimBeaconLevel = Math.Max(sogliaPlateauAttuale, Math.Min(tettoSalita + 3, d_SimBeaconLevel))
+            d_SimBeaconErr += (rndSimBeacon.NextDouble() * 2.0 - 1.0) * 0.2
+            d_SimBeaconErr = Math.Max(0, Math.Min(sogliaErr * 0.8, d_SimBeaconErr))
+        End If
+        ' b_Lock = indicatore LOCK/UNLOCK generale (mostrato a schermo in
+        ' frmRicezione e codificato nel bit del messaggio ACU simulato) -
+        ' SEMPRE basato su ScalaMin (soglia minima del ricevitore, pannello
+        ' principale), INDIPENDENTEMENTE da un Acquire in corso o meno.
+        ' Chiarito dall'utente: "la scala minima interviene sempre a
+        ' prescindere dall'acquire, altrimenti non potremmo capire quando
+        ' il sistema è in lock" - NON deve dipendere da i_LockThr, che è la
+        ' soglia di ARRIVO della ricerca fine (vedi b_LockRicerca sotto).
+        ' Tolleranza 0.001 contro i minimi errori di arrotondamento delle
+        ' somme ripetute di 0.6 (es. -50.0000000000003 invece di -50 esatto).
+        b_Lock = (d_SimBeaconLevel >= ScalaMin - 0.001)
+        ' b_LockRicerca = SOLO diagnostico (non è più il gate d'ingresso
+        ' della ricerca, quello è b_Lock/ScalaMin sopra): indica se il
+        ' livello ha già superato i_LockThr, la soglia che determina
+        ' Augmented una volta avviata la ricerca fine.
+        b_LockRicerca = (d_SimBeaconLevel >= i_LockThr - 0.001)
+        ' Da qui in giù SEMPRE, qualunque sia stato il ramo sopra (anche
+        ' nessuno, se permettiAvvicinamento=False e non ancora agganciato):
+        ' riscrive i campi mostrati dal valore interno attuale, così resta
+        ' sempre l'ultima scrittura e non viene "bloccato" da altre fonti.
+        Dim tmpSimLevTxt As String = d_SimBeaconLevel.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
+        Dim tmpSimErrTxt As String = d_SimBeaconErr.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
+        s_Lev1 = tmpSimLevTxt
+        s_Lev = tmpSimLevTxt
+        ' LblLock.Text NON si scrive più qui: lo imposta AggiornaBeaconLock
+        ' dal bit "Rx alarms" (vBytes(13) BIT2) del messaggio ACU - lo stesso
+        ' percorso usato con hardware reale, codificato nel frame simulato
+        ' in frmMain.vb. Scriverlo anche qui andava in conflitto, con
+        ' AggiornaBeaconLock che vinceva sempre forzando "LOCK" (il bit era
+        ' fisso a 0 nel frame prima di questa correzione).
+        s_LevAz1 = tmpSimErrTxt
+        s_LevEl1 = tmpSimErrTxt
+        s_LevAz = tmpSimErrTxt
+        s_LevEl = tmpSimErrTxt
+    End Sub
+
     Public Function Calcolo_Aquire(Data1 As Date, mSec As Integer) As Boolean
         Dim rs_Acq As Object
         Dim s_program As String = "", i_lun As Integer, d_FineProg As Date
         '06/06/2022
         Dim tmpErrAz As System.Single, tmpErrEl As System.Single
+        Dim statoQuadratiEseguito As Integer = -1
+        Dim statoSpiraleEseguito As Integer = -1
         On Error Resume Next
         If IsDate(d_DataFineProg) Then
             d_FineProg = CDate(d_DataFineProg)
         End If
         i_ProgTrack = 1
-        '09/06/2022
-        ' TEMPORANEO (test): simulazione del ricevitore che trova il beacon
-        ' del satellite, in assenza di hardware reale collegato — per poter
-        ' testare anche il ramo "Lock"/Augmented dello Spiral Acquire.
-        ' Sia il livello di segnale (d_SimBeaconLevel) che l'errore Az/El
-        ' (d_SimBeaconErr) partono volutamente FUORI soglia — il livello
-        ' sotto -90, ben al di sotto di g_ThrAuto — e si avvicinano di un
-        ' piccolo passo ad ogni ciclo: il beacon simula un segnale debole
-        ' che sale e si centra lentamente, così la ricerca resta visibile
-        ' per diversi giri nel grafico "Acquire Trace" invece di agganciarsi
-        ' di colpo al 2° giro. Solo quando il livello supera g_ThrAuto E
-        ' l'errore scende sotto le soglie (g_ThrAz/g_ThrEl) si ottiene
-        ' l'aggancio pieno (OP_AUGMENTED), come avverrebbe con un segnale
-        ' reale in progressivo avvicinamento. Da rimuovere a test finito.
-        '
-        ' Scoperto durante il test: AggiornaBeaconLock (frmRicezione.
-        ' Visualizzazione.vb), chiamata dal ciclo periodico principale,
-        ' quando il canale ricevitore (RX) non è collegato sovrascrive
-        ' incondizionatamente s_Lev1/s_LevAz1/s_LevEl1 con i dati grezzi
-        ' ACU s_Lev/s_LevAz/s_LevEl — mai popolati in questo port, quindi
-        ' sempre "" — annullando il valore appena simulato qui prima che
-        ' arrivi a video. Si scrivono perciò anche i grezzi, con lo stesso
-        ' valore, e con separatore decimale invariante (Val() si aspetta
-        ' sempre il punto, indipendentemente dalla cultura corrente) così
-        ' il valore mostrato resta coerente qualunque sia il ramo preso.
-        If i_Spiral >= 1 Then
-            If d_SimBeaconErr = 0 Then d_SimBeaconErr = (g_ThrAz + g_ThrEl) * 4 ' valore iniziale, fuori soglia
-            d_SimBeaconErr = Math.Max(0, d_SimBeaconErr - 0.6) ' avvicinamento un po' più veloce, un passo per ciclo
-            If d_SimBeaconLevel = 0 Then d_SimBeaconLevel = -95 ' valore iniziale, sotto -90
-            d_SimBeaconLevel = Math.Min(g_ThrAuto + 5, d_SimBeaconLevel + 0.6) ' salita un po' più veloce, un passo per ciclo
-            b_Lock = True
-            Dim tmpSimLevTxt As String = d_SimBeaconLevel.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
-            Dim tmpSimErrTxt As String = d_SimBeaconErr.ToString("0.00", Globalization.CultureInfo.InvariantCulture)
-            s_Lev1 = tmpSimLevTxt
-            s_Lev = tmpSimLevTxt
-            frmRicezione.LblLock.Text = "LOCK"
-            s_LevAz1 = tmpSimErrTxt
-            s_LevEl1 = tmpSimErrTxt
-            s_LevAz = tmpSimErrTxt
-            s_LevEl = tmpSimErrTxt
-        End If
+        AvanzaSimulazioneBeacon()
+        ' NIENTE reset di b_LockOn/i_AzStep/i_ElStep quando b_Lock torna
+        ' False: b_Lock riflette il livello ISTANTANEO (serve per
+        ' l'indicatore LOCK/UNLOCK a schermo, sempre live), ma la fase di
+        ' ricerca è a due soli stati - passo largo prima del primo aggancio
+        ' debole, passo fine (Lock) dopo - e NON deve mai tornare indietro
+        ' per una singola oscillazione di rumore della simulazione: un
+        ' precedente tentativo di farlo (rimosso qui) faceva ripartire un
+        ' quadrato grande ad ogni minima discesa sotto soglia, anche con
+        ' l'antenna già ben puntata (segnalato: pattern a più quadrati
+        ' invece di un singolo aggancio pulito). b_LockOn resta un lucchetto
+        ' a senso unico, come nell'originale VB6: una volta scattato, il
+        ' passo fine resta finché non si esce dall'Acquire.
+        ' Gate della ricerca: entra con b_Lock (ScalaMin, "il satellite è
+        ' agganciato" - chiarito dall'utente), e la ricerca fine intorno al
+        ' punto trovato prosegue fino a superare i_LockThr, che a quel punto
+        ' determina Augmented - NON g_ThrAuto, che non è più usato per
+        ' questa decisione (b_LockRicerca/i_LockThr era stato usato come
+        ' gate d'ingresso in un tentativo precedente, sbagliato: era invece
+        ' la soglia di ARRIVO, non quella di partenza).
         If b_Lock Then
-            If Val(s_Lev1) > g_ThrAuto And RTrim(frmRicezione.LblLock.Text) = "LOCK" And Math.Abs(Val(s_LevAz1)) < g_ThrAz And Math.Abs(Val(s_LevEl1)) < g_ThrEl Then     '26/10/2022
+            If Val(s_Lev1) > i_LockThr And RTrim(frmRicezione.LblLock.Text) = "LOCK" And Math.Abs(Val(s_LevAz1)) < g_ThrAz And Math.Abs(Val(s_LevEl1)) < g_ThrEl Then     '26/10/2022
                 'controllo se è stato ricevuto il segnale
                 d_DataInizioProg = ""
                 MainForm.ProgramStatus = d_DataInizioProg
@@ -402,6 +552,11 @@ Module Ricezione
                     ' posizione attuale dell'antenna — se non è stato ancora
                     ' tracciato nulla (es. primissimo tick), resta la
                     ' posizione attuale come prima.
+                    WriteError(0, "Acquire: lock debole, ricentraggio. AzAttuale=" & frmRicezione.LblAzimuth.Text &
+                        " ElAttuale=" & frmRicezione.LblElevazione.Text &
+                        " d_MaxBeaconLevel=" & d_MaxBeaconLevel &
+                        " d_MaxBeaconAz=" & d_MaxBeaconAz & " d_MaxBeaconEl=" & d_MaxBeaconEl &
+                        " s_Lev1=" & s_Lev1)
                     If d_MaxBeaconLevel > Double.MinValue Then
                         g_AzTable = d_MaxBeaconAz
                         g_ElTable = d_MaxBeaconEl
@@ -425,9 +580,74 @@ Module Ricezione
                     '                    End If
                     frmRicezione.LblAzError.Text = Format$(AzOffset, "#0.0#")
                     frmRicezione.LblElError.Text = Format$(ElOffset, "#0.0#")
+                    ' Niente i_ConStato = 0: quello stato è il "lancio" vero e
+                    ' proprio di un quadrato (CalcolaPassoQuadrati, Case 0).
+                    ' In modo Program, g_AzTable/g_ElTable sono una posizione
+                    ' ASSOLUTA congelata in questo istante, mentre ogni Case
+                    ' della macchina a stati ricalcola la posizione dal TLE
+                    ' (Calcolo_Coordinate) e ci somma l'offset — col solo
+                    ' g_AzTable+i_AzStep qui, appena il satellite si muove di
+                    ' nuovo (anche di un solo tick) il punto di ricentraggio
+                    ' e il primo passo vero della ricerca fine non
+                    ' coincidono più (confermato dall'utente: "il calcolo
+                    ' fine non parte in maniera corretta perché prende delle
+                    ' coordinate che non tengono conto di quanto calcolato
+                    ' finora"). Fix: anche qui si richiama Calcolo_Coordinate
+                    ' per avere la posizione LIVE del satellite, e si usa
+                    ' l'OFFSET (non la posizione assoluta) del punto di
+                    ' massimo beacon — stesso riferimento "vivo" usato da
+                    ' tutti i Case successivi.
+                    If b_Acquire Then
+                        frmRicezione.LblAzimuth.Text = Format$(g_AzTable + i_AzStep, "000.000")
+                        frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
+                        i_AzOffsetLock = Format$(i_AzStep, "#0.0#")
+                        i_ElOffsetLock = 0
+                    Else
+                        ' i_AzOffsetLock/i_ElOffsetLock vanno impostati PRIMA
+                        ' di chiamare Calcolo_Coordinate: è lei a sommarli
+                        ' alla posizione live (quando i_ProgTrack=1, sempre
+                        ' vero in Acquire) scrivendo direttamente
+                        ' LblAzimuth/Elevazione - farlo anche qui dopo,
+                        ' sull'offset VECCHIO già incluso, mescolava un
+                        ' offset vecchio e uno nuovo nello stesso valore.
+                        i_AzOffsetLock = Format$(d_MaxBeaconAzOffset + i_AzStep, "#0.0#")
+                        i_ElOffsetLock = Format$(d_MaxBeaconElOffset, "#0.0#")
+                        Calcolo_Coordinate(Data1, mSec)
+                    End If
                     frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
                     frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
-                    i_ConStato = 0
+                    i_ConStato = 1
+                    i_Step = 1
+                    ' Spirale circolare: i_ConStato=1 lì NON è "primo lato"
+                    ' (come nei Quadrati) ma "torna al centro", seguito da
+                    ' i_ConStato=2 che aspetta b_RangeAz And b_RangeEl -
+                    ' appena azzerati qui sotto, quindi la ricerca restava
+                    ' bloccata per sempre al lock debole (segnalato: "la
+                    ' ricerca si è bloccata sulla soglia della ricerca
+                    ' debole"). Si riparte invece con una spirale NUOVA
+                    ' (angolo 0) a passo Lock, centrata sul punto di
+                    ' massimo beacon.
+                    ' Centro della ricerca fine, per ENTRAMBI i modi (la
+                    ' Spirale ci gira intorno, i Quadrati ci rientrano a
+                    ' fine quadrato in Case 7 e ripartono da lì in Case 0 -
+                    ' prima tornavano all'offset 0, cioè al centro TLE
+                    ' originale, già dal secondo quadrato fine).
+                    If b_Acquire Then
+                        ' Preset: g_AzTable/g_ElTable sono già stati
+                        ' ricentrati sul massimo qui sopra.
+                        d_SpiralCentroAz = 0
+                        d_SpiralCentroEl = 0
+                    Else
+                        ' Program: centro come offset rispetto alla
+                        ' posizione TLE live (Calcolo_Coordinate).
+                        d_SpiralCentroAz = d_MaxBeaconAzOffset
+                        d_SpiralCentroEl = d_MaxBeaconElOffset
+                    End If
+                    If i_ModoAcquire <> MODO_ACQUIRE_QUADRATI Then
+                        i_ConStato = 0
+                        d_SpiralAngolo = 0
+                        frmRicezione.TmrSpiralAcquire.Interval = CInt(If(i_InterAcq > 0, i_InterAcq, 3) * 1000)
+                    End If
                     '                    dbOrbite.Execute "DELETE * from tmpEffemeridi"
                     '                     rs_Acq = dbOrbite.OpenRecordset("tmpEffemeridi", dbOpenDynaset)
                     '                    rs_Acq.AddNew
@@ -449,38 +669,37 @@ Module Ricezione
                 End If
             End If
         End If
-        'Sistema in time out posiziona l'antenna nelle cordinate iniziali
+        ' TimeOut di Acquire scaduto: chiude la ricerca e passa in Stand By
+        ' (comando reale "S79" via CmdSTBY_Click, la stessa funzione usata
+        ' dal pulsante Stand By - non duplica guardie/invio), invece di
+        ' limitarsi a posizionare l'antenna e restare in Command Position.
         If d_FineProg <= DateAdd("h", -i_Off, Now) Then
             i_ProgTrack = 0
-            i_AzOffsetLock = 0
-            i_ElOffsetLock = 0
-            AzOff = 0
-            ElOff = 0
-            frmRicezione.LblAzErrEn.Text = "0"
-            frmRicezione.LblElErrEn.Text = "0"
-            frmRicezione.LblAzErrEn.Visible = False
-            frmRicezione.LblElErrEn.Visible = False
-            frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
-            frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-            AzCalc = g_AzTable
-            ElCalc = g_ElTable
-            frmRicezione.LblAzError.Text = Format$(AzOffset, "#0.0#")
-            frmRicezione.LblElError.Text = Format$(ElOffset, "#0.0#")
-            s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-            i = Len(s_program) + 6
-            SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
-            b_int(ACU) = True
-            b_Ricezione(ACU) = False
-            InvioACU(SEND_ACU)
-            i_Status = OP_COMMANDPOSITION
-            frmRicezione.LblCommand.Text = "Command Position"
-            '            frmRicezione.MnuMain(15).Visible = False
             frmRicezione.TmrSpiralAcquire.Enabled = False
-            '            Unload frmVisualAcquire
+            frmRicezione.CmdSTBY_Click(Nothing, EventArgs.Empty)
+            ' Chiude anche la finestra Visual Acquire, se aperta - senza
+            ' instanziarne una nuova (pattern già usato in
+            ' TmrSpiralAcquire_Tick per lo stesso motivo: "FrmVisualAcquire"
+            ' da solo, su un'istanza di default VB.NET mai aperta, ne
+            ' creerebbe una nascosta solo per leggerne/chiuderla).
+            For Each f As Form In My.Application.OpenForms
+                If TypeOf f Is FrmVisualAcquire Then
+                    f.Close()
+                    Exit For
+                End If
+            Next
             Exit Function
         End If
         If i_ModoAcquire = MODO_ACQUIRE_QUADRATI Then
+            ' Stato PRIMA della chiamata: CalcolaPassoQuadrati incrementa
+            ' i_ConStato internamente a fine Case (es. Case 7 "torna al
+            ' centro" lo porta a 8 non appena finito), quindi usare il
+            ' valore DOPO la chiamata per decidere se registrare il punto
+            ' (sotto, "registraPuntoGrafico") escludeva sistematicamente
+            ' proprio il punto appena calcolato dal Case 7: il centro non
+            ' veniva mai disegnato né inserito, sembrando che la ricerca non
+            ' fosse mai "tornata al centro" per reinizializzare.
+            statoQuadratiEseguito = i_ConStato
             CalcolaPassoQuadrati(Data1, mSec)
             GoTo Rangeout
         End If
@@ -494,6 +713,14 @@ Module Ricezione
         '   0 = ricerca in corso (la spirale si allarga)
         '   1 = comando di ritorno al centro appena inviato
         '   2 = verifica che l'antenna abbia raggiunto il centro entro CoorAcq
+        ' Stesso bug già risolto per i Quadrati (statoQuadratiEseguito):
+        ' questo blocco incrementa i_ConStato internamente (es. qui sotto
+        ' i_ConStato=1 diventa 2 a fine blocco), quindi usare i_ConStato
+        ' DOPO per decidere se registrare il punto (registraPuntoGrafico)
+        ' escludeva sempre il punto appena calcolato dal ramo appena
+        ' eseguito - in particolare il rientro al centro (i_ConStato=1)
+        ' non veniva mai registrato, perché letto già a 2.
+        statoSpiraleEseguito = i_ConStato
         If i_ConStato = 0 Then
             ' Passo angolare adattivo: con un passo fisso in gradi, ogni giro
             ' ha sempre lo stesso numero di punti, ma la circonferenza cresce
@@ -527,8 +754,8 @@ Module Ricezione
             If b_RangeAz Then raggioAz = maxRaggioAz
             If b_RangeEl Then raggioEl = maxRaggioEl
 
-            i_AzOffsetLock = Format$(raggioAz * Math.Cos(d_SpiralAngolo), "#0.0#")
-            i_ElOffsetLock = Format$(raggioEl * Math.Sin(d_SpiralAngolo), "#0.0#")
+            i_AzOffsetLock = Format$(d_SpiralCentroAz + raggioAz * Math.Cos(d_SpiralAngolo), "#0.0#")
+            i_ElOffsetLock = Format$(d_SpiralCentroEl + raggioEl * Math.Sin(d_SpiralAngolo), "#0.0#")
 
             If b_Acquire Then
                 'siamo in preset
@@ -546,6 +773,13 @@ Module Ricezione
             Else
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
+                ' Stesso fix portato dalla ricerca a Quadrati: Calcolo_Coordinate
+                ' dà la posizione LIVE del satellite (che si muove) e aggiunge
+                ' già da sola i_AzOffsetLock/i_ElOffsetLock (appena calcolato
+                ' sopra dalla formula raggio*cos/sin), visto che i_ProgTrack=1
+                ' per tutta la durata di Acquire - sommarlo di nuovo qui
+                ' raddoppiava il passo della spirale (confermato in test sui
+                ' Quadrati, stesso bug).
                 Calcolo_Coordinate(Data1, mSec)
             End If
 
@@ -558,6 +792,19 @@ Module Ricezione
             ' Fine della spirale: l'antenna torna al centro (stesso
             ' comportamento del vecchio Case 7, "l'antenna non viene spostata
             ' oltre, torna al punto calcolato da Program/Preset").
+            ' Stesso fix portato da Quadrati Case 7: un solo comando copre
+            ' una distanza pari a diversi passi di ricerca - un'antenna
+            ' reale impiegherebbe il tempo di quei passi, non un solo
+            ' tick. Si allunga l'intervallo del prossimo tick (quello che
+            ' in i_ConStato=2 verifica l'arrivo) in proporzione, calcolato
+            ' PRIMA di azzerare i_AzOffsetLock/i_ElOffsetLock qui sotto
+            ' (i valori sono ancora la distanza dal centro). Ripristinato
+            ' in i_ConStato=2 al successo della verifica.
+            Dim stepsPrevistiAzSp As Double = If(i_AzStep > 0, Math.Abs(CDbl(i_AzOffsetLock) - d_SpiralCentroAz) / i_AzStep, 0)
+            Dim stepsPrevistiElSp As Double = If(i_ElStep > 0, Math.Abs(CDbl(i_ElOffsetLock) - d_SpiralCentroEl) / i_ElStep, 0)
+            Dim stepsPrevistiSp As Double = Math.Max(1, Math.Max(stepsPrevistiAzSp, stepsPrevistiElSp))
+            Dim intervalloNormaleMsSp As Integer = CInt(If(i_InterAcq > 0, i_InterAcq, 3) * 1000)
+            frmRicezione.TmrSpiralAcquire.Interval = CInt(stepsPrevistiSp * intervalloNormaleMsSp)
             If b_Acquire Then
                 'siamo in preset
                 frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
@@ -574,12 +821,15 @@ Module Ricezione
                 b_Ricezione(ACU) = False
                 InvioACU(SEND_ACU)
             Else
-                frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
-                frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                i_AzOffsetLock = 0
+                ' Centro della spirale (0 prima del lock debole, offset del
+                ' massimo beacon dopo), non sempre 0.
+                i_AzOffsetLock = d_SpiralCentroAz
                 frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                i_ElOffsetLock = 0
+                i_ElOffsetLock = d_SpiralCentroEl
                 frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                ' Calcolo_Coordinate dà la posizione live del satellite più
+                ' l'offset del centro: "torna al centro" seguendo il
+                ' movimento TLE invece di un g_AzTable/El congelato.
                 Calcolo_Coordinate(Data1, mSec)
             End If
             i_ConStato = 2
@@ -603,23 +853,39 @@ Module Ricezione
                 d_SpiralAngolo = 0
                 i_ConStato = 0
                 i_Spiral += 1
+                ' Ripristina l'intervallo normale: il rientro al centro
+                ' (i_ConStato=1) lo aveva allungato per dare all'antenna
+                ' il tempo reale di coprire la distanza.
+                frmRicezione.TmrSpiralAcquire.Interval = CInt(If(i_InterAcq > 0, i_InterAcq, 3) * 1000)
             End If
         End If
 Rangeout:
         ' TEMPORANEO (test): controllo elevazione minima disattivato. Da ripristinare rimettendo ">= g_ElMin" al posto di "True".
         If True Then
-            ' Filtrato su source='ACQUIRE': senza, MoveFirst/Delete poteva
-            ' colpire una riga scritta da Effemeridi (se calcolata mentre
-            ' l'acquire è attivo), e rs_Acq!Orbite sarebbe DBNull per quella
-            ' riga (Effemeridi non valorizza quella colonna), causando un
-            ' errore di cast nella sottrazione sottostante.
-            rs_Acq = dbOrbite.OpenRecordset("SELECT * FROM tmpEffemeridi WHERE source = 'ACQUIRE'", dbOpenDynaset)
+            ' SQL diretto invece del wrapper DAO (OpenRecordset/AddNew/Update/
+            ' Delete): ogni Update()/Delete() del wrapper ricaricava l'INTERA
+            ' tabella tmpEffemeridi in memoria (3-4 query complete per tick,
+            ' una per ogni singola riga toccata) — costo che cresce con il
+            ' numero di punti accumulati. Causava un rallentamento progressivo
+            ' osservato in test (intervalli tra i tick di TmrSpiralAcquire
+            ' saliti da ~3s a 7-8s in pochi minuti). Qui una DELETE e una
+            ' INSERT dirette, ciascuna una singola query indipendente dalla
+            ' dimensione della tabella.
+            Dim connAcq As SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
             If i_Spiral > 2 Then                          'Cancella anche se in Lock
-                If i_Spiral - rs_Acq!Orbite >= 2 Then
-                    rs_Acq.MoveFirst
-                    rs_Acq.Delete
-                    rs_Acq.Update
-                End If
+                ' Una sola riga alla volta (la più vecchia tra quelle di
+                ' almeno 2 giri indietro), non tutte insieme: con la DELETE
+                ' in blocco il quadrato più vecchio spariva di colpo non
+                ' appena partiva il terzo - cancellazione graduale, un
+                ' punto per tick, finché quel giro non è sparito del tutto
+                ' (coerente con l'arrivo di nuovi punti un tick alla volta).
+                Using cmdDel As New SQLiteCommand(
+                    "DELETE FROM tmpEffemeridi WHERE rowid = (" &
+                    "SELECT rowid FROM tmpEffemeridi WHERE source = 'ACQUIRE' AND Orbite <= @sogliaOrbite " &
+                    "ORDER BY [date], [Time] LIMIT 1)", connAcq)
+                    cmdDel.Parameters.AddWithValue("@sogliaOrbite", i_Spiral - 2)
+                    cmdDel.ExecuteNonQuery()
+                End Using
             End If
             ' "i_ConStato < 2" era corretto solo per la spirale circolare
             ' (3 soli stati: 0=ricerca, 1=ritorno al centro, 2=verifica).
@@ -630,45 +896,86 @@ Rangeout:
             ' punti subito dopo il Case 1 — osservato in test: NPunti
             ' fermo a 2 per l'intera ricerca, anche con l'antenna ancora in
             ' movimento sui lati successivi del quadrato.
+            ' Per i Quadrati si usa lo stato con cui CalcolaPassoQuadrati è
+            ' stata chiamata (statoQuadratiEseguito), non i_ConStato attuale:
+            ' quest'ultimo è già stato incrementato dal Case appena eseguito
+            ' (es. il Case 7 che porta la posizione al centro finisce
+            ' impostando i_ConStato=8), quindi usarlo qui escluderebbe
+            ' sempre il punto appena calcolato dal Case che l'ha prodotto.
+            ' Case 7 (rientro al centro) è incluso (< 8, non < 7): a
+            ' differenza di prima, la riga registra ora l'intervallo REALE
+            ' di quel tick (vedi @intv sotto), non più il passo normale
+            ' costante - quindi non è più un dato falsato. Il grafico
+            ' (FrmVisualAcquire) riconosce comunque il salto (distanza e
+            ' tempo entrambi fuori soglia, vedi saltoDistanza/i_Intervallo)
+            ' e lo disegna come punto isolato (nessuna linea dal quadrato
+            ' precedente) - serve solo da marcatore visivo del centro da
+            ' cui riparte la ricerca, così il primo lato del nuovo
+            ' quadrato risulta visibilmente collegato ad esso.
             Dim registraPuntoGrafico As Boolean =
-                If(i_ModoAcquire = MODO_ACQUIRE_QUADRATI, i_ConStato < 8, i_ConStato < 2)
+                If(i_ModoAcquire = MODO_ACQUIRE_QUADRATI, statoQuadratiEseguito < 8, statoSpiraleEseguito < 2)
             If registraPuntoGrafico Then ' fasi di ricerca/movimento; ultimo stato di ciascun modo = sola verifica, nessun nuovo comando
                 If IsNumeric(frmRicezione.LblAzimuth.Text) And IsNumeric(frmRicezione.LblElevazione.Text) Then
                     ' Tiene traccia del punto con il livello beacon più alto
-                    ' visitato durante la scansione del quadrato corrente —
-                    ' usato da CalcolaPassoQuadrati (Case 8) per ricentrare lì
-                    ' la ricerca successiva se il quadrato finisce senza
-                    ' aggancio.
-                    If i_ModoAcquire = MODO_ACQUIRE_QUADRATI AndAlso IsNumeric(s_Lev1) Then
+                    ' visitato durante la scansione corrente (Quadrati o
+                    ' Spirale) — usato da CalcolaPassoQuadrati (Case 8) per
+                    ' ricentrare lì la ricerca successiva se il quadrato
+                    ' finisce senza aggancio, e dal ricentraggio al lock
+                    ' debole in Calcolo_Aquire.
+                    If IsNumeric(s_Lev1) Then
                         If Val(s_Lev1) > d_MaxBeaconLevel Then
                             d_MaxBeaconLevel = Val(s_Lev1)
                             d_MaxBeaconAz = CDbl(frmRicezione.LblAzimuth.Text)
                             d_MaxBeaconEl = CDbl(frmRicezione.LblElevazione.Text)
+                            ' Offset (non posizione assoluta) rispetto al
+                            ' riferimento usato in quel momento - in modo
+                            ' Program il riferimento è la posizione LIVE del
+                            ' satellite (Calcolo_Coordinate), che si muove:
+                            ' la posizione assoluta sopra diventa stale non
+                            ' appena il satellite si sposta. Il ricentraggio
+                            ' in Calcolo_Aquire userà questo offset insieme a
+                            ' un Calcolo_Coordinate fresco invece della
+                            ' posizione assoluta congelata.
+                            d_MaxBeaconAzOffset = CDbl(i_AzOffsetLock)
+                            d_MaxBeaconElOffset = CDbl(i_ElOffsetLock)
                         End If
                     End If
-                    ' Azzera Err prima dell'AddNew: tutta la funzione è in "On
+                    ' Azzera Err prima dell'insert: tutta la funzione è in "On
                     ' Error Resume Next" (Try/Catch non ammesso nello stesso
                     ' metodo, BC30544), quindi un Err.Number residuo di
                     ' un'istruzione precedente verrebbe attribuito per errore
                     ' a questo blocco.
                     Err.Clear()
-                    rs_Acq.AddNew
-                    rs_Acq!date = Data1.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture)
-                    rs_Acq!Time = Data1.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
-                    rs_Acq!Azimuth = Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000")
-                    rs_Acq!Elevation = Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000")
-                    rs_Acq!Long = i_AzOffsetLock
-                    rs_Acq!lat = i_ElOffsetLock
-                    rs_Acq!Orbite = i_Spiral
-                    ' Mai valorizzata: la colonna restava NULL, e
-                    ' SelezionaSingoliDati (FrmVisualAcquire) la legge con
-                    ' CSng(DyVisual("Intervallo")) sul primo punto —
-                    ' CSng(DBNull) lancia InvalidCastException, interrompendo
-                    ' l'intero ridisegno del grafico ad ogni redraw.
-                    rs_Acq!Intervallo = i_InterAcq
-                    rs_Acq!source = "ACQUIRE"
-                    rs_Acq.Update
-                    rs_Acq.Close
+                    ' Intervallo: mai lasciare NULL, SelezionaSingoliDati
+                    ' (FrmVisualAcquire) la legge con CSng(DyVisual("Intervallo"))
+                    ' sul primo punto — CSng(DBNull) lancia InvalidCastException,
+                    ' interrompendo l'intero ridisegno del grafico ad ogni redraw.
+                    Using cmdIns As New SQLiteCommand(
+                        "INSERT INTO tmpEffemeridi ([date], [Time], Azimuth, Elevation, [Long], lat, Orbite, Intervallo, source) " &
+                        "VALUES (@d, @t, @az, @el, @lo, @la, @orb, @intv, 'ACQUIRE')", connAcq)
+                        cmdIns.Parameters.AddWithValue("@d", Data1.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture))
+                        cmdIns.Parameters.AddWithValue("@t", Data1.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture))
+                        ' Format$ usa il separatore decimale della cultura CORRENTE
+                        ' (virgola su FOC6, che non forza il punto come BTS1) - il
+                        ' valore testuale "256,994" risultante non è un numero
+                        ' valido per SQLite (si aspetta il punto), che lo tronca
+                        ' alla sola parte intera ("256"), perdendo tutto il passo
+                        ' fine 0.1° - causa del "salto" visto nel grafico/nelle
+                        ' coordinate (il grado intero cambia solo ogni 10 passi).
+                        ' ToString con InvariantCulture, come già fatto per @d/@t.
+                        cmdIns.Parameters.AddWithValue("@az", CDbl(frmRicezione.LblAzimuth.Text).ToString("000.000", System.Globalization.CultureInfo.InvariantCulture))
+                        cmdIns.Parameters.AddWithValue("@el", CDbl(frmRicezione.LblElevazione.Text).ToString("00.000", System.Globalization.CultureInfo.InvariantCulture))
+                        cmdIns.Parameters.AddWithValue("@lo", i_AzOffsetLock)
+                        cmdIns.Parameters.AddWithValue("@la", i_ElOffsetLock)
+                        cmdIns.Parameters.AddWithValue("@orb", i_Spiral)
+                        ' Intervallo REALE di questo tick (frmRicezione.TmrSpiralAcquire.Interval
+                        ' è già stato eventualmente allungato da Case 7 a questo
+                        ' punto), non il passo nominale i_InterAcq: per il punto
+                        ' di rientro al centro i due non coincidono, e scrivere
+                        ' il nominale falserebbe il dato registrato.
+                        cmdIns.Parameters.AddWithValue("@intv", CSng(frmRicezione.TmrSpiralAcquire.Interval) / 1000.0F)
+                        cmdIns.ExecuteNonQuery()
+                    End Using
                     If Err.Number <> 0 Then
                         WriteError(0, "Calcolo_Aquire: scrittura punto tmpEffemeridi fallita - " & Err.Number & " " & Err.Description)
                         Err.Clear()
@@ -726,9 +1033,11 @@ Rangeout:
                 'siamo in preset
                 frmRicezione.LblAzimuth.Text = Format$(g_AzTable + i_AzStep, "000.000")
                 frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                i_AzOffsetLock = Format$(i_AzStep, "#0.0#")
+                ' Relativo al centro della ricerca (0 prima del lock debole,
+                ' offset del punto di massimo beacon dopo, in Program).
+                i_AzOffsetLock = Format$(d_SpiralCentroAz + i_AzStep, "#0.0#")
                 frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                i_ElOffsetLock = 0
+                i_ElOffsetLock = Format$(d_SpiralCentroEl, "#0.0#")
                 frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
                 If b_Acquire Then
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -739,6 +1048,16 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
+                    ' Calcolo_Coordinate ricalcola dal TLE la posizione del
+                    ' satellite, che nel frattempo si è mosso nella sua
+                    ' orbita (essenziale in modo Program: la ricerca deve
+                    ' seguire il satellite, non restare ferma come in
+                    ' Preset). NON sommare di nuovo i_AzOffsetLock/
+                    ' i_ElOffsetLock qui: Calcolo_Coordinate li aggiunge già
+                    ' internamente (quando i_ProgTrack=1, sempre vero in
+                    ' Acquire) prima di scrivere LblAzimuth/Elevazione -
+                    ' farlo anche qui raddoppiava il passo di ricerca (0.6°
+                    ' invece di 0.3° a tick, confermato in test).
                     Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_ConStato += 1
@@ -747,6 +1066,17 @@ Rangeout:
                 'primo lato
                 If i_Quadrati * i_ElStep >= i_ElRange Then
                     b_RangeEl = True
+                End If
+                ' Simmetrico al controllo El sopra: se non si controlla
+                ' anche Az qui (invece di aspettare Case 5/6, un intero
+                ' giro più tardi), quando è El a raggiungere il range per
+                ' primo i Case 2/3/4 di questo giro vengono eseguiti alla
+                ' lunghezza non ancora limitata (i_Quadrati*2, che cresce
+                ' giro dopo giro) - producendo un lato anomalmente più
+                ' lungo di tutti i quadrati già annidati, prima che il
+                ' controllo generale di fondo forzi il rientro al centro.
+                If i_Quadrati * i_AzStep >= i_AzRange Then
+                    b_RangeAz = True
                 End If
                 frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
@@ -761,6 +1091,8 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
+                    ' NON sommare di nuovo l'offset: Calcolo_Coordinate lo
+                    ' include già (vedi Case 0).
                     Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Step -= 1
@@ -787,6 +1119,8 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
+                    ' NON sommare di nuovo l'offset: Calcolo_Coordinate lo
+                    ' include già (vedi Case 0).
                     Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Step -= 1
@@ -814,6 +1148,8 @@ Rangeout:
                         b_Ricezione(ACU) = False
                         InvioACU(SEND_ACU)
                     Else
+                        ' NON sommare di nuovo l'offset: Calcolo_Coordinate
+                        ' lo include già (vedi Case 0).
                         Calcolo_Coordinate(Data1, mSec)
                     End If
                 Else
@@ -858,6 +1194,8 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
+                    ' NON sommare di nuovo l'offset: Calcolo_Coordinate lo
+                    ' include già (vedi Case 0).
                     Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Step -= 1
@@ -911,6 +1249,8 @@ Rangeout:
                         b_Ricezione(ACU) = False
                         InvioACU(SEND_ACU)
                     Else
+                        ' NON sommare di nuovo l'offset: Calcolo_Coordinate
+                        ' lo include già (vedi Case 0).
                         Calcolo_Coordinate(Data1, mSec)
                     End If
                     i_Quadrati += 1
@@ -934,6 +1274,8 @@ Rangeout:
                         b_Ricezione(ACU) = False
                         InvioACU(SEND_ACU)
                     Else
+                        ' NON sommare di nuovo l'offset: Calcolo_Coordinate
+                        ' lo include già (vedi Case 0).
                         Calcolo_Coordinate(Data1, mSec)
                     End If
                     i_Step -= 1
@@ -964,6 +1306,8 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
+                    ' NON sommare di nuovo l'offset: Calcolo_Coordinate lo
+                    ' include già (vedi Case 0).
                     Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_Quadrati += 1
@@ -975,11 +1319,26 @@ Rangeout:
                 i_ConStato = 1
             Case 7
                 'fine del quadrato. L'antenna non viene spostata oltre: torna al centro
+                ' Un solo comando (il centro, via TLE) copre però una
+                ' distanza pari a diversi passi di ricerca: un'antenna reale
+                ' impiegherebbe il tempo di quei passi per arrivarci, non un
+                ' solo tick. Si allunga l'intervallo del prossimo tick
+                ' (quello che in Case 8 verifica l'arrivo) in proporzione,
+                ' calcolato PRIMA di azzerare i_AzOffsetLock/i_ElOffsetLock
+                ' qui sotto (que' i valori sono ancora la distanza dal
+                ' centro). Ripristinato in Case 8 al successo della verifica.
+                Dim stepsPrevistiAz As Double = If(i_AzStep > 0, Math.Abs(CDbl(i_AzOffsetLock) - d_SpiralCentroAz) / i_AzStep, 0)
+                Dim stepsPrevistiEl As Double = If(i_ElStep > 0, Math.Abs(CDbl(i_ElOffsetLock) - d_SpiralCentroEl) / i_ElStep, 0)
+                Dim stepsPrevisti As Double = Math.Max(1, Math.Max(stepsPrevistiAz, stepsPrevistiEl))
+                Dim intervalloNormaleMs As Integer = CInt(If(i_InterAcq > 0, i_InterAcq, 3) * 1000)
+                frmRicezione.TmrSpiralAcquire.Interval = CInt(stepsPrevisti * intervalloNormaleMs)
                 frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
                 frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                i_AzOffsetLock = 0
+                ' Rientro al centro della ricerca, non all'offset 0 (vedi
+                ' d_SpiralCentroAz/El, impostato al lock debole).
+                i_AzOffsetLock = d_SpiralCentroAz
                 frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                i_ElOffsetLock = 0
+                i_ElOffsetLock = d_SpiralCentroEl
                 frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
                 If b_Acquire Then
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -990,6 +1349,10 @@ Rangeout:
                     b_Ricezione(ACU) = False
                     InvioACU(SEND_ACU)
                 Else
+                    ' Offset azzerato sopra: Calcolo_Coordinate + 0 dà
+                    ' semplicemente la posizione live del satellite, cioè
+                    ' davvero "torna al centro" seguendo il movimento TLE.
+                    ' (Non sommare l'offset di nuovo: lo include già lei.)
                     Calcolo_Coordinate(Data1, mSec)
                 End If
                 i_ConStato += 1
@@ -998,12 +1361,25 @@ Rangeout:
                 If b_RangeAz And b_RangeEl Then
                     Dim tmpErrAz As Single = Format$(Val(frmRicezione.TxtAz.Text) - CDbl(frmRicezione.LblAzimuth.Text), "0.000")
                     Dim tmpErrEl As Single = Format$(Val(frmRicezione.TxtEl.Text) - CDbl(frmRicezione.LblElevazione.Text), "0.000")
-                    If Math.Abs(tmpErrAz) <= Math.Abs(CoorAcq) AndAlso Math.Abs(tmpErrEl) <= Math.Abs(CoorAcq) Then
+                    ' TEMPORANEO (test): stesso problema già diagnosticato per
+                    ' la Spirale (vedi Calcolo_Aquire, i_ConStato=2) - l'ACU
+                    ' simulato non risponde davvero ai comandi, quindi
+                    ' TxtAz/TxtEl non convergono mai entro CoorAcq e lo stato
+                    ' resta bloccato in verifica per sempre, mai reinizializzando
+                    ' la ricerca. Bypassato come là ("True OrElse" invece di
+                    ' "False AndAlso" perché qui il ramo di successo è quello a
+                    ' cui vogliamo sempre entrare). Da ripristinare togliendo
+                    ' "True OrElse" a test finito.
+                    If True OrElse (Math.Abs(tmpErrAz) <= Math.Abs(CoorAcq) AndAlso Math.Abs(tmpErrEl) <= Math.Abs(CoorAcq)) Then
                         b_RangeAz = False
                         b_RangeEl = False
                         i_Quadrati = 1
                         i_ConStato = 0
                         i_Spiral += 1
+                        ' Ripristina l'intervallo normale: il rientro al
+                        ' centro (Case 7) lo aveva allungato per dare
+                        ' all'antenna il tempo reale di coprire la distanza.
+                        frmRicezione.TmrSpiralAcquire.Interval = CInt(If(i_InterAcq > 0, i_InterAcq, 3) * 1000)
                     End If
                     ' Se la tolleranza non è soddisfatta lo stato resta
                     ' invariato: al prossimo tick si rientra in Case 8 e si
@@ -1075,35 +1451,25 @@ Rangeout:
                 End If
             End If
         End If
-        'Sistema in time out posiziona l'antenna nelle cordinate iniziali
+        ' TimeOut di Acquire scaduto: chiude la ricerca e passa in Stand By
+        ' (comando reale "S79" via CmdSTBY_Click, la stessa funzione usata
+        ' dal pulsante Stand By - non duplica guardie/invio), invece di
+        ' limitarsi a posizionare l'antenna e restare in Command Position.
         If d_FineProg <= DateAdd("h", -i_Off, Now) Then
             i_ProgTrack = 0
-            i_AzOffsetLock = 0
-            i_ElOffsetLock = 0
-            AzOff = 0
-            ElOff = 0
-            frmRicezione.LblAzErrEn.Text = "0"
-            frmRicezione.LblElErrEn.Text = "0"
-            frmRicezione.LblAzErrEn.Visible = False
-            frmRicezione.LblElErrEn.Visible = False
-            frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
-            frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-            AzCalc = g_AzTable
-            ElCalc = g_ElTable
-            frmRicezione.LblAzError.Text = Format$(AzOffset, "#0.0#")
-            frmRicezione.LblElError.Text = Format$(ElOffset, "#0.0#")
-            s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
-                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
-            i = Len(s_program) + 6
-            SEND_ACU = CheckSum(Format$(i, "00") + Mid$(s_program, 1, Len(s_program)))
-            b_int(ACU) = True
-            b_Ricezione(ACU) = False
-            InvioACU(SEND_ACU)
-            i_Status = OP_COMMANDPOSITION
-            frmRicezione.LblCommand.Text = "Command Position"
-            '            frmRicezione.MnuMain(15).Visible = False
             frmRicezione.TmrSpiralAcquire.Enabled = False
-            '            Unload frmVisualAcquire
+            frmRicezione.CmdSTBY_Click(Nothing, EventArgs.Empty)
+            ' Chiude anche la finestra Visual Acquire, se aperta - senza
+            ' instanziarne una nuova (pattern già usato in
+            ' TmrSpiralAcquire_Tick per lo stesso motivo: "FrmVisualAcquire"
+            ' da solo, su un'istanza di default VB.NET mai aperta, ne
+            ' creerebbe una nascosta solo per leggerne/chiuderla).
+            For Each f As Form In My.Application.OpenForms
+                If TypeOf f Is FrmVisualAcquire Then
+                    f.Close()
+                    Exit For
+                End If
+            Next
             Exit Function
         End If
         Select Case i_ConStato
@@ -1129,6 +1495,12 @@ Rangeout:
                 'primo lato
                 If i_Quadrati * i_ElStep >= i_ElRange Then
                     b_RangeEl = True
+                End If
+                ' Simmetrico al controllo El sopra - vedi il commento
+                ' identico nell'altra copia di questo state-machine
+                ' (CalcolaPassoQuadrati, Case 1).
+                If i_Quadrati * i_AzStep >= i_AzRange Then
+                    b_RangeAz = True
                 End If
                 frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)

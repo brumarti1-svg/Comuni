@@ -208,13 +208,28 @@ Module Predisposizioni
     Public b_RangeAz As Boolean, b_RangeEl As Boolean     'Variabili per il controllo del Range
     '09/06/2022
     Public b_Lock As Boolean
-    ' TEMPORANEO (test): errore di beacon simulato, usato da Calcolo_Aquire
-    ' per avvicinarsi gradualmente alla soglia invece di agganciarsi di colpo.
-    ' Da rimuovere insieme al resto della simulazione quando il test finisce.
+    ' Decisione INTERNA della ricerca Acquire (passo largo -> passo fine),
+    ' basata su i_LockThr - separata da b_Lock (indicatore generale a
+    ' schermo, sempre basato su ScalaMin indipendentemente dall'Acquire).
+    Public b_LockRicerca As Boolean
+    ' Flag di inizializzazione per AvanzaSimulazioneBeacon (Ricezione.vb):
+    ' False all'avvio processo e ad ogni nuovo Acquire (frmAcquire.vb) per
+    ' far ripartire d_SimBeaconErr/d_SimBeaconLevel dai valori iniziali.
+    Public simBeaconInizializzato As Boolean
+    ' Errore di beacon simulato (AvanzaSimulazioneBeacon, Ricezione.vb), usato
+    ' in assenza di hardware reale per avvicinarsi gradualmente alla soglia
+    ' invece di agganciarsi di colpo, e per oscillare realisticamente dopo
+    ' l'aggancio invece di restare fisso.
     Public d_SimBeaconErr As Double
-    ' TEMPORANEO (test): livello di segnale simulato (dB), parte sotto -90
-    ' (fuori soglia) e sale gradualmente verso g_ThrAuto.
+    ' Livello di segnale simulato (dB), parte sotto -90 (fuori soglia) e sale
+    ' gradualmente verso g_ThrAuto.
     Public d_SimBeaconLevel As Double
+    ' Livello FISSO opzionale per i test (es. verificare che la spirale si
+    ' ripeta più volte senza mai agganciare): se diverso da 0, la salita
+    ' resta bloccata a questo valore invece di avvicinarsi alle soglie.
+    ' Letto da ini [Acquire] chiave "LivelloFissoTest" (0 = disattivato,
+    ' comportamento normale).
+    Public d_SimBeaconLivelloFisso As Double
     '15/12/2021 Vengono impostati i contatori per il calcolo dell'off nello stato operativo Spiral Acquire
     Public i_Quadrati As Integer  'Contatore di quadrati
     Public i_Step As Integer       'Contatori di Step per lato
@@ -226,7 +241,20 @@ Module Predisposizioni
     Public d_MaxBeaconLevel As Double = Double.MinValue
     Public d_MaxBeaconAz As Double
     Public d_MaxBeaconEl As Double
+    ' Offset (i_AzOffsetLock/i_ElOffsetLock) nel momento del massimo beacon,
+    ' non posizione assoluta: in modo Program la posizione assoluta diventa
+    ' stale non appena il satellite si muove nella sua orbita. Usato dal
+    ' ricentraggio al lock debole insieme a un Calcolo_Coordinate fresco.
+    Public d_MaxBeaconAzOffset As Double
+    Public d_MaxBeaconElOffset As Double
     Public d_SpiralAngolo As Double 'Angolo continuo (radianti) della spirale circolare di Calcolo_Aquire
+    ' Centro della ricerca (Spirale e Quadrati), come OFFSET (stesso
+    ' riferimento di i_AzOffsetLock/i_ElOffsetLock). 0 all'avvio; al lock
+    ' debole, in modo Program, diventa l'offset del punto di massimo beacon,
+    ' così la ricerca fine resta intorno a quel punto invece che tornare
+    ' intorno alla posizione TLE.
+    Public d_SpiralCentroAz As Double
+    Public d_SpiralCentroEl As Double
     ' Modo di ricerca per Calcolo_Aquire, scelto dall'operatore in FrmAcquire.
     Public Const MODO_ACQUIRE_SPIRALE As Integer = 0
     Public Const MODO_ACQUIRE_QUADRATI As Integer = 1

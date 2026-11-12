@@ -156,8 +156,6 @@ Partial Class FrmVisualAcquire
         Me.TxtAzStepLock.Location = New System.Drawing.Point(86, 112)
         Me.TxtAzStepLock.Size    = New System.Drawing.Size(68, 21)
         Me.TxtAzStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
-        Me.TxtAzStepLock.ReadOnly = True
-        Me.TxtAzStepLock.BackColor = System.Drawing.SystemColors.Control
         ' El Lock
         Me.LblElLock.Text        = "El Lock:"
         Me.LblElLock.Location    = New System.Drawing.Point(4, 138)
@@ -165,8 +163,6 @@ Partial Class FrmVisualAcquire
         Me.TxtElStepLock.Location = New System.Drawing.Point(86, 138)
         Me.TxtElStepLock.Size    = New System.Drawing.Size(68, 21)
         Me.TxtElStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
-        Me.TxtElStepLock.ReadOnly = True
-        Me.TxtElStepLock.BackColor = System.Drawing.SystemColors.Control
         ' DeltaT
         Me.LblDeltaTime.Text     = "DeltaT:"
         Me.LblDeltaTime.Location = New System.Drawing.Point(4, 164)

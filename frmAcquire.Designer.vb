@@ -167,8 +167,6 @@ Partial Class frmAcquire
         Me.TxtAzStepLock.Size = New System.Drawing.Size(60, 23)
         Me.TxtAzStepLock.TabIndex = 4
         Me.TxtAzStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
-        Me.TxtAzStepLock.ReadOnly = True
-        Me.TxtAzStepLock.BackColor = System.Drawing.SystemColors.Control
 
         LblElLock.Location = New System.Drawing.Point(164, 84)
         LblElLock.Size = New System.Drawing.Size(88, 20)
@@ -178,8 +176,6 @@ Partial Class frmAcquire
         Me.TxtElStepLock.Size = New System.Drawing.Size(60, 23)
         Me.TxtElStepLock.TabIndex = 5
         Me.TxtElStepLock.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
-        Me.TxtElStepLock.ReadOnly = True
-        Me.TxtElStepLock.BackColor = System.Drawing.SystemColors.Control
 
         LblDelta.Location = New System.Drawing.Point(328, 24)
         LblDelta.Size = New System.Drawing.Size(80, 20)

@@ -138,6 +138,27 @@ Public Class FrmVisualAcquire
         End Using
     End Sub
 
+    ' Larghezza reale (px) di un'etichetta a un dato fontSize - usata per
+    ' decidere se c'è spazio per disegnarla prima di chiamare DrawStr,
+    ' invece delle soglie fisse in pixel-per-tacca (1, 4) ereditate dal
+    ' VB6 (pensate per la spaziatura delle tacche, non per il testo): con
+    ' una finestra grande o un range stretto quelle soglie si superavano
+    ' pur non essendoci spazio sufficiente per il testo, causando
+    ' etichette sovrapposte sugli assi.
+    Private Function LarghezzaTestoPx(testo As String, fontSize As Integer) As Single
+        Using fnt As New Font("Arial", fontSize)
+            Return _g.MeasureString(testo, fnt).Width
+        End Using
+    End Function
+
+    ' Come LarghezzaTestoPx, ma in altezza - serve sull'asse Y, dove le
+    ' etichette successive si accavallano verticalmente, non in larghezza.
+    Private Function AltezzaTestoPx(testo As String, fontSize As Integer) As Single
+        Using fnt As New Font("Arial", fontSize)
+            Return _g.MeasureString(testo, fnt).Height
+        End Using
+    End Function
+
     ' ── logica ──────────────────────────────────────────────────────────────────
 
     Private Function ControllaDati() As Boolean
@@ -153,8 +174,15 @@ Public Class FrmVisualAcquire
         If Val(mskOraFin.Text) < 0 OrElse Val(mskOraFin.Text) >= 24 Then
             mskOraFin.Focus() : Return False
         End If
-        Dim dtIni As Date = CDate(mskDataIni.Text & " " & mskOraIni.Text.Replace("."c, ":"c) & ":00")
-        Dim dtFin As Date = CDate(mskDataFin.Text & " " & mskOraFin.Text.Replace("."c, ":"c) & ":00")
+        Dim dtIni As Date
+        Dim dtFin As Date
+        Try
+            dtIni = CDate(mskDataIni.Text & " " & mskOraIni.Text.Replace("."c, ":"c) & ":00")
+            dtFin = CDate(mskDataFin.Text & " " & mskOraFin.Text.Replace("."c, ":"c) & ":00")
+        Catch ex As Exception
+            WriteError(0, "FrmVisualAcquire.ControllaDati: CDate fallito - " & ex.Message)
+            mskOraFin.Focus() : Return False
+        End Try
         If dtIni > dtFin Then
             mskDataIni.Focus() : Return False
         End If
@@ -214,7 +242,21 @@ Public Class FrmVisualAcquire
     ''' secondo la cultura corrente (coerente con come è stata scritta).
     ''' </summary>
     Private Function CSngCampo(nomeColonna As String) As Single
-        Return CSng(DyVisual.GetString(DyVisual.GetOrdinal(nomeColonna)))
+        ' GetString() funzionava perché prima (bug del separatore decimale
+        ' nell'INSERT, corretto il 10/11) i valori finivano salvati come
+        ' TEXT grezzo. Ora che l'INSERT scrive numeri validi (punto,
+        ' cultura invariante), SQLite li converte davvero in REAL e
+        ' GetString() fallisce con InvalidCastException (VerifyType).
+        ' Gestisce entrambi i casi: valore numerico vero (nuove righe) letto
+        ' direttamente, oppure testo grezzo (eventuali righe residue vecchie)
+        ' convertito con CSng secondo la cultura corrente, come prima.
+        Dim valore As Object = DyVisual.GetValue(DyVisual.GetOrdinal(nomeColonna))
+        If TypeOf valore Is Double OrElse TypeOf valore Is Single OrElse
+           TypeOf valore Is Integer OrElse TypeOf valore Is Long Then
+            Return CSng(valore)
+        Else
+            Return CSng(CStr(valore))
+        End If
     End Function
 
     Private Function SelezionaSingoliDati() As Boolean
@@ -271,6 +313,16 @@ Public Class FrmVisualAcquire
         NPunti = 1
         Dim primoPunto As Boolean = True
         Dim idxSeed As Integer = -1
+        ' Riferimento di ciascun punto = posizione assoluta - offset di
+        ' ricerca (colonne Long/lat), cioè la posizione del satellite in quel
+        ' tick. In modo Program il satellite si muove (posizione TLE live) e
+        ' la ricerca lo segue: disegnando le posizioni assolute, una spirale
+        ' (soprattutto quella fine, a passo piccolo) risultava trascinata
+        ' nella direzione del moto invece che centrata sul punto di lock
+        ' (segnalato: "la spirale fine deve essere disegnata intorno al
+        ' punto"). Si compensa riportando ogni punto al riferimento
+        ' dell'ULTIMO punto (posizione attuale), vedi sotto.
+        Dim refAz(MaxPunti + 1) As Single, refEl(MaxPunti + 1) As Single
         Do While DyVisual.Read()
             Dim rawData As String = DyVisual("date").ToString() & " " & DyVisual("Time").ToString()
             If Not IsDate(rawData) Then Continue Do
@@ -298,6 +350,11 @@ Public Class FrmVisualAcquire
             Punti(0, 0, 0, NPunti).Y = CSngCampo("Elevation")
             Punti(0, 0, 0, NPunti).X = CSngCampo("Azimuth")
             Punti(0, 0, 0, NPunti).C = CInt(DyVisual("Orbite"))
+            Dim offAz As Single = 0, offEl As Single = 0
+            If Not DyVisual.IsDBNull(DyVisual.GetOrdinal("Long")) Then offAz = CSngCampo("Long")
+            If Not DyVisual.IsDBNull(DyVisual.GetOrdinal("lat")) Then offEl = CSngCampo("lat")
+            refAz(NPunti) = Punti(0, 0, 0, NPunti).X - offAz
+            refEl(NPunti) = Punti(0, 0, 0, NPunti).Y - offEl
             XProv = CSngCampo("Azimuth")
             diffX = Math.Abs(XProv - XPrec)
             If diffX > 270 Then InvertiScala = True
@@ -313,6 +370,29 @@ Public Class FrmVisualAcquire
         Loop
 
         If primoPunto Then Return False
+
+        ' Compensazione del moto del satellite: solo in Program (b_Acquire =
+        ' Preset, dove il riferimento è fisso e cambia solo con un salto
+        ' voluto al ricentraggio, da NON compensare).
+        If Not b_Acquire AndAlso NPunti > 2 Then
+            Dim ultimo As Integer = NPunti - 1
+            MaxY = -99999 : MinY = 99999
+            MaxX = -99999 : MinX = 99999
+            For k As Integer = 1 To ultimo
+                Dim dAz As Single = refAz(ultimo) - refAz(k)
+                ' Passaggio per lo 0/360: la differenza va presa sul lato corto.
+                If dAz > 180 Then dAz -= 360
+                If dAz < -180 Then dAz += 360
+                Punti(0, 0, 0, k).X += dAz
+                Punti(0, 0, 0, k).Y += refEl(ultimo) - refEl(k)
+                If k <> idxSeed Then
+                    If Punti(0, 0, 0, k).Y > MaxY Then MaxY = Int(Punti(0, 0, 0, k).Y * 10) / 10 + 0.1F
+                    If Punti(0, 0, 0, k).Y < MinY Then MinY = Int(Punti(0, 0, 0, k).Y * 10) / 10
+                    If Punti(0, 0, 0, k).X > MaxX Then MaxX = Int(Punti(0, 0, 0, k).X * 10) / 10 + 0.1F
+                    If Punti(0, 0, 0, k).X < MinX Then MinX = Int(Punti(0, 0, 0, k).X * 10) / 10
+                End If
+            Next
+        End If
 
         If InvertiScala Then
             MaxX = -99999 : MinX = 99999
@@ -417,10 +497,10 @@ Public Class FrmVisualAcquire
                         MoveTo(tmpX, tmpY)
                         tmpAz1 = tmpAz
                         If tmpAz1 >= 360 Then tmpAz1 -= 360
-                        If tmpSelezione Then
-                            DrawStr(Format(tmpAz1, "##0.#"), i_Size3)
-                        ElseIf (CInt(tmpAz1) Mod 2) = 0 Then
-                            DrawStr(Format(tmpAz1, "##0.#"), i_Size3)
+                        Dim testoInt1 As String = Format(tmpAz1, "##0.#")
+                        If (tmpSelezione OrElse (CInt(tmpAz1) Mod 2) = 0) AndAlso
+                           PassoX / ScalaX >= LarghezzaTestoPx(testoInt1, i_Size3) + 2 Then
+                            DrawStr(testoInt1, i_Size3)
                         End If
                     Else
                         If chkSecondaria.Checked Then
@@ -436,10 +516,10 @@ Public Class FrmVisualAcquire
                         MoveTo(tmpX, tmpY)
                         tmpAz1 = tmpAz
                         If tmpAz1 >= 360 Then tmpAz1 -= 360
-                        If tmpSelezione Then
-                            DrawStr(Format(tmpAz1, "##0.#"), i_Size3)
-                        ElseIf (CInt(tmpAz1) Mod 2) = 0 Then
-                            DrawStr(Format(tmpAz1, "##0"), i_Size3)
+                        Dim testoInt2 As String = If(tmpSelezione, Format(tmpAz1, "##0.#"), Format(tmpAz1, "##0"))
+                        If (tmpSelezione OrElse (CInt(tmpAz1) Mod 2) = 0) AndAlso
+                           PassoX / ScalaX >= LarghezzaTestoPx(testoInt2, i_Size3) + 2 Then
+                            DrawStr(testoInt2, i_Size3)
                         End If
                     End If
                 End If
@@ -447,11 +527,18 @@ Public Class FrmVisualAcquire
             Loop
         End If
 
-        ' Metà passo
+        ' Metà passo. Variabile LOCALE (non più la condivisa PassoX): se la si
+        ' riassegna qui e SelezionaSingoliDati nel frattempo esce presto
+        ' senza ricalcolarla (es. mentre l'utente sta ancora scrivendo nel
+        ' campo Ora/Data e la maschera non è completa), il valore già
+        ' rimpicciolito di questa chiamata diventa il punto di partenza
+        ' della prossima, rimpicciolendo ancora un tick alla volta - stesso
+        ' bug di fondo risolto in VisualizzaAsseY (vedi commento lì), causa
+        ' del blocco totale segnalato dall'utente.
         _penColor = Color.Blue
-        PassoX = PassoProv / 2
+        Dim passoMetaX As Single = PassoProv / 2
         tmpAz = MinX
-        If PassoX / ScalaX >= 1 Then
+        If passoMetaX / ScalaX >= 1 Then
             Do While tmpAz <= MaxX
                 If (tmpAz - MinX) >= 0 Then
                     tmpX = (tmpAz - MinX) / ScalaX + DimCornice
@@ -463,7 +550,7 @@ Public Class FrmVisualAcquire
                     _penColor = Color.Silver : LineStep(0, -(PicH - 2 * DimCornice))
                     _penColor = Color.Blue
                 End If
-                tmpAz += PassoX
+                tmpAz += passoMetaX
             Loop
         End If
 
@@ -473,36 +560,40 @@ Public Class FrmVisualAcquire
         ' sotto-livello che lo suddivide ulteriormente in decimi mostrerebbe
         ' "decimi dei decimi" (di fatto centesimi), troppo fitto.
         _penColor = Color.Blue
-        PassoX = PassoProv / 10
+        Dim passoDecimiX As Single = PassoProv / 10
         tmpAz = MinX
         IX = 0.1
-        If Int(MaxX - MinX) > 1 AndAlso PassoX / ScalaX >= 1 Then
+        If Int(MaxX - MinX) > 1 AndAlso passoDecimiX / ScalaX >= 1 Then
             Do While tmpAz < MaxX
                 If (tmpAz - MinX) > 0 Then
                     tmpX = (tmpAz - MinX) / ScalaX + DimCornice
                     tmpY = PicH - DimCornice
                     MoveTo(tmpX, tmpY) : LineStep(0, 2)
                     MoveTo(tmpX, tmpY)
-                    If PassoX / ScalaX >= 4 Then
+                    ' Niente centesimi, qualsiasi sia la scala/range
+                    ' visualizzato: il livello più fine resta sempre ai
+                    ' decimi (0.1). Mostra il valore PIENO (es. "289.3"),
+                    ' non la sola cifra del decimo ("3"): quest'ultima,
+                    ' isolata dal grado intero più vicino, si leggeva
+                    ' male e dava origine a equivoci sul punto effettivo.
+                    Dim tmpAzEtichetta As Double = tmpAz
+                    If tmpAzEtichetta >= 360 Then tmpAzEtichetta -= 360
+                    Dim testoDecimiX As String = tmpAzEtichetta.ToString("0.0")
+                    If passoDecimiX / ScalaX >= LarghezzaTestoPx(testoDecimiX, i_Size1) + 2 Then
                         If chkPrincipale.Checked AndAlso Not giaDisegnataPrincipale Then
                             _penColor = Color.Gray : LineStep(0, -(PicH - 2 * DimCornice))
                             _penColor = Color.Blue
                             giaDisegnataPrincipale = True
                         End If
                         MoveTo((tmpAz - MinX) / ScalaX + DimCornice - 1.5F, PicH - DimCornice + 2)
-                        ' Niente centesimi, qualsiasi sia la scala/range
-                        ' visualizzato: il livello più fine resta sempre ai
-                        ' decimi (0.1). "0.#" evita anche eventuali errori di
-                        ' arrotondamento binario dell'accumulo di 0.1 (es.
-                        ' "0,30000001").
-                        If IX < 1 Then DrawStr(IX.ToString("0.#"), i_Size1)
+                        If IX < 1 Then DrawStr(testoDecimiX, i_Size1)
                         IX += 0.1 : If IX > 1 Then IX = 0.1
                     ElseIf chkSecondaria.Checked Then
                         _penColor = Color.Silver : LineStep(0, -(PicH - 2 * DimCornice))
                         _penColor = Color.Blue
                     End If
                 End If
-                tmpAz = CSng(Format(tmpAz + PassoX, "#0.##"))
+                tmpAz = CSng(Format(tmpAz + passoDecimiX, "#0.##"))
             Loop
         End If
 
@@ -545,20 +636,31 @@ Public Class FrmVisualAcquire
                 End If
                 MoveTo(2, (PicH - DimCornice) - (tmp2y - MinY) / ScalaY - 1.7F)
                 _penColor = Color.Black
-                If tmpSelezione Then
-                    DrawStr(Format(tmp2y, "#0.#"), i_Size2)
-                ElseIf (CInt(tmp2y) Mod 2) = 0 Then
-                    DrawStr(Format(tmp2y, "#0"), i_Size2)
+                Dim testoIntY As String = If(tmpSelezione, Format(tmp2y, "#0.#"), Format(tmp2y, "#0"))
+                If (tmpSelezione OrElse (CInt(tmp2y) Mod 2) = 0) AndAlso
+                   PassoY / ScalaY >= AltezzaTestoPx(testoIntY, i_Size2) + 2 Then
+                    DrawStr(testoIntY, i_Size2)
                 End If
             End If
             tmp2y += PassoY
         Loop
 
-        ' Metà passo
+        ' Metà passo. Variabile LOCALE (non più la condivisa PassoY): quella
+        ' condivisa va letta da SelezionaSingoliDati al tick successivo per
+        ' essere ricalcolata da zero - se la si riassegna qui (PassoY =
+        ' PassoProv/2, poi .../10 più sotto) e SelezionaSingoliDati nel
+        ' frattempo esce presto senza ricalcolarla (es. mentre l'utente sta
+        ' ancora scrivendo nel campo Ora e mskOraFin.MaskCompleted è False),
+        ' il valore già rimpicciolito di QUESTA chiamata diventa il punto di
+        ' partenza della prossima, rimpicciolendo ancora - un tick alla
+        ' volta, fino a diventare così piccolo che "Format(tmp2y+PassoY,
+        ' '#0.00')" arrotonda allo stesso valore di tmp2y: il Do While
+        ' sottostante non avanza più ed entra in loop infinito (bloccato
+        ' segnalato dall'utente cambiando l'ora di fine su Visual Acquire).
         _penColor = Color.Blue
-        PassoY = PassoProv / 2
+        Dim passoMeta As Single = PassoProv / 2
         tmp2y = MinY
-        If PassoY / ScalaY > 1 Then
+        If passoMeta / ScalaY > 1 Then
             Do While tmp2y < MaxY
                 If (tmp2y - MinY) > 0 Then
                     tmpY = (PicH - DimCornice) - (tmp2y - MinY) / ScalaY
@@ -570,7 +672,7 @@ Public Class FrmVisualAcquire
                     _penColor = Color.Silver : LineStep(PicW - 2 * DimCornice, 0)
                     _penColor = Color.Blue
                 End If
-                tmp2y = CSng(Format(tmp2y + PassoY, "#0.00"))
+                tmp2y = CSng(Format(tmp2y + passoMeta, "#0.00"))
             Loop
         End If
 
@@ -580,22 +682,24 @@ Public Class FrmVisualAcquire
         ' suddivide ulteriormente in decimi mostrerebbe "decimi dei decimi"
         ' (di fatto centesimi), troppo fitto.
         _penColor = Color.Blue
-        PassoY = PassoProv / 10
+        Dim passoDecimi As Single = PassoProv / 10
         tmp2y = MinY
         IX = 0.1F
-        If Int(MaxY - MinY) > 1 AndAlso PassoY / ScalaY >= 1 Then
+        If Int(MaxY - MinY) > 1 AndAlso passoDecimi / ScalaY >= 1 Then
             Do While tmp2y < MaxY
                 If (tmp2y - MinY) > 0 Then
                     tmpY = (PicH - DimCornice) - (tmp2y - MinY) / ScalaY
                     MoveTo(DimCornice - 2, tmpY) : LineStep(2, 0)
                     MoveTo(DimCornice - 6, tmpY - 2)
-                    If PassoY / ScalaY >= 4 Then
-                        ' Niente centesimi, qualsiasi sia la scala/range
-                        ' visualizzato: il livello più fine resta sempre ai
-                        ' decimi (0.1). "0.#" evita anche eventuali errori di
-                        ' arrotondamento binario dell'accumulo di 0.1 (es.
-                        ' "0,30000001").
-                        If IX < 1 Then DrawStr(IX.ToString("0.#"), i_Size1)
+                    ' Niente centesimi, qualsiasi sia la scala/range
+                    ' visualizzato: il livello più fine resta sempre ai
+                    ' decimi (0.1). Mostra il valore PIENO (es. "52.3"),
+                    ' non la sola cifra del decimo ("3"): quest'ultima,
+                    ' isolata dal grado intero più vicino, si leggeva
+                    ' male e dava origine a equivoci sul punto effettivo.
+                    Dim testoDecimiY As String = tmp2y.ToString("0.0")
+                    If passoDecimi / ScalaY >= AltezzaTestoPx(testoDecimiY, i_Size1) + 2 Then
+                        If IX < 1 Then DrawStr(testoDecimiY, i_Size1)
                         IX += 0.1F : If IX > 1 Then IX = 0.1F
                     End If
                 End If
@@ -604,7 +708,7 @@ Public Class FrmVisualAcquire
                     _penColor = Color.Silver : LineStep(PicW - 2 * DimCornice, 0)
                     _penColor = Color.Blue
                 End If
-                tmp2y = CSng(Format(tmp2y + PassoY, "#0.##"))
+                tmp2y = CSng(Format(tmp2y + passoDecimi, "#0.##"))
             Loop
         End If
     End Sub
@@ -639,10 +743,20 @@ Public Class FrmVisualAcquire
 
         ' Caratteri ingranditi: con le dimensioni originali (2/4/5 px nel
         ' caso con pochi punti) le etichette erano praticamente illeggibili.
+        ' Scalati in proporzione alla larghezza attuale del grafico (909px
+        ' preso come riferimento "normale"), non più fissi: su una finestra
+        ' ridimensionata più piccola/grande il font si riduce/ingrandisce di
+        ' conseguenza, invece di restare sempre alla stessa dimensione.
+        ' Clamp 0.6x-1.6x per non diventare illeggibile o eccessivo.
+        Dim scalaFont As Double = Math.Max(0.6, Math.Min(1.6, PicW / 900.0))
         If tmpSelezione AndAlso NPunti > 1 Then
-            i_Size1 = 7 : i_Size2 = 11 : i_Size3 = 13
+            i_Size1 = Math.Max(4, CInt(Math.Round(6 * scalaFont)))
+            i_Size2 = Math.Max(4, CInt(Math.Round(9 * scalaFont)))
+            i_Size3 = Math.Max(4, CInt(Math.Round(11 * scalaFont)))
         Else
-            i_Size1 = 6 : i_Size2 = 9 : i_Size3 = 10
+            i_Size1 = Math.Max(4, CInt(Math.Round(5 * scalaFont)))
+            i_Size2 = Math.Max(4, CInt(Math.Round(8 * scalaFont)))
+            i_Size3 = Math.Max(4, CInt(Math.Round(9 * scalaFont)))
         End If
 
         ScalaX = (MaxX - MinX) / (PicW - 2 * DimCornice)
@@ -703,14 +817,31 @@ Public Class FrmVisualAcquire
                     ' modo continuo — interrompere la linea creava il
                     ' "gradino" visto in test invece della diagonale
                     ' attesa tra un quadrato e il successivo.
+                    ' Raggi in mm nel VB6 originale (ScaleMode Millimeter), qui
+                    ' il grafico è in pixel: 0.2/0.6mm copiati come pixel
+                    ' davano marcatori sub-pixel, di fatto invisibili. Portati
+                    ' a una dimensione visibile sullo schermo.
+                    ' Salto di posizione (es. ricentraggio sul punto di
+                    ' massimo beacon al primo aggancio debole): avviene nel
+                    ' normale intervallo di tempo tra due punti, quindi il
+                    ' controllo sul tempo sopra non lo intercetta - veniva
+                    ' disegnato come movimento continuo dell'antenna, con
+                    ' una lunga diagonale indietro (segnalato: l'antenna
+                    ' "torna al punto di partenza" disegnando il
+                    ' collegamento). Soglia: 3 volte il passo largo
+                    ' configurato, abbastanza da non rompere il normale
+                    ' passo diagonale di cambio-giro della ricerca a
+                    ' quadrati (circa 1.4 volte un passo).
+                    Dim saltoDistanza As Double = Math.Max(Math.Abs(XProv - XPrec), Math.Abs(YProv - YPrec))
+                    Dim sogliaSaltoNormale As Double = Math.Max(i_AzStepConfigurato, i_ElStepConfigurato) * 3
                     If Punti(0, 0, 0, i).C <> CPrec AndAlso i_ModoAcquire <> MODO_ACQUIRE_QUADRATI Then
-                        _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
+                        _fillSolid = False : DrawCircle(tmpX, tmpY, 4.0F)
                         MoveTo(tmpX, tmpY)
-                    ElseIf Math.Abs(Val(d_Calcolo) - Val(DataPrec)) < i_Intervallo + 1 Then
+                    ElseIf Math.Abs(Val(d_Calcolo) - Val(DataPrec)) < i_Intervallo + 1 AndAlso saltoDistanza <= sogliaSaltoNormale Then
                         LineTo(tmpX, tmpY)
-                        _fillSolid = True : DrawCircle(tmpX, tmpY, 0.6F) : _fillSolid = False
+                        _fillSolid = True : DrawCircle(tmpX, tmpY, 3.2F) : _fillSolid = False
                     Else
-                        _fillSolid = False : DrawCircle(tmpX, tmpY, 0.2F)
+                        _fillSolid = False : DrawCircle(tmpX, tmpY, 4.0F)
                         MoveTo(tmpX, tmpY)
                     End If
                     XPrec = Punti(0, 0, 0, i).X
@@ -925,7 +1056,9 @@ Public Class FrmVisualAcquire
             If IsNumeric(TxtAzStep.Text) Then
                 Dim v = CDbl(Val(TxtAzStep.Text))
                 If v >= 0.01 AndAlso v <= 1 Then
-                    i_AzStep = CSng(v)
+                    ' Dopo il lock debole lo step attivo è quello Lock: lo
+                    ' step largo non deve sovrascriverlo.
+                    If Not b_LockOn Then i_AzStep = CSng(v)
                     i_AzStepConfigurato = CSng(v)
                 Else
                     TxtAzStep.Text = i_AzStepConfigurato.ToString()
@@ -940,7 +1073,15 @@ Public Class FrmVisualAcquire
         If e.KeyCode = Keys.Return Then
             If IsNumeric(TxtAzStepLock.Text) Then
                 Dim v = CDbl(Val(TxtAzStepLock.Text))
-                If v >= 0.01 AndAlso v <= 1 Then i_AzStepLock = CSng(v) Else TxtAzStepLock.Text = i_AzStepLock.ToString()
+                If v >= 0.01 AndAlso v <= 1 Then
+                    i_AzStepLock = CSng(v)
+                    ' Dopo il lock debole i_AzStep È lo step Lock: va
+                    ' aggiornato anche lui, altrimenti la modifica varrebbe
+                    ' solo per un Acquire successivo.
+                    If b_LockOn Then i_AzStep = CSng(v)
+                Else
+                    TxtAzStepLock.Text = i_AzStepLock.ToString()
+                End If
             Else
                 TxtAzStepLock.Text = i_AzStepLock.ToString()
             End If
@@ -993,7 +1134,7 @@ Public Class FrmVisualAcquire
             If IsNumeric(TxtElStep.Text) Then
                 Dim v = CDbl(Val(TxtElStep.Text))
                 If v >= 0.01 AndAlso v <= 1 Then
-                    i_ElStep = CSng(v)
+                    If Not b_LockOn Then i_ElStep = CSng(v)
                     i_ElStepConfigurato = CSng(v)
                 Else
                     TxtElStep.Text = i_ElStepConfigurato.ToString()
@@ -1008,7 +1149,12 @@ Public Class FrmVisualAcquire
         If e.KeyCode = Keys.Return Then
             If IsNumeric(TxtElStepLock.Text) Then
                 Dim v = CDbl(Val(TxtElStepLock.Text))
-                If v >= 0.01 AndAlso v <= 1 Then i_ElStepLock = CSng(v) Else TxtElStepLock.Text = i_ElStepLock.ToString()
+                If v >= 0.01 AndAlso v <= 1 Then
+                    i_ElStepLock = CSng(v)
+                    If b_LockOn Then i_ElStep = CSng(v)
+                Else
+                    TxtElStepLock.Text = i_ElStepLock.ToString()
+                End If
             Else
                 TxtElStepLock.Text = i_ElStepLock.ToString()
             End If

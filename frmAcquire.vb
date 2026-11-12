@@ -32,7 +32,13 @@ Partial Public Class frmAcquire
         ' Scoped a source='ACQUIRE' (più le righe legacy senza source):
         ' non deve cancellare dati di un calcolo Effemeridi in corso.
         DbExecute("DELETE FROM tmpEffemeridi WHERE source = 'ACQUIRE' OR source IS NULL")
-        mskDataIni.Text = Now.AddHours(-i_Offset).ToString("dd/MM/yyyy HH:mm:ss")
+        ' NowUTC() (DateTime.UtcNow), non Now.AddHours(-i_Offset): quel
+        ' calcolo manuale dell'offset può divergere di un'ora dal vero UTC
+        ' (gestione ora legale) rispetto a NowUTC(), che è invece quanto
+        ' viene scritto per davvero nei punti del grafico (seed e ricerca,
+        ' entrambi via NowUTC()) - con due fonti diverse "Dal" e le
+        ' etichette sul grafico potevano non coincidere (segnalato).
+        mskDataIni.Text = NowUTC().ToString("dd/MM/yyyy HH:mm:ss")
         mskDataIni.Focus()
         optPreset.Checked = False
         optProgram.Checked = False
@@ -177,6 +183,8 @@ Partial Public Class frmAcquire
         i_Quadrati = 1
         i_ConStato = 0
         d_SpiralAngolo = 0
+        d_SpiralCentroAz = 0
+        d_SpiralCentroEl = 0
 
         ' tmpEffemeridi va azzerata qui, all'avvio effettivo dell'acquire,
         ' non solo all'apertura del dialogo (frmAcquire_Activated): altrimenti
@@ -208,8 +216,13 @@ Partial Public Class frmAcquire
                     "VALUES (@d, @t, @az, @el, 0, 0, 1, 0, 'ACQUIRE')", CType(dbOrbite, DAODatabase).Connection)
                     Cmd.Parameters.AddWithValue("@d", oraInizioUtc.ToString("dd/MM/yyyy", Globalization.CultureInfo.InvariantCulture))
                     Cmd.Parameters.AddWithValue("@t", oraInizioUtc.ToString("HH:mm:ss", Globalization.CultureInfo.InvariantCulture))
-                    Cmd.Parameters.AddWithValue("@az", Format(g_AzTable, "000.000"))
-                    Cmd.Parameters.AddWithValue("@el", Format(g_ElTable, "00.000"))
+                    ' Format (come Format$) usa il separatore decimale della
+                    ' cultura corrente - stesso bug corretto oggi nell'INSERT
+                    ' di Rangeout (Ricezione.vb): su FOC6 produce la virgola,
+                    ' che SQLite non converte in REAL, troncando il seed a un
+                    ' intero. ToString con InvariantCulture, coerente con @d/@t.
+                    Cmd.Parameters.AddWithValue("@az", g_AzTable.ToString("000.000", Globalization.CultureInfo.InvariantCulture))
+                    Cmd.Parameters.AddWithValue("@el", g_ElTable.ToString("00.000", Globalization.CultureInfo.InvariantCulture))
                     Cmd.ExecuteNonQuery()
                 End Using
             Catch ex As Exception
@@ -238,8 +251,19 @@ Partial Public Class frmAcquire
         b_Lock = False
         b_LockOn = False
         d_MaxBeaconLevel = Double.MinValue
-        d_SimBeaconErr = 0 ' TEMPORANEO (test): riparte da "fuori soglia" ad ogni nuovo Acquire
-        d_SimBeaconLevel = -95 ' TEMPORANEO (test): livello simulato, parte sotto -90
+        d_MaxBeaconAzOffset = 0
+        d_MaxBeaconElOffset = 0
+        ' Livello fisso opzionale per i test (es. "la spirale deve ripetersi
+        ' più volte senza mai agganciare") - 0 = disattivato, comportamento
+        ' normale di salita graduale.
+        d_SimBeaconLivelloFisso = CDbl(Val(LeggiFileIni("Acquire", "LivelloFissoTest")))
+        ' simBeaconInizializzato = False fa ripartire AvanzaSimulazioneBeacon
+        ' dai valori iniziali (errore fuori soglia, livello sotto -90) al
+        ' prossimo tick - non si scrivono più direttamente qui (un errore
+        ' convergente a ESATTAMENTE 0 veniva prima scambiato per "mai
+        ' inizializzato" e rimandato al valore peggiore, congelando la
+        ' simulazione: vedi commento in Ricezione.vb).
+        simBeaconInizializzato = False
 
         If frmRicezioneRef IsNot Nothing Then
             frmRicezioneRef.LblAzErrEn.Visible = True
