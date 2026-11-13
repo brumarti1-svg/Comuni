@@ -487,9 +487,8 @@ End Function
     End Sub
 
 
-
     Public Sub ScriviAlarm(ByVal Messaggio As String, Level As Integer)
-        Dim rs_ScriviAlarm As Object
+
         Dim Buffer As String, d_data As String
         '    Dim Errore As Long
         Try
@@ -507,24 +506,27 @@ End Function
             ' indipendentemente dal contesto.
             d_data = NowUTC().ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
             '    Buffer = "*** " + Format$(Now, "dd-mm-yy hh.nn.ss") + "  " + Messaggio
-            rs_ScriviAlarm = dbOrbite.OpenRecordset("Error_Messages", dbOpenDynaset)
-            ' scrivo sulla tabella di log
-            rs_ScriviAlarm.AddNew
-            rs_ScriviAlarm("MSG_Date") = d_data
-            rs_ScriviAlarm("Error") = Messaggio
-            rs_ScriviAlarm("Level") = Level
-
-            rs_ScriviAlarm.Update
-            rs_ScriviAlarm = dbOrbite.OpenRecordset("tmp_Error_Messages", dbOpenDynaset)
-            ' scrivo sulla tabella di log
-            rs_ScriviAlarm.AddNew
-            rs_ScriviAlarm("MSG_Date") = d_data
-            rs_ScriviAlarm("Error") = Messaggio
-            rs_ScriviAlarm("Level") = Level
-            rs_ScriviAlarm.Update
+            ' INSERT diretto sulle due tabelle di log. Prima si usava
+            ' OpenRecordset + AddNew + Update: il wrapper DAO carica in memoria
+            ' l'INTERA tabella all'apertura e la ricarica dopo Update, quindi
+            ' con Error_Messages cresciuta ogni allarme bloccava il thread UI
+            ' per secondi (all'avvio ~10 s con la raffica di allarmi iniziali,
+            ' orologio fermo). Una transazione unica = un solo commit su disco.
+            Dim conn As System.Data.SQLite.SQLiteConnection = CType(dbOrbite, DAODatabase).Connection
+            Using tr = conn.BeginTransaction()
+                For Each tabella As String In {"Error_Messages", "tmp_Error_Messages"}
+                    Using cmd As New System.Data.SQLite.SQLiteCommand(
+                            "INSERT INTO [" & tabella & "] ([MSG_Date], [Error], [Level]) VALUES (@d, @e, @l)", conn, tr)
+                        cmd.Parameters.AddWithValue("@d", d_data)
+                        cmd.Parameters.AddWithValue("@e", Messaggio)
+                        cmd.Parameters.AddWithValue("@l", Level)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                Next
+                tr.Commit()
+            End Using
             ' Datlog/tdbLog controls not migrated
             If Level = 1 Then i_Alarm = True            '3/2/2026
-            rs_ScriviAlarm.Close
         Catch ex As Exception
             WriteError(0, "ScriviAlarm: " & ex.Message)
         End Try
