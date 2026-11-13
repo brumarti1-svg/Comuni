@@ -488,6 +488,77 @@ Module Ricezione
         s_LevEl = tmpSimErrTxt
     End Sub
 
+    ''' <summary>
+    ''' Arrotonda un offset di ricerca Acquire a 3 decimali, la stessa
+    ''' risoluzione del comando inviato all'ACU (" P 000.000 00.000").
+    ''' Prima si usava Format$(x, "#0.0#"), cioè 2 decimali: con step
+    ''' piccoli (es. 0.025) l'errore di arrotondamento arrivava al 20% del
+    ''' passo, e i punti della spirale saltavano avanti e indietro rispetto
+    ''' alla curva (andamento a zig-zag segnalato); nei Quadrati il passo
+    ''' 0.025 diventava di fatto 0.03.
+    ''' </summary>
+    Public Function ArrotondaOffset(valore As Double) As Double
+        Return Math.Round(valore, 3, MidpointRounding.AwayFromZero)
+    End Function
+
+    ' Ultimo diagnostico Acquire emesso: evita di ripetere lo stesso
+    ' messaggio ad ogni tick di TmrSpiralAcquire (ogni 1-5 s) finché la
+    ' condizione non cambia.
+    Private ultimoDiagnosticoAcquire As String = ""
+
+    ''' <summary>
+    ''' Emette un diagnostico quando il calcolo Acquire non può essere
+    ''' eseguito: riga nei messaggi operatore (Error_Messages, ScriviAlarm
+    ''' livello 0, senza beep), riga in ErrSoft e avviso a schermo su
+    ''' frmRicezione. Lo stesso messaggio viene registrato una sola volta
+    ''' finché non cambia o non viene azzerato con AzzeraDiagnosticoAcquire.
+    ''' </summary>
+    Public Sub SegnalaAcquireNonPossibile(motivo As String)
+        Dim testo As String = "Acquire non eseguibile: " & motivo
+        Try
+            frmRicezione.MostraWarning(testo)
+        Catch
+        End Try
+        If testo = ultimoDiagnosticoAcquire Then Exit Sub
+        ultimoDiagnosticoAcquire = testo
+        WriteError(0, testo)
+        ScriviAlarm(testo, 0)
+    End Sub
+
+    ''' <summary>
+    ''' Condizione tornata normale: il prossimo diagnostico, anche se uguale
+    ''' al precedente, verrà registrato di nuovo.
+    ''' </summary>
+    Public Sub AzzeraDiagnosticoAcquire()
+        ultimoDiagnosticoAcquire = ""
+    End Sub
+
+    ''' <summary>
+    ''' Controlla i parametri necessari al calcolo Acquire. Restituisce ""
+    ''' se sono tutti validi, altrimenti la descrizione del problema.
+    ''' Normalmente frmAcquire li ha già validati all'avvio; qui serve per
+    ''' i percorsi che non passano di lì (es. valori azzerati o INI
+    ''' incompleto) e che altrimenti produrrebbero una ricerca ferma senza
+    ''' alcuna indicazione.
+    ''' </summary>
+    Public Function VerificaParametriAcquire() As String
+        Dim mancanti As New List(Of String)
+        If i_AzStep <= 0 Then mancanti.Add("Az Step")
+        If i_ElStep <= 0 Then mancanti.Add("El Step")
+        If i_AzStepLock <= 0 Then mancanti.Add("Az Step Lock")
+        If i_ElStepLock <= 0 Then mancanti.Add("El Step Lock")
+        If i_AzRange <= 0 Then mancanti.Add("Az Range")
+        If i_ElRange <= 0 Then mancanti.Add("El Range")
+        If i_InterAcq <= 0 Then mancanti.Add("Delta Time")
+        If mancanti.Count > 0 Then
+            Return "parametri mancanti o nulli (" & String.Join(", ", mancanti) & ") - verificare la configurazione Acquire"
+        End If
+        If b_Acquire AndAlso g_AzTable = 0 AndAlso g_ElTable = 0 Then
+            Return "coordinate di partenza Preset non impostate"
+        End If
+        Return ""
+    End Function
+
     Public Function Calcolo_Aquire(Data1 As Date, mSec As Integer) As Boolean
         Dim rs_Acq As Object
         Dim s_program As String = "", i_lun As Integer, d_FineProg As Date
@@ -495,6 +566,14 @@ Module Ricezione
         Dim tmpErrAz As System.Single, tmpErrEl As System.Single
         Dim statoQuadratiEseguito As Integer = -1
         Dim statoSpiraleEseguito As Integer = -1
+        Dim motivoBlocco As String = VerificaParametriAcquire()
+        If motivoBlocco <> "" Then
+            SegnalaAcquireNonPossibile(motivoBlocco)
+            Exit Function
+        End If
+        ' Calcolo di nuovo possibile: un eventuale blocco successivo verrà
+        ' registrato anche se uguale a uno precedente.
+        AzzeraDiagnosticoAcquire()
         On Error Resume Next
         If IsDate(d_DataFineProg) Then
             d_FineProg = CDate(d_DataFineProg)
@@ -600,7 +679,7 @@ Module Ricezione
                     If b_Acquire Then
                         frmRicezione.LblAzimuth.Text = Format$(g_AzTable + i_AzStep, "000.000")
                         frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                        i_AzOffsetLock = Format$(i_AzStep, "#0.0#")
+                        i_AzOffsetLock = ArrotondaOffset(i_AzStep)
                         i_ElOffsetLock = 0
                     Else
                         ' i_AzOffsetLock/i_ElOffsetLock vanno impostati PRIMA
@@ -610,12 +689,12 @@ Module Ricezione
                         ' LblAzimuth/Elevazione - farlo anche qui dopo,
                         ' sull'offset VECCHIO già incluso, mescolava un
                         ' offset vecchio e uno nuovo nello stesso valore.
-                        i_AzOffsetLock = Format$(d_MaxBeaconAzOffset + i_AzStep, "#0.0#")
-                        i_ElOffsetLock = Format$(d_MaxBeaconElOffset, "#0.0#")
+                        i_AzOffsetLock = ArrotondaOffset(d_MaxBeaconAzOffset + i_AzStep)
+                        i_ElOffsetLock = ArrotondaOffset(d_MaxBeaconElOffset)
                         Calcolo_Coordinate(Data1, mSec)
                     End If
-                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
+                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                     i_ConStato = 1
                     i_Step = 1
                     ' Spirale circolare: i_ConStato=1 lì NON è "primo lato"
@@ -754,8 +833,8 @@ Module Ricezione
             If b_RangeAz Then raggioAz = maxRaggioAz
             If b_RangeEl Then raggioEl = maxRaggioEl
 
-            i_AzOffsetLock = Format$(d_SpiralCentroAz + raggioAz * Math.Cos(d_SpiralAngolo), "#0.0#")
-            i_ElOffsetLock = Format$(d_SpiralCentroEl + raggioEl * Math.Sin(d_SpiralAngolo), "#0.0#")
+            i_AzOffsetLock = ArrotondaOffset(d_SpiralCentroAz + raggioAz * Math.Cos(d_SpiralAngolo))
+            i_ElOffsetLock = ArrotondaOffset(d_SpiralCentroEl + raggioEl * Math.Sin(d_SpiralAngolo))
 
             If b_Acquire Then
                 'siamo in preset
@@ -810,9 +889,9 @@ Module Ricezione
                 frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
                 frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
                 i_AzOffsetLock = 0
-                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
                 i_ElOffsetLock = 0
-                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                 Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
@@ -824,9 +903,9 @@ Module Ricezione
                 ' Centro della spirale (0 prima del lock debole, offset del
                 ' massimo beacon dopo), non sempre 0.
                 i_AzOffsetLock = d_SpiralCentroAz
-                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
                 i_ElOffsetLock = d_SpiralCentroEl
-                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                 ' Calcolo_Coordinate dà la posizione live del satellite più
                 ' l'offset del centro: "torna al centro" seguendo il
                 ' movimento TLE invece di un g_AzTable/El congelato.
@@ -986,9 +1065,9 @@ Rangeout:
             frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
             frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
             i_AzOffsetLock = 0
-            frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+            frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
             i_ElOffsetLock = 0
-            frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+            frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
             s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                      Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
             i = Len(s_program) + 6
@@ -1035,10 +1114,10 @@ Rangeout:
                 frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
                 ' Relativo al centro della ricerca (0 prima del lock debole,
                 ' offset del punto di massimo beacon dopo, in Program).
-                i_AzOffsetLock = Format$(d_SpiralCentroAz + i_AzStep, "#0.0#")
-                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                i_ElOffsetLock = Format$(d_SpiralCentroEl, "#0.0#")
-                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                i_AzOffsetLock = ArrotondaOffset(d_SpiralCentroAz + i_AzStep)
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
+                i_ElOffsetLock = ArrotondaOffset(d_SpiralCentroEl)
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                 If b_Acquire Then
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                     Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
@@ -1080,7 +1159,7 @@ Rangeout:
                 End If
                 frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                If Not b_RangeEl Then i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
+                If Not b_RangeEl Then i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock + i_ElStep)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 If b_Acquire Then
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -1107,7 +1186,7 @@ Rangeout:
             Case 2
                 'secondo lato
                 frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) - i_AzStep, "000.000")
-                i_AzOffsetLock = Format$(i_AzOffsetLock - i_AzStep, "#0.0#")
+                i_AzOffsetLock = ArrotondaOffset(i_AzOffsetLock - i_AzStep)
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 If b_Acquire Then
@@ -1136,7 +1215,7 @@ Rangeout:
                 'terzo lato
                 frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) - i_ElStep, "00.000")
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                i_ElOffsetLock = Format$(i_ElOffsetLock - i_ElStep, "#0.0#")
+                i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock - i_ElStep)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 If CDbl(frmRicezione.LblElevazione.Text) >= g_ElMin Then
                     If b_Acquire Then
@@ -1156,9 +1235,9 @@ Rangeout:
                     frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
                     frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
                     i_AzOffsetLock = 0
-                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
                     i_ElOffsetLock = 0
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                     Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                     i = Len(s_program) + 6
@@ -1182,7 +1261,7 @@ Rangeout:
             Case 4
                 'quarto lato
                 frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
-                i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
+                i_AzOffsetLock = ArrotondaOffset(i_AzOffsetLock + i_AzStep)
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 If b_Acquire Then
@@ -1230,13 +1309,13 @@ Rangeout:
                     ' resta identica a prima — cambia solo che un tick
                     ' invece di due la percorre.
                     frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
-                    i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
+                    i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock + i_ElStep)
                     If i_Quadrati * i_AzStep >= i_AzRange Then
                         b_RangeAz = True 'controllo se superato il range in azimuth
                     End If
                     If Not b_RangeAz Then
                         frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
-                        i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
+                        i_AzOffsetLock = ArrotondaOffset(i_AzOffsetLock + i_AzStep)
                     End If
                     frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                     frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
@@ -1263,7 +1342,7 @@ Rangeout:
                 Else
                     frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
                     frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
+                    i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock + i_ElStep)
                     frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                     If b_Acquire Then
                         s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -1293,7 +1372,7 @@ Rangeout:
                 End If
                 If Not b_RangeAz Then
                     frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
-                    i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
+                    i_AzOffsetLock = ArrotondaOffset(i_AzOffsetLock + i_AzStep)
                 End If
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
@@ -1337,9 +1416,9 @@ Rangeout:
                 ' Rientro al centro della ricerca, non all'offset 0 (vedi
                 ' d_SpiralCentroAz/El, impostato al lock debole).
                 i_AzOffsetLock = d_SpiralCentroAz
-                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
                 i_ElOffsetLock = d_SpiralCentroEl
-                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                 If b_Acquire Then
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                        Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
@@ -1441,8 +1520,8 @@ Rangeout:
                     i_ElOffsetLock = 0
                     frmRicezione.LblAzError.Text = Format$(AzOffset, "#0.0#")
                     frmRicezione.LblElError.Text = Format$(ElOffset, "#0.0#")
-                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
+                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                     i_ConStato = 0
                     i_Spiral += 1
                     i_Quadrati = 1
@@ -1478,10 +1557,10 @@ Rangeout:
                 'siamo in preset
                 frmRicezione.LblAzimuth.Text = Format$(g_AzTable + i_AzStep, "000.000")
                 frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
-                i_AzOffsetLock = Format$(i_AzStep, "#0.0#")
-                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                i_AzOffsetLock = ArrotondaOffset(i_AzStep)
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
                 i_ElOffsetLock = 0
-                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                 Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
@@ -1504,7 +1583,7 @@ Rangeout:
                 End If
                 frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                If Not b_RangeEl Then i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
+                If Not b_RangeEl Then i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock + i_ElStep)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                 Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
@@ -1525,7 +1604,7 @@ Rangeout:
             Case 2
                 'secondo lato
                 frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) - i_AzStep, "000.000")
-                i_AzOffsetLock = Format$(i_AzOffsetLock - i_AzStep, "#0.0#")
+                i_AzOffsetLock = ArrotondaOffset(i_AzOffsetLock - i_AzStep)
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -1548,7 +1627,7 @@ Rangeout:
                 'terzo lato
                 frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) - i_ElStep, "00.000")
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                i_ElOffsetLock = Format$(i_ElOffsetLock - i_ElStep, "#0.0#")
+                i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock - i_ElStep)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 If CDbl(frmRicezione.LblElevazione.Text) >= g_ElMin Then
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -1562,9 +1641,9 @@ Rangeout:
                     frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
                     frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
                     i_AzOffsetLock = 0
-                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                    frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
                     i_ElOffsetLock = 0
-                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                    frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                     Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                     i = Len(s_program) + 6
@@ -1589,7 +1668,7 @@ Rangeout:
                 End If
             Case 4
                 frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
-                i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
+                i_AzOffsetLock = ArrotondaOffset(i_AzOffsetLock + i_AzStep)
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -1614,7 +1693,7 @@ Rangeout:
                 Else
                     frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
                     frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
-                    i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
+                    i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock + i_ElStep)
                     frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                     s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                      Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
@@ -1635,8 +1714,8 @@ Rangeout:
                 End If
                 If Not b_RangeAz Then frmRicezione.LblAzimuth.Text = Format$(CDbl(frmRicezione.LblAzimuth.Text) + i_AzStep, "000.000")
                 frmRicezione.LblElevazione.Text = Format$(CDbl(frmRicezione.LblElevazione.Text) + i_ElStep, "00.000")
-                If Not b_RangeAz Then i_AzOffsetLock = Format$(i_AzOffsetLock + i_AzStep, "#0.0#")
-                i_ElOffsetLock = Format$(i_ElOffsetLock + i_ElStep, "#0.0#")
+                If Not b_RangeAz Then i_AzOffsetLock = ArrotondaOffset(i_AzOffsetLock + i_AzStep)
+                i_ElOffsetLock = ArrotondaOffset(i_ElOffsetLock + i_ElStep)
                 frmRicezione.LblAzErrEn.Text = CStr(i_AzOffsetLock)
                 frmRicezione.LblElErrEn.Text = CStr(i_ElOffsetLock)
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
@@ -1658,9 +1737,9 @@ Rangeout:
                 frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
                 frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
                 i_AzOffsetLock = 0
-                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+                frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
                 i_ElOffsetLock = 0
-                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+                frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
                 s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                    Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
                 i = Len(s_program) + 6
@@ -1701,9 +1780,9 @@ Rangeout:
             frmRicezione.LblAzimuth.Text = Format$(g_AzTable, "000.000")
             frmRicezione.LblElevazione.Text = Format$(g_ElTable, "00.000")
             i_AzOffsetLock = 0
-            frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0#")
+            frmRicezione.LblAzErrEn.Text = Format$(i_AzOffsetLock, "#0.0##")
             i_ElOffsetLock = 0
-            frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0#")
+            frmRicezione.LblElErrEn.Text = Format$(i_ElOffsetLock, "#0.0##")
             s_program = " P " & Format$(CDbl(frmRicezione.LblAzimuth.Text), "000.000") & " " &
                      Format$(CDbl(frmRicezione.LblElevazione.Text), "00.000") + " "
             i = Len(s_program) + 6
