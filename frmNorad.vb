@@ -159,11 +159,35 @@ Public Class FrmNorad
             WriteError(0, "Inizialize: " & ex.Message)
         End Try
     End Sub
-    Public Sub AggNorad()
+    ' 1 = un aggiornamento TLE è in corso (download in background).
+    Private Shared aggNoradInCorso As Integer = 0
+    ' Inizio dell'ultimo aggiornamento lanciato, per non ripeterlo a raffica.
+    Private Shared ultimoAggNorad As Date = Date.MinValue
+    ' Intervallo minimo tra due aggiornamenti non forzati: Calcolo_Coordinate
+    ' chiama AggNorad ad ogni calcolo quando il TLE è scaduto (cioè ad ogni
+    ' tick di Program/Acquire), e senza limite riscaricherebbe di continuo.
+    Private Const INTERVALLO_MIN_AGG_NORAD_MIN As Integer = 10
+
+    ''' <summary>
+    ''' Scarica i TLE delle righe URL con "Aggiorna" spuntato. I download
+    ''' proseguono in background: prima il thread UI restava fermo fino alla
+    ''' fine di tutti i download (fino a 15 s, ~5 s misurati all'avvio del
+    ''' programma — la voce più lunga dell'inizializzazione), e lo stesso
+    ''' blocco si ripeteva nei tick di Program quando il TLE era scaduto.
+    ''' Nessun chiamante usa i file scaricati subito dopo la chiamata:
+    ''' vengono letti solo quando l'operatore importa i TLE.
+    ''' forza = True ignora l'intervallo minimo (es. uscita dal dialogo URL,
+    ''' dopo che l'operatore ha cambiato le righe da aggiornare).
+    ''' </summary>
+    Public Sub AggNorad(Optional forza As Boolean = False)
         Dim tmpsqlAgg As String
         Dim rs_Norad1 As Object
         Try
             If s_Internet = "N" Then Exit Sub
+            If Not forza AndAlso Now < ultimoAggNorad.AddMinutes(INTERVALLO_MIN_AGG_NORAD_MIN) Then Exit Sub
+            ' Un solo aggiornamento alla volta.
+            If System.Threading.Interlocked.CompareExchange(aggNoradInCorso, 1, 0) <> 0 Then Exit Sub
+            ultimoAggNorad = Now
             ' Aggiorna è una colonna TEXT ("True"/"False", talvolta "1"/"-1" o
             ' residui storici come "Vero"/"Falso"): un "WHERE Aggiorna" nudo la
             ' valuta numericamente (SQLite tenta la conversione a numero), quindi
@@ -219,9 +243,15 @@ Public Class FrmNorad
                         End Try
                     End Sub)
             Next
-            System.Threading.Tasks.Task.WaitAll(tasks)
-
-            d_TLEDate = Now.AddHours(-i_Offset)
+            ' Niente WaitAll: il chiamante (thread UI) prosegue subito, il
+            ' completamento viene registrato quando tutti i download finiscono.
+            Dim swAgg As System.Diagnostics.Stopwatch = System.Diagnostics.Stopwatch.StartNew()
+            System.Threading.Tasks.Task.WhenAll(tasks).ContinueWith(
+                Sub(t)
+                    d_TLEDate = Now.AddHours(-i_Offset)
+                    WriteError(0, "AggNorad: " & tasks.Length & " download completati in background in " & swAgg.ElapsedMilliseconds & " ms")
+                    System.Threading.Interlocked.Exchange(aggNoradInCorso, 0)
+                End Sub)
 
             '        s_Satellite = Satellite
             '10/01/2019 E' sembrato un aggiornamento eccessivo. Ce ne sono troppi
@@ -235,6 +265,9 @@ Public Class FrmNorad
             '    Inizialize
         Catch ex As Exception
             WriteError(0, "AggNorad: " & ex.Message)
+            ' Errore prima del lancio dei download (es. tabella URL vuota:
+            ' MoveFirst): nessuna continuazione rilascerà il flag.
+            System.Threading.Interlocked.Exchange(aggNoradInCorso, 0)
         End Try
     End Sub
 

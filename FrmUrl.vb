@@ -156,7 +156,7 @@ Public Class FrmUrl
     End Sub
 
     Private Sub Esci()
-        FrmNorad.AggNorad()
+        FrmNorad.AggNorad(forza:=True)
         Me.Close()
     End Sub
 
