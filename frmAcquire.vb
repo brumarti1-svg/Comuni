@@ -63,6 +63,52 @@ Partial Public Class frmAcquire
     End Sub
 
     ' -------------------------------------------------------
+    ' Step separati per modo di ricerca
+    ' -------------------------------------------------------
+    ' Spirale e Quadrati hanno step propri (Az, El, Az Lock, El Lock), salvati
+    ' in chiavi INI distinte: in prova la Spirale dà gli stessi risultati
+    ' dei Quadrati con step pari alla metà. I campi a schermo mostrano sempre
+    ' gli step del modo selezionato; cambiando modo, i valori correnti
+    ' vengono conservati e si caricano quelli dell'altro modo.
+    ' Quadrati = chiavi storiche (StepAz, ...), compatibili con gli INI già
+    ' esistenti; Spirale = stesse chiavi con suffisso "Spirale".
+    Private Shared ReadOnly ChiaviStep() As String = {"StepAz", "StepEl", "StepAzLock", "StepElLock"}
+    Private Const SUFFISSO_SPIRALE As String = "Spirale"
+    Private passiQuadrati() As String
+    Private passiSpirale() As String
+    Private passiMostratiSpirale As Boolean
+
+    Private Function CampiStep() As TextBox()
+        Return {TxtAzStep, TxtElStep, TxtAzStepLock, TxtElStepLock}
+    End Function
+
+    Private Sub MostraStep(passi() As String)
+        Dim campi = CampiStep()
+        For k As Integer = 0 To campi.Length - 1
+            campi(k).Text = passi(k)
+        Next
+    End Sub
+
+    Private Sub ConservaStepMostrati()
+        If passiQuadrati Is Nothing Then Exit Sub
+        Dim campi = CampiStep()
+        Dim dest() As String = If(passiMostratiSpirale, passiSpirale, passiQuadrati)
+        For k As Integer = 0 To campi.Length - 1
+            dest(k) = campi(k).Text
+        Next
+    End Sub
+
+    Private Sub optSpirale_CheckedChanged(sender As Object, e As EventArgs) Handles optSpirale.CheckedChanged
+        ' Scatta una sola volta per cambio di modo (optSpirale cambia sempre
+        ' stato insieme a optQuadrati). Prima di ImpostaValori i campi non
+        ' sono ancora stati caricati: niente da scambiare.
+        If passiQuadrati Is Nothing Then Exit Sub
+        ConservaStepMostrati()
+        passiMostratiSpirale = optSpirale.Checked
+        MostraStep(If(passiMostratiSpirale, passiSpirale, passiQuadrati))
+    End Sub
+
+    ' -------------------------------------------------------
     ' Legge i valori dal file INI
     ' -------------------------------------------------------
     Private Sub ImpostaValori()
@@ -70,10 +116,19 @@ Partial Public Class frmAcquire
             Dim s As String = "Acquire"
             TxtAzRange.Text = LeggiFileIni(s, "RangeAz")
             TxtElRange.Text = LeggiFileIni(s, "RangeEl")
-            TxtAzStep.Text = LeggiFileIni(s, "StepAz")
-            TxtElStep.Text = LeggiFileIni(s, "StepEl")
-            TxtAzStepLock.Text = LeggiFileIni(s, "StepAzLock")
-            TxtElStepLock.Text = LeggiFileIni(s, "StepElLock")
+            passiQuadrati = New String(ChiaviStep.Length - 1) {}
+            passiSpirale = New String(ChiaviStep.Length - 1) {}
+            For k As Integer = 0 To ChiaviStep.Length - 1
+                passiQuadrati(k) = LeggiFileIni(s, ChiaviStep(k))
+                passiSpirale(k) = LeggiFileIni(s, ChiaviStep(k) & SUFFISSO_SPIRALE)
+                ' Prima apertura dopo l'introduzione degli step separati:
+                ' la Spirale parte dalla metà degli step dei Quadrati.
+                If Not IsNumeric(passiSpirale(k)) AndAlso IsNumeric(passiQuadrati(k)) Then
+                    passiSpirale(k) = (Val(passiQuadrati(k)) / 2).ToString("0.###", Globalization.CultureInfo.InvariantCulture)
+                End If
+            Next
+            passiMostratiSpirale = optSpirale.Checked
+            MostraStep(If(passiMostratiSpirale, passiSpirale, passiQuadrati))
             TxtDeltaTime.Text = LeggiFileIni(s, "IntAcq")
             TxtTout.Text = LeggiFileIni(s, "TimeOut")
             TxtCoorAcq.Text = LeggiFileIni(s, "CoorAcq")
@@ -90,10 +145,15 @@ Partial Public Class frmAcquire
         Dim s As String = "Acquire"
         ScriviFileIni(s, "RangeAz", TxtAzRange.Text)
         ScriviFileIni(s, "RangeEl", TxtElRange.Text)
-        ScriviFileIni(s, "StepAz", TxtAzStep.Text)
-        ScriviFileIni(s, "StepEl", TxtElStep.Text)
-        ScriviFileIni(s, "StepAzLock", TxtAzStepLock.Text)
-        ScriviFileIni(s, "StepElLock", TxtElStepLock.Text)
+        ' Salva gli step di ENTRAMBI i modi (quelli a schermo appartengono al
+        ' modo selezionato, l'altro set è quello conservato in memoria).
+        ConservaStepMostrati()
+        If passiQuadrati IsNot Nothing Then
+            For k As Integer = 0 To ChiaviStep.Length - 1
+                ScriviFileIni(s, ChiaviStep(k), passiQuadrati(k))
+                ScriviFileIni(s, ChiaviStep(k) & SUFFISSO_SPIRALE, passiSpirale(k))
+            Next
+        End If
         ScriviFileIni(s, "IntAcq", TxtDeltaTime.Text)
         ScriviFileIni(s, "TimeOut", TxtTout.Text)
         ScriviFileIni(s, "CoorAcq", TxtCoorAcq.Text)
@@ -104,32 +164,35 @@ Partial Public Class frmAcquire
     ' Bottone OK / Avvia Spiral Acquire
     ' -------------------------------------------------------
     Private Sub CmdEnd_Click(sender As Object, e As EventArgs) Handles CmdEnd.Click
-        If Not optPreset.Checked AndAlso Not optProgram.Checked Then Exit Sub
+        If Not optPreset.Checked AndAlso Not optProgram.Checked Then
+            SegnalaErroreAvvio("selezionare Preset o Program", Nothing)
+            Exit Sub
+        End If
 
         ' Validazione data inizio
         If Not IsDate(mskDataIni.Text) Then
-            mskDataIni.Focus()
+            SegnalaErroreAvvio("data/ora di inizio non valida ('" & mskDataIni.Text & "')", mskDataIni)
             Exit Sub
         End If
         d_DataInizioProg = mskDataIni.Text
         Dim InizProg As Date = CDate(d_DataInizioProg)
 
         ' Validazione parametri con range
-        If Not ValidaRange(TxtAzRange, 1, 30, i_AzRange) Then Exit Sub
-        If Not ValidaRange(TxtElRange, 1, 30, i_ElRange) Then Exit Sub
-        If Not ValidaRange(TxtAzStep, 0.01, 1, i_AzStep) Then Exit Sub
-        If Not ValidaRange(TxtElStep, 0.01, 1, i_ElStep) Then Exit Sub
+        If Not ValidaRange(TxtAzRange, 1, 30, i_AzRange, "Az Range") Then Exit Sub
+        If Not ValidaRange(TxtElRange, 1, 30, i_ElRange, "El Range") Then Exit Sub
+        If Not ValidaRange(TxtAzStep, 0.01, 1, i_AzStep, "Az Step") Then Exit Sub
+        If Not ValidaRange(TxtElStep, 0.01, 1, i_ElStep, "El Step") Then Exit Sub
         ' Copia congelata: Calcolo_Aquire sovrascrive i_AzStep/i_ElStep con
         ' i_AzStepLock/i_ElStepLock all'aggancio del beacon — questa copia
         ' resta invece quella scelta qui, per il pannello di FrmVisualAcquire.
         i_AzStepConfigurato = i_AzStep
         i_ElStepConfigurato = i_ElStep
-        If Not ValidaRange(TxtAzStepLock, 0.01, 1, i_AzStepLock) Then Exit Sub
-        If Not ValidaRange(TxtElStepLock, 0.01, 1, i_ElStepLock) Then Exit Sub
-        If Not ValidaRange(TxtDeltaTime, 1, 5, i_InterAcq) Then Exit Sub
+        If Not ValidaRange(TxtAzStepLock, 0.01, 1, i_AzStepLock, "Az Step Lock") Then Exit Sub
+        If Not ValidaRange(TxtElStepLock, 0.01, 1, i_ElStepLock, "El Step Lock") Then Exit Sub
+        If Not ValidaRange(TxtDeltaTime, 1, 5, i_InterAcq, "Int. Acq") Then Exit Sub
         MilSecC = i_InterAcq
-        If Not ValidaRange(TxtCoorAcq, 0.05, 1, CoorAcq) Then Exit Sub
-        If Not ValidaRange(TxtLockThr, -110, -40, i_LockThr) Then Exit Sub
+        If Not ValidaRange(TxtCoorAcq, 0.05, 1, CoorAcq, "Coor Acq") Then Exit Sub
+        If Not ValidaRange(TxtLockThr, -110, -40, i_LockThr, "Lock Thr") Then Exit Sub
 
         ' In Program, mskAzimuth/mskElevazione sono stati valorizzati al
         ' momento della selezione del radio button "Program" (chiamata a
@@ -146,7 +209,15 @@ Partial Public Class frmAcquire
                     mskAzimuth.Text = frmRicezioneRef.LblAzimuthC.Text
                     mskElevazione.Text = frmRicezioneRef.LblElevazioneC.Text
                 End If
+            Else
+                SegnalaErroreAvvio("posizione del satellite non calcolabile in Program " &
+                                   "(verificare satellite selezionato, TLE e algoritmo)", Nothing)
+                Exit Sub
             End If
+        End If
+        If Not IsNumeric(mskAzimuth.Text) OrElse Not IsNumeric(mskElevazione.Text) Then
+            SegnalaErroreAvvio("coordinate di partenza Azimuth/Elevation non disponibili", mskAzimuth)
+            Exit Sub
         End If
 
         ' Coordinate antenna
@@ -170,7 +241,7 @@ Partial Public Class frmAcquire
             If tout >= 10 AndAlso tout <= 480 Then
                 d_DataFineProg = InizProg.AddMinutes(tout).ToString()
             Else
-                TxtTout.Focus()
+                SegnalaErroreAvvio("Timeout '" & TxtTout.Text & "' fuori range (ammesso 10 - 480 minuti)", TxtTout)
                 Exit Sub
             End If
         Else
@@ -283,7 +354,7 @@ Partial Public Class frmAcquire
     ' Helper — valida un campo numerico in un range
     ' -------------------------------------------------------
     Private Function ValidaRange(Txt As TextBox, minVal As Double, maxVal As Double,
-                                  ByRef target As Double) As Boolean
+                                  ByRef target As Double, nomeCampo As String) As Boolean
         ' CDbl(Txt.Text) sotto locale italiano legge il "." come separatore
         ' delle migliaia, non decimale (es. "0.5" diventa 5): Val() usa
         ' sempre il punto come decimale, indipendentemente dal locale.
@@ -294,9 +365,27 @@ Partial Public Class frmAcquire
                 Return True
             End If
         End If
-        Txt.Focus()
+        ' Prima solo Focus() sul campo, senza alcun messaggio: l'Acquire non
+        ' partiva e l'operatore non sapeva perché.
+        Dim inv As Globalization.CultureInfo = Globalization.CultureInfo.InvariantCulture
+        Dim valore As String = If(String.IsNullOrWhiteSpace(Txt.Text), "vuoto", "'" & Txt.Text & "'")
+        SegnalaErroreAvvio(nomeCampo & " " & valore & " non valido (ammesso " &
+                           minVal.ToString(inv) & " - " & maxVal.ToString(inv) & ")", Txt)
         Return False
     End Function
+
+    ''' <summary>
+    ''' Diagnostico di avvio Acquire non possibile: messaggio a video,
+    ''' riga nei messaggi operatore (ScriviAlarm, senza beep) e in ErrSoft,
+    ''' focus sul campo da correggere (se indicato).
+    ''' </summary>
+    Private Sub SegnalaErroreAvvio(motivo As String, campo As Control)
+        Dim testo As String = "Acquire non avviato: " & motivo
+        WriteError(0, testo)
+        ScriviAlarm(testo, 0)
+        MsgBox(testo, MsgBoxStyle.Exclamation, "Acquire")
+        If campo IsNot Nothing Then campo.Focus()
+    End Sub
 
     ' -------------------------------------------------------
     ' RadioButton Preset — legge posizione attuale antenna
