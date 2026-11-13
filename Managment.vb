@@ -267,6 +267,14 @@ ByVal nSize As Long) As Long
     End Function
 
 
+    ''' <summary>
+    ''' Scrittura su porta seriale fornita dall'applicazione (le porte
+    ''' ComPort() sono definite in ogni app, non qui). Impostata solo
+    ''' dalle app con ACU su seriale (es. FOC-C10); se resta Nothing
+    ''' (BTS1, FOC6: ACU su LAN) il comportamento è quello di prima.
+    ''' </summary>
+    Public InvioSerialeHook As Func(Of Integer, String, Boolean)
+
     Public Function InvioACU(s_send As String) As Boolean
         Dim Port As Integer, i_lun As Integer
         ' frmRicezione.LblRisposta not migrated
@@ -275,7 +283,7 @@ ByVal nSize As Long) As Long
             If s_send = "" Then Exit Function
 
             If Port_Control(ACU).Socket = "N" Then
-                ' ComPort serial control not migrated
+                If InvioSerialeHook IsNot Nothing Then InvioSerialeHook(ACU, s_send)
                 Port_Control(ACU).Rec_State = PCR_WAIT
             Else
                 SendMain(ACU, s_send)
