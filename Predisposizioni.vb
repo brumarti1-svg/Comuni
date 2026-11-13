@@ -326,10 +326,10 @@ Module Predisposizioni
     Public b_LNA As Boolean             'Abilita (True) o Disabilita (False) l'interrogazione dell'LNA
     Public b_MCS As Boolean                           '11/12/2018 False = richiesta PC1 Vero = Richiesta MCS
     ' Simulazione (frame ACU finti e beacon simulato in Acquire): SOLO per prove
-    ' senza apparati. FOC6/FOCC10 la impostano all'avvio: True solo nella build
-    ' "Simulazione", False nella versione operativa. True di partenza per non cambiare
-    ' BTS1/Effemeridi, che non la impostano.
-    Public b_SimulazioneACU As Boolean = True
+    ' senza apparati. FOC6/FOCC10/BTS1 la impostano all'avvio: True solo nella build
+    ' "Simulazione", False nella versione operativa. False di
+    ' partenza: chi non la imposta (Effemeridi) non simula mai.
+    Public b_SimulazioneACU As Boolean = False
     Public b_Memory As Boolean                      'False = i dati per la Table non sono validi True = validi
     Public b_SCU As Boolean             'Abilita (True) o Disabilita (False) l'interrogazione dello Switch
     Public b_Acquire As Boolean        'indica se il dato di Az e El per lo Spiral Acquire è preso dal Program Track (=Vero) o dall'Antenna (=Falso)
