@@ -579,7 +579,7 @@ Module Ricezione
             d_FineProg = CDate(d_DataFineProg)
         End If
         i_ProgTrack = 1
-        AvanzaSimulazioneBeacon()
+        If b_SimulazioneACU Then AvanzaSimulazioneBeacon()     ' mai con apparati veri: sovrascrive s_Lev/s_Lev1/errori
         ' NIENTE reset di b_LockOn/i_AzStep/i_ElStep quando b_Lock torna
         ' False: b_Lock riflette il livello ISTANTANEO (serve per
         ' l'indicatore LOCK/UNLOCK a schermo, sempre live), ma la fase di
