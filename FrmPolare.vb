@@ -56,6 +56,11 @@ Public Class FrmPolare
     Dim tmpSeleziona As Boolean
     Dim diff As Single, i_Intervallo As Integer
     Private _primoPunto As Boolean = True
+    ' Trace Orbit: posizioni (Az, El) già tracciate. Servono a ridisegnare
+    ' tutta la traccia quando il grafico si rigenera (resize, ripristino,
+    ' riattivazione): prima si perdeva e restava un solo punto.
+    Private ReadOnly _puntiTrace As New List(Of PointF)
+    Private Const MAX_PUNTI_TRACE As Integer = 20000
 
     ' Stato di disegno GDI+ (sostituisce il disegno diretto su VB6 PictureBox)
     Private DyVisual As SQLiteDataReader
@@ -319,6 +324,7 @@ Public Class FrmPolare
         End If
         VisualizzaGrafico()
         If g_GrafPol Then SelezionaSingoliDati()
+        If Not g_GrafPol Then RidisegnaTraccia()
         Cursor.Current = Cursors.Default
     End Sub
 
@@ -373,7 +379,8 @@ Public Class FrmPolare
         _currentY = tmpY1 - 8
         _fontSize = 7
         _penColor = Color.Black
-        GfxPrint(OraIni)
+        ' Ora solo nel grafico da archivio (VB6: If g_GrafPol Then Print OraIni).
+        If g_GrafPol Then GfxPrint(OraIni)
 
         _currentX = tmpX1
         _currentY = tmpY1
@@ -386,6 +393,14 @@ Public Class FrmPolare
 
     Private Sub FrmPolare_Load(sender As Object, e As EventArgs) Handles Me.Load
         ' Le dimensioni reali arrivano in Shown (dopo il Maximize)
+        ' Ordine di aggancio: prima la barra in alto (Dock=Top), poi il grafico
+        ' (Dock=Fill) nello spazio rimanente. Prima il grafico veniva agganciato
+        ' per primo, occupava tutta la finestra e la barra gli stava sopra.
+        picGrafico.BringToFront()
+        ' Exit ancorato a destra: era fisso a X=941 e con la finestra non
+        ' massimizzata finiva fuori vista.
+        CmdEsci.Left = pnlFiltro.ClientSize.Width - CmdEsci.Width - 8
+        CmdEsci.Anchor = AnchorStyles.Top Or AnchorStyles.Right
     End Sub
 
     ' picGrafico (Dock=Fill) si ridimensiona da solo con la finestra, ma il
@@ -397,10 +412,26 @@ Public Class FrmPolare
     Private Sub PicGrafico_Resize(sender As Object, e As EventArgs) Handles picGrafico.Resize
         If _g Is Nothing Then Exit Sub   ' primo layout, prima di Shown: niente da rigenerare ancora
         If picGrafico.ClientSize.Width <= 0 OrElse picGrafico.ClientSize.Height <= 0 Then Exit Sub
+        ' Rigenerazione RIMANDATA a fine layout (BeginInvoke): cambiare
+        ' picGrafico.Image e ridisegnare dentro il Resize, mentre WinForms sta
+        ' ancora agganciando i controlli, bloccava il PictureBox alla
+        ' dimensione iniziale — il grafico non seguiva più la finestra.
+        ' Più Resize consecutivi (trascinamento del bordo) = una sola
+        ' rigenerazione.
+        If _rigenerazioneInAttesa Then Exit Sub
+        _rigenerazioneInAttesa = True
+        BeginInvoke(New MethodInvoker(AddressOf RigeneraGrafico))
+    End Sub
+
+    Private _rigenerazioneInAttesa As Boolean
+
+    Private Sub RigeneraGrafico()
+        _rigenerazioneInAttesa = False
+        If IsDisposed OrElse picGrafico.ClientSize.Width <= 0 OrElse picGrafico.ClientSize.Height <= 0 Then Exit Sub
         ' CmdElabora() da sola non rigenera il canvas: chiama InitCanvas()
         ' solo la primissima volta (If _g Is Nothing), quindi va richiamato
         ' esplicitamente qui per ricalcolare bitmap e geometria alla nuova
-        ' dimensione.
+        ' dimensione. In Trace Orbit CmdElabora ridisegna anche la traccia.
         InitCanvas()
         CmdElabora()
     End Sub
@@ -414,6 +445,8 @@ Public Class FrmPolare
     Private _modoGrafPol As Boolean?
 
     Private Sub ApplicaModalita()
+        ' Passando da Ephemeris Orbit a Trace Orbit la traccia riparte da zero.
+        If _modoGrafPol.HasValue AndAlso _modoGrafPol.Value <> g_GrafPol Then _puntiTrace.Clear()
         _modoGrafPol = g_GrafPol
         ' In Trace Orbit data inizio/fine ed Elabora sono nascosti (nel VB6
         ' la finestra ha solo il grafico e il pulsante Exit).
@@ -480,7 +513,20 @@ Public Class FrmPolare
         Else
             Exit Sub
         End If
+        If _puntiTrace.Count >= MAX_PUNTI_TRACE Then _puntiTrace.RemoveAt(0)
+        _puntiTrace.Add(New PointF(tmp_Azi, tmp_Ele))
         VisualizzaPunto()
+        picGrafico.Refresh()
+    End Sub
+
+    ' Ridisegna tutta la traccia di Trace Orbit sul grafico appena rigenerato.
+    Private Sub RidisegnaTraccia()
+        _primoPunto = True
+        For Each p As PointF In _puntiTrace
+            tmp_Azi = p.X
+            tmp_Ele = p.Y
+            VisualizzaPunto()
+        Next
         picGrafico.Refresh()
     End Sub
 
