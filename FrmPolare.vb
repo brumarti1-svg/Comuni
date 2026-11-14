@@ -405,17 +405,23 @@ Public Class FrmPolare
         CmdElabora()
     End Sub
 
-    Private Sub FrmPolare_Shown(sender As Object, e As EventArgs) Handles Me.Shown
-        ' Il filtro Dal/Al ha senso solo per il grafico statico/archivio
-        ' (g_GrafPol=True): in modalità real-time (Trace Orbit) i punti
-        ' arrivano dal timer via s_Az/s_El correnti, non da una lettura
-        ' filtrata di tmpEffemeridi.
-        ' Come nel VB6: in Trace Orbit la finestra ha solo il grafico e Exit,
-        ' quindi data inizio/fine ed Elabora sono nascosti (non solo disabilitati).
+    ' Modalità attualmente applicata alla finestra (Nothing = non ancora).
+    ' g_GrafPol, come nel VB6, distingue i due comportamenti:
+    '   False = Trace Orbit: posizione Az/El attuale tracciata in tempo reale
+    '           dal timer; solo grafico ed Exit.
+    '   True  = Ephemeris Orbit > Polar: grafico dall'archivio, con filtro
+    '           Dal/Al ed Elabora.
+    Private _modoGrafPol As Boolean?
+
+    Private Sub ApplicaModalita()
+        _modoGrafPol = g_GrafPol
+        ' In Trace Orbit data inizio/fine ed Elabora sono nascosti (nel VB6
+        ' la finestra ha solo il grafico e il pulsante Exit).
         For Each c As Control In {LblDal, mskDataIni, mskOraIni, LblAl, mskDataFin, mskOraFin, BtnFiltra}
             c.Visible = g_GrafPol
         Next
         If g_GrafPol Then
+            tmrPolare.Enabled = False
             ' Default: tutta la giornata odierna (i dati possono coprire
             ' più passaggi nelle 24 ore, come per un'effemeride).
             mskDataIni.Text = NowUTC().ToString("ddMMyyyy")
@@ -425,13 +431,27 @@ Public Class FrmPolare
         End If
         InitCanvas()
         CmdElabora()
-        ' Trace Orbit: primo punto subito, senza aspettare il primo scatto del timer.
-        If Not g_GrafPol Then TmrPolare_Tick(tmrPolare, EventArgs.Empty)
+        If Not g_GrafPol Then
+            ' Primo punto subito, senza aspettare il primo scatto del timer.
+            TmrPolare_Tick(tmrPolare, EventArgs.Empty)
+            tmrPolare.Interval = If(i_Inter > 0, i_Inter * 1000, 1000)
+            tmrPolare.Enabled = True
+        End If
+    End Sub
+
+    Private Sub FrmPolare_Shown(sender As Object, e As EventArgs) Handles Me.Shown
+        ApplicaModalita()
     End Sub
 
     Private Sub FrmPolare_Activated(sender As Object, e As EventArgs) Handles Me.Activated
-        ' Abilita il timer real-time se non in modalità grafico statico
-        If Not g_GrafPol Then
+        ' Come Form_Activate del VB6: g_GrafPol viene riletto a ogni
+        ' attivazione. Se la finestra era già aperta nell'altra modalità
+        ' (Trace Orbit <-> Ephemeris Orbit > Polar) si reimposta. Prima di
+        ' Shown non c'è ancora il canvas: ci pensa Shown.
+        If _g Is Nothing OrElse Not _modoGrafPol.HasValue Then Exit Sub
+        If _modoGrafPol.Value <> g_GrafPol Then
+            ApplicaModalita()
+        ElseIf Not g_GrafPol Then
             tmrPolare.Interval = If(i_Inter > 0, i_Inter * 1000, 1000)
             tmrPolare.Enabled = True
         End If
