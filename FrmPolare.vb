@@ -410,11 +410,11 @@ Public Class FrmPolare
         ' (g_GrafPol=True): in modalità real-time (Trace Orbit) i punti
         ' arrivano dal timer via s_Az/s_El correnti, non da una lettura
         ' filtrata di tmpEffemeridi.
-        mskDataIni.Enabled = g_GrafPol
-        mskOraIni.Enabled = g_GrafPol
-        mskDataFin.Enabled = g_GrafPol
-        mskOraFin.Enabled = g_GrafPol
-        BtnFiltra.Enabled = g_GrafPol
+        ' Come nel VB6: in Trace Orbit la finestra ha solo il grafico e Exit,
+        ' quindi data inizio/fine ed Elabora sono nascosti (non solo disabilitati).
+        For Each c As Control In {LblDal, mskDataIni, mskOraIni, LblAl, mskDataFin, mskOraFin, BtnFiltra}
+            c.Visible = g_GrafPol
+        Next
         If g_GrafPol Then
             ' Default: tutta la giornata odierna (i dati possono coprire
             ' più passaggi nelle 24 ore, come per un'effemeride).
@@ -425,6 +425,8 @@ Public Class FrmPolare
         End If
         InitCanvas()
         CmdElabora()
+        ' Trace Orbit: primo punto subito, senza aspettare il primo scatto del timer.
+        If Not g_GrafPol Then TmrPolare_Tick(tmrPolare, EventArgs.Empty)
     End Sub
 
     Private Sub FrmPolare_Activated(sender As Object, e As EventArgs) Handles Me.Activated
