@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FrmVisualizzazione.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)HTTP.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Managment.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)MenuConBordo.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MdlSocket.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ModCassVenere.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ModLuna.vb" />
