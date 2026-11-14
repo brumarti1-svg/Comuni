@@ -123,8 +123,9 @@ Partial Public Class frmAcquire
                 passiSpirale(k) = LeggiFileIni(s, ChiaviStep(k) & SUFFISSO_SPIRALE)
                 ' Prima apertura dopo l'introduzione degli step separati:
                 ' la Spirale parte dalla metà degli step dei Quadrati.
-                If Not IsNumeric(passiSpirale(k)) AndAlso IsNumeric(passiQuadrati(k)) Then
-                    passiSpirale(k) = (Val(passiQuadrati(k)) / 2).ToString("0.###", Globalization.CultureInfo.InvariantCulture)
+                Dim vq As Double, vs As Double
+                If Not LeggiDecimale(passiSpirale(k), vs) AndAlso LeggiDecimale(passiQuadrati(k), vq) Then
+                    passiSpirale(k) = (vq / 2).ToString("0.###", Globalization.CultureInfo.InvariantCulture)
                 End If
             Next
             passiMostratiSpirale = optSpirale.Checked
@@ -358,10 +359,13 @@ Partial Public Class frmAcquire
         ' CDbl(Txt.Text) sotto locale italiano legge il "." come separatore
         ' delle migliaia, non decimale (es. "0.5" diventa 5): Val() usa
         ' sempre il punto come decimale, indipendentemente dal locale.
-        If IsNumeric(Txt.Text) Then
-            Dim v As Double = CDbl(Val(Txt.Text))
+        Dim v As Double
+        If LeggiDecimale(Txt.Text, v) Then
             If v >= minVal AndAlso v <= maxVal Then
                 target = v
+                ' Riscrive il valore col punto: il campo viene salvato
+                ' nell'INI e riletto altrove con Val(), che non conosce la virgola.
+                Txt.Text = v.ToString(Globalization.CultureInfo.InvariantCulture)
                 Return True
             End If
         End If

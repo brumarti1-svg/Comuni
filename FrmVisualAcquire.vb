@@ -1042,8 +1042,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtAzRange_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtAzRange.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtAzRange.Text) Then
-                Dim v = CDbl(Val(TxtAzRange.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtAzRange.Text, v) Then
                 If v >= 1 AndAlso v <= 30 Then i_AzRange = CSng(v) Else TxtAzRange.Text = i_AzRange.ToString()
             Else
                 TxtAzRange.Text = i_AzRange.ToString()
@@ -1053,8 +1053,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtAzStep_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtAzStep.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtAzStep.Text) Then
-                Dim v = CDbl(Val(TxtAzStep.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtAzStep.Text, v) Then
                 If v >= 0.01 AndAlso v <= 1 Then
                     ' Dopo il lock debole lo step attivo è quello Lock: lo
                     ' step largo non deve sovrascriverlo.
@@ -1071,8 +1071,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtAzStepLock_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtAzStepLock.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtAzStepLock.Text) Then
-                Dim v = CDbl(Val(TxtAzStepLock.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtAzStepLock.Text, v) Then
                 If v >= 0.01 AndAlso v <= 1 Then
                     i_AzStepLock = CSng(v)
                     ' Dopo il lock debole i_AzStep È lo step Lock: va
@@ -1090,8 +1090,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtCoorAcq_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtCoorAcq.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtCoorAcq.Text) Then
-                Dim v = CDbl(Val(TxtCoorAcq.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtCoorAcq.Text, v) Then
                 If v >= 0.05 AndAlso v <= 1 Then CoorAcq = CSng(v) Else TxtCoorAcq.Text = CoorAcq.ToString()
             Else
                 TxtCoorAcq.Text = CoorAcq.ToString()
@@ -1101,8 +1101,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtDeltaTime_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtDeltaTime.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtDeltaTime.Text) Then
-                Dim v = CDbl(Val(TxtDeltaTime.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtDeltaTime.Text, v) Then
                 If v >= 1 AndAlso v <= 5 Then
                     i_InterAcq = CSng(v)
                     MilSecC = CSng(v)
@@ -1120,8 +1120,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtElRange_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtElRange.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtElRange.Text) Then
-                Dim v = CDbl(Val(TxtElRange.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtElRange.Text, v) Then
                 If v >= 1 AndAlso v <= 30 Then i_ElRange = CSng(v) Else TxtElRange.Text = i_ElRange.ToString()
             Else
                 TxtElRange.Text = i_ElRange.ToString()
@@ -1131,8 +1131,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtElStep_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtElStep.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtElStep.Text) Then
-                Dim v = CDbl(Val(TxtElStep.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtElStep.Text, v) Then
                 If v >= 0.01 AndAlso v <= 1 Then
                     If Not b_LockOn Then i_ElStep = CSng(v)
                     i_ElStepConfigurato = CSng(v)
@@ -1147,8 +1147,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtElStepLock_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtElStepLock.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtElStepLock.Text) Then
-                Dim v = CDbl(Val(TxtElStepLock.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtElStepLock.Text, v) Then
                 If v >= 0.01 AndAlso v <= 1 Then
                     i_ElStepLock = CSng(v)
                     If b_LockOn Then i_ElStep = CSng(v)
@@ -1163,8 +1163,8 @@ Public Class FrmVisualAcquire
 
     Private Sub TxtLockThr_KeyUp(sender As Object, e As KeyEventArgs) Handles TxtLockThr.KeyUp
         If e.KeyCode = Keys.Return Then
-            If IsNumeric(TxtLockThr.Text) Then
-                Dim v = CDbl(Val(TxtLockThr.Text))
+            Dim v As Double
+            If LeggiDecimale(TxtLockThr.Text, v) Then
                 If v >= -110 AndAlso v <= -40 Then i_LockThr = CSng(v) Else TxtLockThr.Text = i_LockThr.ToString()
             Else
                 TxtLockThr.Text = i_LockThr.ToString()

@@ -54,6 +54,20 @@ ByVal nSize As Long) As Long
         Return _iniCacheLines
     End Function
 
+    ''' <summary>
+    ''' Legge un numero decimale digitato dall'operatore indipendentemente dal
+    ''' locale: accetta sia il punto sia la virgola come separatore decimale
+    ''' (".1", "0.05", "0,05"). IsNumeric() col locale italiano tratta il punto
+    ''' come separatore delle migliaia e rifiutava ".1"; Val() invece legge
+    ''' "0,05" come 0.
+    ''' </summary>
+    Public Function LeggiDecimale(testo As String, ByRef valore As Double) As Boolean
+        If String.IsNullOrWhiteSpace(testo) Then Return False
+        Return Double.TryParse(testo.Trim().Replace(","c, "."c),
+                               Globalization.NumberStyles.Float,
+                               Globalization.CultureInfo.InvariantCulture, valore)
+    End Function
+
     Public Function LeggiFileIni(Section As String, key As String) As String
         Dim FileName As String = Application.StartupPath & "\SMOD1574.INI"
         If Not System.IO.File.Exists(FileName) Then
