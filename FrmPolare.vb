@@ -517,17 +517,17 @@ Public Class FrmPolare
         End If
     End Sub
 
-    ' Dopo un cambio di satellite la traccia resta vuota fino al primo
-    ' LOCK del beacon (LockRic, lo stesso indicatore LOCK/UNLOCK di
-    ' frmRicezione): è l'unica conferma che l'antenna è sul nuovo
-    ' satellite. I punti precedenti (antenna ancora sul satellite vecchio
-    ' o in movimento) non hanno senso. Una volta partita, la traccia
-    ' prosegue anche se il lock si perde.
+    ' Cambio di satellite (nome cambiato, caricamento completato):
+    '   1) attesa di ATTESA_CAMBIO_SEC, senza tracciare, perché la
+    '      telemetria ACU (e quindi LockRic) si aggiorni sul nuovo satellite;
+    '   2) azzeramento della traccia del satellite precedente;
+    '   3) attesa del LOCK del beacon (LockRic, lo stesso indicatore
+    '      LOCK/UNLOCK di frmRicezione): da lì la traccia parte e prosegue
+    '      anche se il lock si perde.
+    Private _attesaCambio As Boolean
+    Private _inizioCambio As Date
     Private _attesaLock As Boolean
-    ' Subito dopo il caricamento LockRic può essere ancora il LOCK del
-    ' satellite precedente (telemetria ACU non ancora aggiornata): si
-    ' accetta il LOCK solo dopo aver visto almeno un UNLOCK.
-    Private _vistoUnlock As Boolean
+    Private Const ATTESA_CAMBIO_SEC As Double = 2
 
     Private Sub TmrPolare_Tick(sender As Object, e As EventArgs) Handles tmrPolare.Tick
         tmrPolare.Enabled = True
@@ -538,16 +538,20 @@ Public Class FrmPolare
         ' del nuovo satellite non è ancora caricato.
         If Not String.Equals(_satelliteTrace, g_SatelliteCaricato) Then
             _satelliteTrace = g_SatelliteCaricato
-            _puntiTrace.Clear()
-            _primoPunto = True
+            _attesaCambio = True
+            _inizioCambio = Now
             _attesaLock = True
-            _vistoUnlock = False
-            If _g IsNot Nothing Then VisualizzaGrafico()
             AggiornaTitolo()
         End If
+        If _attesaCambio Then
+            If (Now - _inizioCambio).TotalSeconds < ATTESA_CAMBIO_SEC Then Exit Sub
+            _attesaCambio = False
+            _puntiTrace.Clear()
+            _primoPunto = True
+            If _g IsNot Nothing Then VisualizzaGrafico()
+        End If
         If _attesaLock Then
-            If LockRic <> "LOCK" Then _vistoUnlock = True : Exit Sub
-            If Not _vistoUnlock Then Exit Sub
+            If LockRic <> "LOCK" Then Exit Sub
             _attesaLock = False
             AggiornaTitolo()
         End If
