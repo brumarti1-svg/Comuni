@@ -524,6 +524,10 @@ Public Class FrmPolare
     ' o in movimento) non hanno senso. Una volta partita, la traccia
     ' prosegue anche se il lock si perde.
     Private _attesaLock As Boolean
+    ' Subito dopo il caricamento LockRic può essere ancora il LOCK del
+    ' satellite precedente (telemetria ACU non ancora aggiornata): si
+    ' accetta il LOCK solo dopo aver visto almeno un UNLOCK.
+    Private _vistoUnlock As Boolean
 
     Private Sub TmrPolare_Tick(sender As Object, e As EventArgs) Handles tmrPolare.Tick
         tmrPolare.Enabled = True
@@ -537,11 +541,13 @@ Public Class FrmPolare
             _puntiTrace.Clear()
             _primoPunto = True
             _attesaLock = True
+            _vistoUnlock = False
             If _g IsNot Nothing Then VisualizzaGrafico()
             AggiornaTitolo()
         End If
         If _attesaLock Then
-            If LockRic <> "LOCK" Then Exit Sub
+            If LockRic <> "LOCK" Then _vistoUnlock = True : Exit Sub
+            If Not _vistoUnlock Then Exit Sub
             _attesaLock = False
             AggiornaTitolo()
         End If
