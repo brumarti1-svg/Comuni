@@ -512,41 +512,9 @@ Public Class FrmPolare
             Me.Text = "Data Analysis (Polar)"
         Else
             Dim nome As String = If(String.IsNullOrEmpty(g_SatelliteCaricato), s_Satellite, g_SatelliteCaricato)
-            Me.Text = "Trace Orbit" & If(String.IsNullOrEmpty(nome), "", " - " & nome) &
-                      If(_attesaPuntamento, " (waiting for antenna on target)", "")
+            Me.Text = "Trace Orbit" & If(String.IsNullOrEmpty(nome), "", " - " & nome)
         End If
     End Sub
-
-    ' Dopo un cambio di satellite la traccia resta vuota finché l'antenna
-    ' non è sul nuovo satellite: i punti intermedi (antenna ancora sul
-    ' satellite precedente o in movimento verso il nuovo) non hanno senso.
-    Private _attesaPuntamento As Boolean
-    Private _inizioAttesa As Date
-    ' Scarto massimo (gradi) tra posizione antenna e posizione calcolata
-    ' del satellite per considerarla "sul satellite".
-    Private Const TOLLERANZA_PUNTAMENTO As Double = 1.0
-
-    ''' <summary>
-    ''' True se l'antenna sta inseguendo il satellite caricato: modo con
-    ''' posizione calcolata aggiornata (Program/Augmented/Autotrack, gli
-    ''' stessi in cui CalcolaEInvia ricalcola AzCalc/ElCalc) e scarto entro
-    ''' TOLLERANZA_PUNTAMENTO. Il primo secondo dopo il cambio si salta:
-    ''' AzCalc/ElCalc potrebbero essere ancora quelli del satellite
-    ''' precedente (ricalcolati ogni 400 ms da TmrRic).
-    ''' </summary>
-    Private Function AntennaSulSatellite(az As Double, el As Double) As Boolean
-        If (Now - _inizioAttesa).TotalSeconds < 1 Then Return False
-        If Not b_Calcola Then Return False
-        Select Case i_Status
-            Case OP_PROGRAMTRACK, OP_AUGMENTED, OP_AUGMENTEDST, OP_AUTOTRACK
-            Case Else
-                Return False
-        End Select
-        If AzCalc = 0 AndAlso ElCalc = 0 Then Return False
-        Dim dAz As Double = Math.Abs(((az - AzCalc) Mod 360 + 540) Mod 360 - 180)
-        Dim dEl As Double = Math.Abs(el - ElCalc)
-        Return dAz <= TOLLERANZA_PUNTAMENTO AndAlso dEl <= TOLLERANZA_PUNTAMENTO
-    End Function
 
     Private Sub TmrPolare_Tick(sender As Object, e As EventArgs) Handles tmrPolare.Tick
         tmrPolare.Enabled = True
@@ -559,8 +527,6 @@ Public Class FrmPolare
             _satelliteTrace = g_SatelliteCaricato
             _puntiTrace.Clear()
             _primoPunto = True
-            _attesaPuntamento = True
-            _inizioAttesa = Now
             If _g IsNot Nothing Then VisualizzaGrafico()
             AggiornaTitolo()
         End If
@@ -573,11 +539,6 @@ Public Class FrmPolare
             tmp_Ele = CSng(CDbl(Mid(s_El, 1, 5)) / 1000)
         Else
             Exit Sub
-        End If
-        If _attesaPuntamento Then
-            If Not AntennaSulSatellite(tmp_Azi, tmp_Ele) Then Exit Sub
-            _attesaPuntamento = False
-            AggiornaTitolo()
         End If
         If _puntiTrace.Count >= MAX_PUNTI_TRACE Then _puntiTrace.RemoveAt(0)
         _puntiTrace.Add(New PointF(tmp_Azi, tmp_Ele))
