@@ -467,6 +467,11 @@ Module Predisposizioni
     Public s_ProgramNr As String
     Public s_ProgramRelease As String
     Public s_Satellite As String
+    ' Satellite il cui caricamento (Exe: Fasi, TLE/parametri) è COMPLETATO.
+    ' s_Satellite cambia già all'inizio di CmdLoad, prima della finestra
+    ' Fasi e del TLE: Trace Orbit (FrmPolare) usa questo per azzerare la
+    ' traccia solo quando il nuovo satellite è davvero attivo.
+    Public g_SatelliteCaricato As String = ""
     Public s_StatusPTIC(20) As Byte    'Buffer di stato verso Intelsat
     Public Salva As String
     Public SceltaFont As String

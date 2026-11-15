@@ -457,7 +457,7 @@ Public Class FrmPolare
         For Each c As Control In {LblDal, mskDataIni, mskOraIni, LblAl, mskDataFin, mskOraFin, BtnFiltra}
             c.Visible = g_GrafPol
         Next
-        _satelliteTrace = s_Satellite
+        _satelliteTrace = g_SatelliteCaricato
         AggiornaTitolo()
         If g_GrafPol Then
             tmrPolare.Enabled = False
@@ -511,16 +511,20 @@ Public Class FrmPolare
         If g_GrafPol Then
             Me.Text = "Data Analysis (Polar)"
         Else
-            Me.Text = "Trace Orbit" & If(String.IsNullOrEmpty(s_Satellite), "", " - " & s_Satellite)
+            Dim nome As String = If(String.IsNullOrEmpty(g_SatelliteCaricato), s_Satellite, g_SatelliteCaricato)
+            Me.Text = "Trace Orbit" & If(String.IsNullOrEmpty(nome), "", " - " & nome)
         End If
     End Sub
 
     Private Sub TmrPolare_Tick(sender As Object, e As EventArgs) Handles tmrPolare.Tick
         tmrPolare.Enabled = True
-        ' Satellite cambiato con la finestra aperta: traccia azzerata,
-        ' grafico ridisegnato vuoto, titolo aggiornato.
-        If Not String.Equals(_satelliteTrace, s_Satellite) Then
-            _satelliteTrace = s_Satellite
+        ' Nuovo satellite caricato (Exe completato) con la finestra aperta:
+        ' traccia azzerata, grafico ridisegnato vuoto, titolo aggiornato.
+        ' Non si usa s_Satellite: cambia all'inizio di CmdLoad, mentre la
+        ' finestra Fasi è ancora aperta (il timer gira lo stesso) e il TLE
+        ' del nuovo satellite non è ancora caricato.
+        If Not String.Equals(_satelliteTrace, g_SatelliteCaricato) Then
+            _satelliteTrace = g_SatelliteCaricato
             _puntiTrace.Clear()
             _primoPunto = True
             If _g IsNot Nothing Then VisualizzaGrafico()
