@@ -61,6 +61,10 @@ Public Class FrmPolare
     ' riattivazione): prima si perdeva e restava un solo punto.
     Private ReadOnly _puntiTrace As New List(Of PointF)
     Private Const MAX_PUNTI_TRACE As Integer = 20000
+    ' Satellite a cui si riferisce la traccia di Trace Orbit: se l'operatore
+    ' cambia satellite (s_Satellite) con la finestra aperta, la traccia del
+    ' satellite precedente va cancellata e si riparte da zero.
+    Private _satelliteTrace As String
 
     ' Stato di disegno GDI+ (sostituisce il disegno diretto su VB6 PictureBox)
     Private DyVisual As SQLiteDataReader
@@ -453,6 +457,8 @@ Public Class FrmPolare
         For Each c As Control In {LblDal, mskDataIni, mskOraIni, LblAl, mskDataFin, mskOraFin, BtnFiltra}
             c.Visible = g_GrafPol
         Next
+        _satelliteTrace = s_Satellite
+        AggiornaTitolo()
         If g_GrafPol Then
             tmrPolare.Enabled = False
             ' Default: tutta la giornata odierna (i dati possono coprire
@@ -501,8 +507,25 @@ Public Class FrmPolare
         Me.Close()
     End Sub
 
+    Private Sub AggiornaTitolo()
+        If g_GrafPol Then
+            Me.Text = "Data Analysis (Polar)"
+        Else
+            Me.Text = "Trace Orbit" & If(String.IsNullOrEmpty(s_Satellite), "", " - " & s_Satellite)
+        End If
+    End Sub
+
     Private Sub TmrPolare_Tick(sender As Object, e As EventArgs) Handles tmrPolare.Tick
         tmrPolare.Enabled = True
+        ' Satellite cambiato con la finestra aperta: traccia azzerata,
+        ' grafico ridisegnato vuoto, titolo aggiornato.
+        If Not String.Equals(_satelliteTrace, s_Satellite) Then
+            _satelliteTrace = s_Satellite
+            _puntiTrace.Clear()
+            _primoPunto = True
+            If _g IsNot Nothing Then VisualizzaGrafico()
+            AggiornaTitolo()
+        End If
         If IsNumeric(s_Az) Then
             tmp_Azi = CSng(CDbl(Mid(s_Az, 1, 6)) / 1000)
         Else

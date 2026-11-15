@@ -514,7 +514,7 @@ Module Ricezione
     ''' finché non cambia o non viene azzerato con AzzeraDiagnosticoAcquire.
     ''' </summary>
     Public Sub SegnalaAcquireNonPossibile(motivo As String)
-        Dim testo As String = "Acquire non eseguibile: " & motivo
+        Dim testo As String = "Acquire not possible: " & motivo
         Try
             frmRicezione.MostraWarning(testo)
         Catch
@@ -551,10 +551,10 @@ Module Ricezione
         If i_ElRange <= 0 Then mancanti.Add("El Range")
         If i_InterAcq <= 0 Then mancanti.Add("Delta Time")
         If mancanti.Count > 0 Then
-            Return "parametri mancanti o nulli (" & String.Join(", ", mancanti) & ") - verificare la configurazione Acquire"
+            Return "missing or zero parameters (" & String.Join(", ", mancanti) & ") - check the Acquire configuration"
         End If
         If b_Acquire AndAlso g_AzTable = 0 AndAlso g_ElTable = 0 Then
-            Return "coordinate di partenza Preset non impostate"
+            Return "Preset start coordinates not set"
         End If
         Return ""
     End Function
@@ -631,8 +631,8 @@ Module Ricezione
                     ' posizione attuale dell'antenna — se non è stato ancora
                     ' tracciato nulla (es. primissimo tick), resta la
                     ' posizione attuale come prima.
-                    WriteError(0, "Acquire: lock debole, ricentraggio. AzAttuale=" & frmRicezione.LblAzimuth.Text &
-                        " ElAttuale=" & frmRicezione.LblElevazione.Text &
+                    WriteError(0, "Acquire: weak lock, recentering. AzCurrent=" & frmRicezione.LblAzimuth.Text &
+                        " ElCurrent=" & frmRicezione.LblElevazione.Text &
                         " d_MaxBeaconLevel=" & d_MaxBeaconLevel &
                         " d_MaxBeaconAz=" & d_MaxBeaconAz & " d_MaxBeaconEl=" & d_MaxBeaconEl &
                         " s_Lev1=" & s_Lev1)
@@ -1056,7 +1056,7 @@ Rangeout:
                         cmdIns.ExecuteNonQuery()
                     End Using
                     If Err.Number <> 0 Then
-                        WriteError(0, "Calcolo_Aquire: scrittura punto tmpEffemeridi fallita - " & Err.Number & " " & Err.Description)
+                        WriteError(0, "Calcolo_Aquire: tmpEffemeridi point write failed - " & Err.Number & " " & Err.Description)
                         Err.Clear()
                     End If
                 End If
