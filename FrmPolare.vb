@@ -512,9 +512,18 @@ Public Class FrmPolare
             Me.Text = "Data Analysis (Polar)"
         Else
             Dim nome As String = If(String.IsNullOrEmpty(g_SatelliteCaricato), s_Satellite, g_SatelliteCaricato)
-            Me.Text = "Trace Orbit" & If(String.IsNullOrEmpty(nome), "", " - " & nome)
+            Me.Text = "Trace Orbit" & If(String.IsNullOrEmpty(nome), "", " - " & nome) &
+                      If(_attesaLock, " (waiting for beacon lock)", "")
         End If
     End Sub
+
+    ' Dopo un cambio di satellite la traccia resta vuota fino al primo
+    ' LOCK del beacon (LockRic, lo stesso indicatore LOCK/UNLOCK di
+    ' frmRicezione): è l'unica conferma che l'antenna è sul nuovo
+    ' satellite. I punti precedenti (antenna ancora sul satellite vecchio
+    ' o in movimento) non hanno senso. Una volta partita, la traccia
+    ' prosegue anche se il lock si perde.
+    Private _attesaLock As Boolean
 
     Private Sub TmrPolare_Tick(sender As Object, e As EventArgs) Handles tmrPolare.Tick
         tmrPolare.Enabled = True
@@ -527,7 +536,13 @@ Public Class FrmPolare
             _satelliteTrace = g_SatelliteCaricato
             _puntiTrace.Clear()
             _primoPunto = True
+            _attesaLock = True
             If _g IsNot Nothing Then VisualizzaGrafico()
+            AggiornaTitolo()
+        End If
+        If _attesaLock Then
+            If LockRic <> "LOCK" Then Exit Sub
+            _attesaLock = False
             AggiornaTitolo()
         End If
         If IsNumeric(s_Az) Then
