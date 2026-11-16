@@ -27,6 +27,8 @@ Public Class FrmTrackTable
     End Sub
 
     Private Sub FrmTrackTable_Load(sender As Object, e As EventArgs) Handles Me.Load
+        ' Campi di sola presentazione: giallo se sconosciuti, 128,255,255 se noti
+        ColoriStandard.RegistraDati(LblSatellite)
         LblSatellite.Text = s_Satellite
         LoadData()
     End Sub

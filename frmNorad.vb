@@ -22,6 +22,8 @@ Public Class FrmNorad
     Dim rs_Norad As Object
 
     Private Sub FrmNorad_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Campi di sola presentazione: giallo se sconosciuti, 128,255,255 se noti
+        ColoriStandard.RegistraDati(TxtEpochDate)
         ' MnuNorad_Click ha già il proprio gestore d'errore.
         MnuNorad_Click(2)
         If LblInvalido IsNot Nothing Then LblInvalido.BackColor = Color.White

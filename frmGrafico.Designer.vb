@@ -69,6 +69,7 @@ Partial Class frmGrafico
         Me.LblAntenna.Size        = New System.Drawing.Size(158, 27)
         Me.LblAntenna.TextAlign   = System.Drawing.ContentAlignment.MiddleCenter
         Me.LblAntenna.Font        = New System.Drawing.Font("Arial", 12!, System.Drawing.FontStyle.Bold)
+        Me.LblAntenna.BackColor = System.Drawing.Color.Yellow
         Me.LblAntenna.Name        = "LblAntenna"
         ' Label5 "Input Level" (Left=3816/15=254, Top=144/15=10, Width=1068/15=71, RightAlign)
         LblInputLev.Location  = New System.Drawing.Point(254, 10)
@@ -79,7 +80,8 @@ Partial Class frmGrafico
         Me.LblLev.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblLev.Location    = New System.Drawing.Point(338, 10)
         Me.LblLev.Size        = New System.Drawing.Size(62, 18)
-        Me.LblLev.TextAlign   = System.Drawing.ContentAlignment.MiddleCenter
+        Me.LblLev.TextAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.LblLev.BackColor = System.Drawing.Color.Yellow
         Me.LblLev.Name        = "LblLev"
         ' Label6 "Asse x" (Left=6372/15=425, Top=144/15=10, Width=912/15=61, RightAlign)
         LblAsseX.Location  = New System.Drawing.Point(425, 10)
@@ -117,6 +119,7 @@ Partial Class frmGrafico
         Me.TxtIntervallo.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtIntervallo.Font      = New System.Drawing.Font("Arial", 10.2!)
         Me.TxtIntervallo.TabIndex  = 3
+        Me.TxtIntervallo.BackColor = System.Drawing.Color.Yellow
         Me.TxtIntervallo.Name      = "TxtIntervallo"
         Me.TxtIntervallo.ReadOnly  = True
         Me.TxtIntervallo.TabStop   = False

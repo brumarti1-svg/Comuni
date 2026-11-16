@@ -69,16 +69,21 @@ Partial Class FrmConvAngoli
         Me.CmbLat.Size = New System.Drawing.Size(65, 21)
         Me.TxtGraLat.Location = New System.Drawing.Point(85, 56)
         Me.TxtGraLat.Name = "TxtGraLat"
+        Me.TxtGraLat.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtGraLat.Size = New System.Drawing.Size(60, 20)
         Me.TxtPrimiLat.Location = New System.Drawing.Point(155, 56)
         Me.TxtPrimiLat.Name = "TxtPrimiLat"
+        Me.TxtPrimiLat.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtPrimiLat.Size = New System.Drawing.Size(60, 20)
         Me.TxtSecLat.Location = New System.Drawing.Point(225, 56)
         Me.TxtSecLat.Name = "TxtSecLat"
+        Me.TxtSecLat.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtSecLat.Size = New System.Drawing.Size(60, 20)
         Me.LblLatitudine.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblLatitudine.Location = New System.Drawing.Point(300, 56)
+        Me.LblLatitudine.BackColor = System.Drawing.Color.Yellow
         Me.LblLatitudine.Name = "LblLatitudine"
+        Me.LblLatitudine.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.LblLatitudine.Size = New System.Drawing.Size(120, 20)
         '
         ' Longitudine
@@ -94,16 +99,21 @@ Partial Class FrmConvAngoli
         Me.CmbLong.Size = New System.Drawing.Size(65, 21)
         Me.TxtGraLon.Location = New System.Drawing.Point(85, 106)
         Me.TxtGraLon.Name = "TxtGraLon"
+        Me.TxtGraLon.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtGraLon.Size = New System.Drawing.Size(60, 20)
         Me.TxtPrimiLon.Location = New System.Drawing.Point(155, 106)
         Me.TxtPrimiLon.Name = "TxtPrimiLon"
+        Me.TxtPrimiLon.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtPrimiLon.Size = New System.Drawing.Size(60, 20)
         Me.TxtSecLon.Location = New System.Drawing.Point(225, 106)
         Me.TxtSecLon.Name = "TxtSecLon"
+        Me.TxtSecLon.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtSecLon.Size = New System.Drawing.Size(60, 20)
         Me.LblLongitudine.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblLongitudine.Location = New System.Drawing.Point(300, 106)
+        Me.LblLongitudine.BackColor = System.Drawing.Color.Yellow
         Me.LblLongitudine.Name = "LblLongitudine"
+        Me.LblLongitudine.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.LblLongitudine.Size = New System.Drawing.Size(120, 20)
         '
         ' Pulsanti

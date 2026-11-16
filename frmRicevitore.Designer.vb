@@ -365,7 +365,7 @@ Partial Class FrmRicevitore
         '
         'LblLock
         '
-        Me.LblLock.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.LblLock.BackColor = System.Drawing.Color.Yellow
         Me.LblLock.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblLock.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.LblLock.Location = New System.Drawing.Point(248, 94)
@@ -396,7 +396,7 @@ Partial Class FrmRicevitore
         '
         'LblErrAz
         '
-        Me.LblErrAz.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.LblErrAz.BackColor = System.Drawing.Color.Yellow
         Me.LblErrAz.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblErrAz.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.LblErrAz.Location = New System.Drawing.Point(15, 94)
@@ -407,7 +407,7 @@ Partial Class FrmRicevitore
         '
         'LblErrEl
         '
-        Me.LblErrEl.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.LblErrEl.BackColor = System.Drawing.Color.Yellow
         Me.LblErrEl.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblErrEl.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.LblErrEl.Location = New System.Drawing.Point(111, 94)
@@ -428,7 +428,7 @@ Partial Class FrmRicevitore
         '
         'TxtLev
         '
-        Me.TxtLev.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtLev.BackColor = System.Drawing.Color.Yellow
         Me.TxtLev.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtLev.Location = New System.Drawing.Point(288, 38)
         Me.TxtLev.Name = "TxtLev"
@@ -458,7 +458,7 @@ Partial Class FrmRicevitore
         '
         'TxtEl
         '
-        Me.TxtEl.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtEl.BackColor = System.Drawing.Color.Yellow
         Me.TxtEl.Font = New System.Drawing.Font("Arial", 12.0!, System.Drawing.FontStyle.Bold)
         Me.TxtEl.Location = New System.Drawing.Point(104, 35)
         Me.TxtEl.Name = "TxtEl"
@@ -468,7 +468,7 @@ Partial Class FrmRicevitore
         '
         'TxtAz
         '
-        Me.TxtAz.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtAz.BackColor = System.Drawing.Color.Yellow
         Me.TxtAz.Font = New System.Drawing.Font("Arial", 12.0!, System.Drawing.FontStyle.Bold)
         Me.TxtAz.Location = New System.Drawing.Point(7, 34)
         Me.TxtAz.Name = "TxtAz"
@@ -488,7 +488,7 @@ Partial Class FrmRicevitore
         '
         'LblBeacon
         '
-        Me.LblBeacon.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.LblBeacon.BackColor = System.Drawing.Color.Yellow
         Me.LblBeacon.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblBeacon.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.LblBeacon.Location = New System.Drawing.Point(240, 38)
@@ -511,7 +511,7 @@ Partial Class FrmRicevitore
         '
         'TxtAzErr
         '
-        Me.TxtAzErr.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtAzErr.BackColor = System.Drawing.Color.Yellow
         Me.TxtAzErr.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtAzErr.Location = New System.Drawing.Point(15, 118)
         Me.TxtAzErr.Name = "TxtAzErr"
@@ -522,7 +522,7 @@ Partial Class FrmRicevitore
         '
         'TxtElErr
         '
-        Me.TxtElErr.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtElErr.BackColor = System.Drawing.Color.Yellow
         Me.TxtElErr.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtElErr.Location = New System.Drawing.Point(111, 120)
         Me.TxtElErr.Name = "TxtElErr"
@@ -533,7 +533,7 @@ Partial Class FrmRicevitore
         '
         'TxtLna
         '
-        Me.TxtLna.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtLna.BackColor = System.Drawing.Color.Yellow
         Me.TxtLna.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtLna.Location = New System.Drawing.Point(384, 38)
         Me.TxtLna.Name = "TxtLna"
@@ -564,13 +564,13 @@ Partial Class FrmRicevitore
         '
         'TxtPhaseEl
         '
-        Me.TxtPhaseEl.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtPhaseEl.BackColor = System.Drawing.Color.Yellow
         Me.TxtPhaseEl.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtPhaseEl.Location = New System.Drawing.Point(122, 173)
         Me.TxtPhaseEl.Name = "TxtPhaseEl"
         Me.TxtPhaseEl.Size = New System.Drawing.Size(42, 22)
         Me.TxtPhaseEl.TabIndex = 30
-        Me.TxtPhaseEl.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TxtPhaseEl.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         '
         'LblCapPhaseEl
         '
@@ -584,7 +584,7 @@ Partial Class FrmRicevitore
         '
         'LblRevAz
         '
-        Me.LblRevAz.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.LblRevAz.BackColor = System.Drawing.Color.Yellow
         Me.LblRevAz.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblRevAz.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.LblRevAz.Location = New System.Drawing.Point(372, 95)
@@ -617,13 +617,13 @@ Partial Class FrmRicevitore
         '
         'TxtElGain
         '
-        Me.TxtElGain.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtElGain.BackColor = System.Drawing.Color.Yellow
         Me.TxtElGain.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtElGain.Location = New System.Drawing.Point(415, 158)
         Me.TxtElGain.Name = "TxtElGain"
         Me.TxtElGain.Size = New System.Drawing.Size(46, 22)
         Me.TxtElGain.TabIndex = 35
-        Me.TxtElGain.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TxtElGain.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         '
         'LblCapElevation
         '
@@ -637,13 +637,13 @@ Partial Class FrmRicevitore
         '
         'TxtAzGain
         '
-        Me.TxtAzGain.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtAzGain.BackColor = System.Drawing.Color.Yellow
         Me.TxtAzGain.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtAzGain.Location = New System.Drawing.Point(228, 158)
         Me.TxtAzGain.Name = "TxtAzGain"
         Me.TxtAzGain.Size = New System.Drawing.Size(46, 22)
         Me.TxtAzGain.TabIndex = 37
-        Me.TxtAzGain.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TxtAzGain.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         '
         'LblCapGain
         '
@@ -1001,6 +1001,7 @@ Partial Class FrmRicevitore
         Me.TxtFreccia.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtFreccia.Location = New System.Drawing.Point(266, 562)
         Me.TxtFreccia.Name = "TxtFreccia"
+        Me.TxtFreccia.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtFreccia.Size = New System.Drawing.Size(9, 22)
         Me.TxtFreccia.TabIndex = 5
         '
@@ -1092,6 +1093,7 @@ Partial Class FrmRicevitore
         '
         Me.LblTesto.Font = New System.Drawing.Font("Arial", 12.0!, System.Drawing.FontStyle.Bold)
         Me.LblTesto.Location = New System.Drawing.Point(163, 79)
+        Me.LblTesto.BackColor = System.Drawing.Color.Yellow
         Me.LblTesto.Name = "LblTesto"
         Me.LblTesto.Size = New System.Drawing.Size(306, 27)
         Me.LblTesto.TabIndex = 7
@@ -1142,7 +1144,7 @@ Partial Class FrmRicevitore
         '
         'TxtPol2
         '
-        Me.TxtPol2.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtPol2.BackColor = System.Drawing.Color.Yellow
         Me.TxtPol2.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtPol2.Location = New System.Drawing.Point(67, 36)
         Me.TxtPol2.Name = "TxtPol2"
@@ -1153,7 +1155,7 @@ Partial Class FrmRicevitore
         '
         'TxtPol1
         '
-        Me.TxtPol1.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtPol1.BackColor = System.Drawing.Color.Yellow
         Me.TxtPol1.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtPol1.Location = New System.Drawing.Point(66, 60)
         Me.TxtPol1.Name = "TxtPol1"
@@ -1164,7 +1166,7 @@ Partial Class FrmRicevitore
         '
         'LblPol
         '
-        Me.LblPol.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.LblPol.BackColor = System.Drawing.Color.Yellow
         Me.LblPol.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblPol.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.LblPol.Location = New System.Drawing.Point(151, 36)
@@ -1176,7 +1178,7 @@ Partial Class FrmRicevitore
         '
         'TxtFrequency
         '
-        Me.TxtFrequency.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtFrequency.BackColor = System.Drawing.Color.Yellow
         Me.TxtFrequency.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtFrequency.Location = New System.Drawing.Point(394, 58)
         Me.TxtFrequency.Name = "TxtFrequency"
@@ -1187,7 +1189,7 @@ Partial Class FrmRicevitore
         '
         'TxtInpFrequency
         '
-        Me.TxtInpFrequency.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtInpFrequency.BackColor = System.Drawing.Color.Yellow
         Me.TxtInpFrequency.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtInpFrequency.Location = New System.Drawing.Point(394, 34)
         Me.TxtInpFrequency.Name = "TxtInpFrequency"
@@ -1197,7 +1199,7 @@ Partial Class FrmRicevitore
         '
         'TxtPhasingMode
         '
-        Me.TxtPhasingMode.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtPhasingMode.BackColor = System.Drawing.Color.Yellow
         Me.TxtPhasingMode.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtPhasingMode.Location = New System.Drawing.Point(394, 10)
         Me.TxtPhasingMode.Name = "TxtPhasingMode"
@@ -1207,7 +1209,7 @@ Partial Class FrmRicevitore
         '
         'TxtPol
         '
-        Me.TxtPol.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.TxtPol.BackColor = System.Drawing.Color.Yellow
         Me.TxtPol.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtPol.Location = New System.Drawing.Point(151, 60)
         Me.TxtPol.Name = "TxtPol"
@@ -1218,7 +1220,7 @@ Partial Class FrmRicevitore
         '
         'TxtPolarizationAngle
         '
-        Me.TxtPolarizationAngle.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtPolarizationAngle.BackColor = System.Drawing.Color.Yellow
         Me.TxtPolarizationAngle.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtPolarizationAngle.Location = New System.Drawing.Point(151, 10)
         Me.TxtPolarizationAngle.Name = "TxtPolarizationAngle"
@@ -1229,7 +1231,7 @@ Partial Class FrmRicevitore
         '
         'TxtPhasingFlow
         '
-        Me.TxtPhasingFlow.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtPhasingFlow.BackColor = System.Drawing.Color.Yellow
         Me.TxtPhasingFlow.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtPhasingFlow.Location = New System.Drawing.Point(166, 72)
         Me.TxtPhasingFlow.Name = "TxtPhasingFlow"
@@ -1353,7 +1355,7 @@ Partial Class FrmRicevitore
         '
         'TxtValid
         '
-        Me.TxtValid.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtValid.BackColor = System.Drawing.Color.Yellow
         Me.TxtValid.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtValid.Location = New System.Drawing.Point(531, 33)
         Me.TxtValid.Name = "TxtValid"
@@ -1362,7 +1364,7 @@ Partial Class FrmRicevitore
         '
         'TxtProcess
         '
-        Me.TxtProcess.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
+        Me.TxtProcess.BackColor = System.Drawing.Color.Yellow
         Me.TxtProcess.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.TxtProcess.Location = New System.Drawing.Point(332, 33)
         Me.TxtProcess.Name = "TxtProcess"
@@ -1391,7 +1393,7 @@ Partial Class FrmRicevitore
         '
         'LblSatellite
         '
-        Me.LblSatellite.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer), CType(CType(192, Byte), Integer))
+        Me.LblSatellite.BackColor = System.Drawing.Color.Yellow
         Me.LblSatellite.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblSatellite.Font = New System.Drawing.Font("Arial", 7.8!, System.Drawing.FontStyle.Bold)
         Me.LblSatellite.Location = New System.Drawing.Point(89, 33)

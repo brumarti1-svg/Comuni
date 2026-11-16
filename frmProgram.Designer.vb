@@ -87,7 +87,7 @@ Partial Class FrmProgram
         '
         'CmdOK
         '
-        Me.CmdOK.BackColor = System.Drawing.Color.LightGreen
+        Me.CmdOK.BackColor = System.Drawing.SystemColors.Control
         Me.CmdOK.Location = New System.Drawing.Point(187, 224)
         Me.CmdOK.Name = "CmdOK"
         Me.CmdOK.Size = New System.Drawing.Size(110, 32)
@@ -97,7 +97,7 @@ Partial Class FrmProgram
         '
         'CmdAnnulla
         '
-        Me.CmdAnnulla.BackColor = System.Drawing.Color.Salmon
+        Me.CmdAnnulla.BackColor = System.Drawing.SystemColors.Control
         Me.CmdAnnulla.Location = New System.Drawing.Point(354, 224)
         Me.CmdAnnulla.Name = "CmdAnnulla"
         Me.CmdAnnulla.Size = New System.Drawing.Size(110, 32)

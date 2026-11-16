@@ -50,6 +50,7 @@ Partial Class FrmSimulazione
         ' LblDateSimul
         Me.LblDateSimul.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.LblDateSimul.Location = New System.Drawing.Point(140, 74)
+        Me.LblDateSimul.BackColor = System.Drawing.Color.Yellow
         Me.LblDateSimul.Name = "LblDateSimul"
         Me.LblDateSimul.Size = New System.Drawing.Size(140, 21)
         Me.LblDateSimul.Text = ""
@@ -67,7 +68,7 @@ Partial Class FrmSimulazione
         Me.CmdOK.Size = New System.Drawing.Size(75, 23)
         Me.CmdOK.TabIndex = 3
         Me.CmdOK.Text = "OK"
-        Me.CmdOK.BackColor = System.Drawing.Color.LightGreen
+        Me.CmdOK.BackColor = System.Drawing.SystemColors.Control
 
         ' CmdAnnulla
         Me.CmdAnnulla.Location = New System.Drawing.Point(290, 74)
@@ -75,7 +76,7 @@ Partial Class FrmSimulazione
         Me.CmdAnnulla.Size = New System.Drawing.Size(75, 23)
         Me.CmdAnnulla.TabIndex = 4
         Me.CmdAnnulla.Text = "Cancel"
-        Me.CmdAnnulla.BackColor = System.Drawing.Color.Salmon
+        Me.CmdAnnulla.BackColor = System.Drawing.SystemColors.Control
 
         ' LblIni
         Me.LblIni.Text     = "From:"

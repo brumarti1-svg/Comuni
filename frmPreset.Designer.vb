@@ -63,6 +63,7 @@ Partial Class FrmPreset
         Me.TxtFreccia.BorderStyle = System.Windows.Forms.BorderStyle.None
         Me.TxtFreccia.Location = New System.Drawing.Point(120, 186)
         Me.TxtFreccia.Name = "TxtFreccia"
+        Me.TxtFreccia.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtFreccia.ReadOnly = True
         Me.TxtFreccia.Size = New System.Drawing.Size(60, 20)
         Me.TxtFreccia.TabIndex = 8
@@ -115,7 +116,7 @@ Partial Class FrmPreset
         '
         'CmdOK
         '
-        Me.CmdOK.BackColor = System.Drawing.Color.LightGreen
+        Me.CmdOK.BackColor = System.Drawing.SystemColors.Control
         Me.CmdOK.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Bold)
         Me.CmdOK.Location = New System.Drawing.Point(16, 290)
         Me.CmdOK.Name = "CmdOK"
@@ -126,7 +127,7 @@ Partial Class FrmPreset
         '
         'CmdAnnulla
         '
-        Me.CmdAnnulla.BackColor = System.Drawing.Color.Salmon
+        Me.CmdAnnulla.BackColor = System.Drawing.SystemColors.Control
         Me.CmdAnnulla.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Bold)
         Me.CmdAnnulla.Location = New System.Drawing.Point(154, 290)
         Me.CmdAnnulla.Name = "CmdAnnulla"

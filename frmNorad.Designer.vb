@@ -122,6 +122,7 @@ Partial Class FrmNorad
         Me.LblCat.Text = "Cat. #"
         Me.LblCat.Font = bF
         Me.TxtCatalogo.Location = New System.Drawing.Point(64, y3)
+        Me.TxtCatalogo.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtCatalogo.Size = New System.Drawing.Size(60, 22)
         Me.TxtCatalogo.Font = bF
 
@@ -130,6 +131,7 @@ Partial Class FrmNorad
         Me.LblEpoch.Text = "Epoch"
         Me.LblEpoch.Font = bF
         Me.TxtEpoch.Location = New System.Drawing.Point(186, y3)
+        Me.TxtEpoch.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtEpoch.Size = New System.Drawing.Size(120, 22)
         Me.TxtEpoch.Font = bF
 
@@ -137,6 +139,7 @@ Partial Class FrmNorad
         Me.LblEpochDate.Size = New System.Drawing.Size(70, 18)
         Me.LblEpochDate.Text = "Epoch Date"
         Me.LblEpochDate.Font = bF
+        Me.TxtEpochDate.BackColor = System.Drawing.Color.Yellow
         Me.TxtEpochDate.Location = New System.Drawing.Point(388, y3)
         Me.TxtEpochDate.Size = New System.Drawing.Size(180, 22)
         Me.TxtEpochDate.Font = bF
@@ -149,6 +152,7 @@ Partial Class FrmNorad
         Me.LblDecay.Text = "Decay"
         Me.LblDecay.Font = bF
         Me.TxtDecay.Location = New System.Drawing.Point(64, y4)
+        Me.TxtDecay.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtDecay.Size = New System.Drawing.Size(100, 22)
         Me.TxtDecay.Font = bF
 
@@ -157,6 +161,7 @@ Partial Class FrmNorad
         Me.LblBSTAR.Text = "BSTAR"
         Me.LblBSTAR.Font = bF
         Me.TxtBSTAR.Location = New System.Drawing.Point(222, y4)
+        Me.TxtBSTAR.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtBSTAR.Size = New System.Drawing.Size(100, 22)
         Me.TxtBSTAR.Font = bF
 
@@ -165,6 +170,7 @@ Partial Class FrmNorad
         Me.LblElement.Text = "Element #"
         Me.LblElement.Font = bF
         Me.TxtElement.Location = New System.Drawing.Point(394, y4)
+        Me.TxtElement.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtElement.Size = New System.Drawing.Size(60, 22)
         Me.TxtElement.Font = bF
 
@@ -175,6 +181,7 @@ Partial Class FrmNorad
         Me.LblIncl.Text = "Inclination"
         Me.LblIncl.Font = bF
         Me.TxtInclination.Location = New System.Drawing.Point(84, y5)
+        Me.TxtInclination.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtInclination.Size = New System.Drawing.Size(100, 22)
         Me.TxtInclination.Font = bF
 
@@ -183,6 +190,7 @@ Partial Class FrmNorad
         Me.LblRAAN.Text = "RAAN"
         Me.LblRAAN.Font = bF
         Me.TxtRAAN.Location = New System.Drawing.Point(236, y5)
+        Me.TxtRAAN.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtRAAN.Size = New System.Drawing.Size(100, 22)
         Me.TxtRAAN.Font = bF
 
@@ -191,6 +199,7 @@ Partial Class FrmNorad
         Me.LblEcc.Text = "Eccentricity"
         Me.LblEcc.Font = bF
         Me.TxtEccentricity.Location = New System.Drawing.Point(432, y5)
+        Me.TxtEccentricity.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtEccentricity.Size = New System.Drawing.Size(100, 22)
         Me.TxtEccentricity.Font = bF
 
@@ -201,6 +210,7 @@ Partial Class FrmNorad
         Me.LblPer.Text = "Perigee"
         Me.LblPer.Font = bF
         Me.TxtPerigee.Location = New System.Drawing.Point(64, y6)
+        Me.TxtPerigee.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtPerigee.Size = New System.Drawing.Size(100, 22)
         Me.TxtPerigee.Font = bF
 
@@ -209,6 +219,7 @@ Partial Class FrmNorad
         Me.LblAnom.Text = "M. Anomaly"
         Me.LblAnom.Font = bF
         Me.TxtAnomaly.Location = New System.Drawing.Point(236, y6)
+        Me.TxtAnomaly.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtAnomaly.Size = New System.Drawing.Size(100, 22)
         Me.TxtAnomaly.Font = bF
 
@@ -217,6 +228,7 @@ Partial Class FrmNorad
         Me.LblMot.Text = "Mean Motion"
         Me.LblMot.Font = bF
         Me.TxtMotion.Location = New System.Drawing.Point(428, y6)
+        Me.TxtMotion.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtMotion.Size = New System.Drawing.Size(100, 22)
         Me.TxtMotion.Font = bF
 
@@ -225,6 +237,7 @@ Partial Class FrmNorad
         Me.LblOrb.Text = "Rev@Epoch"
         Me.LblOrb.Font = bF
         Me.TxtOrbite.Location = New System.Drawing.Point(610, y6)
+        Me.TxtOrbite.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtOrbite.Size = New System.Drawing.Size(80, 22)
         Me.TxtOrbite.Font = bF
 

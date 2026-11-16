@@ -69,7 +69,7 @@ Partial Class FrmRegressione
         Me.CmdExit.Size      = New System.Drawing.Size(220, 30)
         Me.CmdExit.TabIndex  = 4
         Me.CmdExit.Text      = "Close"
-        Me.CmdExit.BackColor = System.Drawing.Color.Salmon
+        Me.CmdExit.BackColor = System.Drawing.SystemColors.Control
         ' Form
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font

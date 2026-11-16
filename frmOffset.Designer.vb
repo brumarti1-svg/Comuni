@@ -45,6 +45,7 @@ Partial Class FrmOffset
         Me.LblAz.Text          = "Offset Az (°):"
         Me.TxtAzOffset.Location = New System.Drawing.Point(90, 10)
         Me.TxtAzOffset.Name    = "TxtAzOffset"
+        Me.TxtAzOffset.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtAzOffset.Size    = New System.Drawing.Size(80, 22)
         Me.TxtAzOffset.TabIndex = 0
         Me.TxtAzOffset.Text    = "0.000"
@@ -54,6 +55,7 @@ Partial Class FrmOffset
         Me.LblEl.Text          = "Offset El (°):"
         Me.TxtElOffset.Location = New System.Drawing.Point(90, 36)
         Me.TxtElOffset.Name    = "TxtElOffset"
+        Me.TxtElOffset.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtElOffset.Size    = New System.Drawing.Size(80, 22)
         Me.TxtElOffset.TabIndex = 1
         Me.TxtElOffset.Text    = "0.000"
@@ -63,6 +65,7 @@ Partial Class FrmOffset
         Me.LblDT.Text           = "Delta T (s):"
         Me.TxtDeltaTime.Location = New System.Drawing.Point(90, 62)
         Me.TxtDeltaTime.Name    = "TxtDeltaTime"
+        Me.TxtDeltaTime.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtDeltaTime.Size    = New System.Drawing.Size(80, 22)
         Me.TxtDeltaTime.TabIndex = 2
         Me.TxtDeltaTime.Text    = "0"
@@ -100,6 +103,7 @@ Partial Class FrmOffset
         ' TxtFreccia (focus keeper, hidden)
         Me.TxtFreccia.Location = New System.Drawing.Point(90, 162)
         Me.TxtFreccia.Name     = "TxtFreccia"
+        Me.TxtFreccia.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
         Me.TxtFreccia.Size     = New System.Drawing.Size(50, 30)
         Me.TxtFreccia.TabIndex = 8
         Me.TxtFreccia.Text     = ""
@@ -111,13 +115,13 @@ Partial Class FrmOffset
         Me.CmdEnd.Name         = "CmdEnd"
         Me.CmdEnd.Size         = New System.Drawing.Size(90, 30)
         Me.CmdEnd.Text         = "Confirm"
-        Me.CmdEnd.BackColor    = System.Drawing.Color.LightGreen
+        Me.CmdEnd.BackColor = System.Drawing.SystemColors.Control
         Me.CmdEnd.TabIndex     = 9
         Me.CmdAnnulla.Location = New System.Drawing.Point(110, 244)
         Me.CmdAnnulla.Name     = "CmdAnnulla"
         Me.CmdAnnulla.Size     = New System.Drawing.Size(90, 30)
         Me.CmdAnnulla.Text     = "Cancel"
-        Me.CmdAnnulla.BackColor = System.Drawing.Color.Salmon
+        Me.CmdAnnulla.BackColor = System.Drawing.SystemColors.Control
         Me.CmdAnnulla.TabIndex = 10
         ' Form
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)

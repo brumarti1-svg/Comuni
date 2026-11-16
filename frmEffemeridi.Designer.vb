@@ -87,6 +87,7 @@ Partial Class FrmEffemeridi
         Me.LblAntenna.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D
         Me.LblAntenna.TextAlign   = System.Drawing.ContentAlignment.MiddleCenter
         Me.LblAntenna.Font        = New System.Drawing.Font("Arial", 12!, System.Drawing.FontStyle.Bold)
+        Me.LblAntenna.BackColor = System.Drawing.Color.Yellow
         Me.LblAntenna.Name        = "LblAntenna"
         ' Satellite label (Left=5436/15=362, Top=144/15=10+28=38)
         Me.LblSatTag.Location = New System.Drawing.Point(286, 42)
@@ -98,6 +99,7 @@ Partial Class FrmEffemeridi
         Me.LblSatellite.TextAlign   = System.Drawing.ContentAlignment.MiddleCenter
         Me.LblSatellite.Font        = New System.Drawing.Font("Arial", 12!, System.Drawing.FontStyle.Bold)
         Me.LblSatellite.ForeColor   = System.Drawing.Color.LightGreen
+        Me.LblSatellite.BackColor = System.Drawing.Color.Yellow
         Me.LblSatellite.Name        = "LblSatellite"
         ' ── Row 2: Start date + ore + minuti ──────────────────
         ' LblAzimuth "Start date/time" (Left=72/15=5, Top=756/15=50+28=78)

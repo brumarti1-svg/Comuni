@@ -836,9 +836,9 @@ End Function
         b_Sat = Convert_Satellite_Data(s_Satellite)
         b_Calcola = b_Sat
         If b_Calcola Then
-            FrmRicezione.LblSatellite.BackColor = Color.LightGreen
+            FrmRicezione.LblSatellite.BackColor = COL_DATO_NOTO
         Else
-            frmRicezione.LblSatellite.BackColor = Color.Yellow
+            frmRicezione.LblSatellite.BackColor = COL_DATO_IGNOTO
         End If
         If Not b_Sat Then GoTo ErrTle
         AggiornaTLE = True     'Compara azimuth controlla che i primi due valori dellla traiettoria siano compatibili - Diff <=1
@@ -1053,7 +1053,7 @@ End Sub
         End If
         rs_RiempiMemory.Close
         b_Calcola = True
-        frmRicezione.LblSatellite.BackColor = Color.Yellow
+        frmRicezione.LblSatellite.BackColor = COL_DATO_IGNOTO
         SatChange = False
         Catch ex As Exception
             b_Calcola = False

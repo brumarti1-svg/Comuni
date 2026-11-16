@@ -26,6 +26,8 @@ Partial Public Class FrmEffemeridi
     ' Form Load
     ' -------------------------------------------------------
     Private Sub FrmEffemeridi_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Campi di sola presentazione: giallo se sconosciuti, 128,255,255 se noti
+        ColoriStandard.RegistraDati(LblAntenna, LblSatellite)
         ' Lo svuotamento qui è voluto: senza, riaprendo Ephemeris su un
         ' satellite diverso si vedrebbero ancora i dati vecchi del
         ' satellite precedente (confermato: GEO seguito da POLAR mostrava

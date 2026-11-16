@@ -44,7 +44,7 @@ Partial Class frmAutoTrackBackPT
         Me.CmdOK.Size      = New System.Drawing.Size(260, 30)
         Me.CmdOK.TabIndex  = 1
         Me.CmdOK.Text      = "OK"
-        Me.CmdOK.BackColor = System.Drawing.Color.LightGreen
+        Me.CmdOK.BackColor = System.Drawing.SystemColors.Control
         ' Form
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font

@@ -133,7 +133,7 @@ Partial Class FrmVisualizzazione
         '
         'CmdElabora
         '
-        Me.CmdElabora.BackColor = System.Drawing.Color.LightBlue
+        Me.CmdElabora.BackColor = System.Drawing.SystemColors.Control
         Me.CmdElabora.Location = New System.Drawing.Point(676, 6)
         Me.CmdElabora.Name = "CmdElabora"
         Me.CmdElabora.Size = New System.Drawing.Size(90, 30)
@@ -143,7 +143,7 @@ Partial Class FrmVisualizzazione
         '
         'CmdStampa
         '
-        Me.CmdStampa.BackColor = System.Drawing.Color.LightGreen
+        Me.CmdStampa.BackColor = System.Drawing.SystemColors.Control
         Me.CmdStampa.Location = New System.Drawing.Point(676, 42)
         Me.CmdStampa.Name = "CmdStampa"
         Me.CmdStampa.Size = New System.Drawing.Size(90, 24)
@@ -153,7 +153,7 @@ Partial Class FrmVisualizzazione
         '
         'CmdEsci
         '
-        Me.CmdEsci.BackColor = System.Drawing.Color.Salmon
+        Me.CmdEsci.BackColor = System.Drawing.SystemColors.Control
         Me.CmdEsci.Location = New System.Drawing.Point(676, 72)
         Me.CmdEsci.Name = "CmdEsci"
         Me.CmdEsci.Size = New System.Drawing.Size(90, 24)

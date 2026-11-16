@@ -72,6 +72,8 @@ Partial Public Class frmGrafico
     ' Form Load
     ' -------------------------------------------------------
     Private Sub frmGrafico_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Campi di sola presentazione: giallo se sconosciuti, 128,255,255 se noti
+        ColoriStandard.RegistraDati(LblAntenna, LblLev, TxtIntervallo)
         TxtMin.Text = CStr(ScalaMin)
         TxtMax.Text = CStr(ScalaMax)
         LblAntenna.Text = Antenna

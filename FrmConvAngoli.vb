@@ -373,6 +373,8 @@ Public Class FrmConvAngoli
     ' -----------------------------------------------------------------------
 
     Private Sub FrmConvAngoli_Load(sender As Object, e As EventArgs) Handles Me.Load
+        ' Campi di sola presentazione: giallo se sconosciuti, 128,255,255 se noti
+        ColoriStandard.RegistraDati(LblLatitudine, LblLongitudine)
         If g_Conv = 1 Then
             TxtSecLat.Visible = False
             TxtSecLon.Visible = False

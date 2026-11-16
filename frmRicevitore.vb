@@ -603,6 +603,11 @@ Public Class FrmRicevitore
 
 
     Private Sub FrmRicevitore_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Campi di sola presentazione: giallo se sconosciuti, 128,255,255 se noti
+        ColoriStandard.RegistraDati(LblErrAz, LblErrEl, TxtEl, TxtAz, LblBeacon, TxtAzErr,
+            TxtElErr, TxtLna, TxtPhaseEl, LblRevAz, TxtElGain, TxtAzGain,
+            TxtPol2, TxtPol1, LblPol, TxtFrequency, TxtInpFrequency, TxtPhasingMode,
+            TxtPol, TxtPolarizationAngle, TxtPhasingFlow, TxtValid, TxtProcess, LblSatellite)
         Form_Initialize()
         ' tmrTimeoutMSG1 è ora allocato in New() (vedi lì), non più qui.
         Dim rs_Ric As Object

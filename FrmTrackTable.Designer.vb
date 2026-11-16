@@ -30,6 +30,7 @@ Partial Class FrmTrackTable
         ' LblSatellite
         '
         Me.LblSatellite.Location = New System.Drawing.Point(12, 8)
+        Me.LblSatellite.BackColor = System.Drawing.Color.Yellow
         Me.LblSatellite.Name = "LblSatellite"
         Me.LblSatellite.Size = New System.Drawing.Size(200, 20)
         '

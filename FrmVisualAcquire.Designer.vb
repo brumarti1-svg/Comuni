@@ -106,13 +106,13 @@ Partial Class FrmVisualAcquire
         Me.CmdElabora.Name      = "CmdElabora"
         Me.CmdElabora.Size      = New System.Drawing.Size(90, 22)
         Me.CmdElabora.Text      = "Process"
-        Me.CmdElabora.BackColor = System.Drawing.Color.LightBlue
+        Me.CmdElabora.BackColor = System.Drawing.SystemColors.Control
         ' CmdEsci
         Me.CmdEsci.Location  = New System.Drawing.Point(364, 34)
         Me.CmdEsci.Name      = "CmdEsci"
         Me.CmdEsci.Size      = New System.Drawing.Size(90, 22)
         Me.CmdEsci.Text      = "Close"
-        Me.CmdEsci.BackColor = System.Drawing.Color.Salmon
+        Me.CmdEsci.BackColor = System.Drawing.SystemColors.Control
         Me.pnlTop.Controls.AddRange(New System.Windows.Forms.Control() {
             Me.LblDI2, Me.mskDataIni, Me.LblOI2, Me.mskOraIni,
             Me.LblDF2, Me.mskDataFin, Me.LblOF2, Me.mskOraFin,

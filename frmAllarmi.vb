@@ -4,6 +4,8 @@ Imports System.Data
 Public Class frmAllarmi
 
     Private Sub frmAllarmi_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Campi di sola presentazione: giallo se sconosciuti, 128,255,255 se noti
+        ColoriStandard.RegistraDati(LblAntenna)
         LblAntenna.Text = "Antenna: " & Antenna
         ImpostaFiltroDefault()
         CaricaAllarmi()

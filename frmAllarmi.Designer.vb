@@ -38,6 +38,7 @@ Partial Class frmAllarmi
         Me.LblAntenna.Location  = New System.Drawing.Point(10, 10)
         Me.LblAntenna.Size      = New System.Drawing.Size(200, 20)
         Me.LblAntenna.Font      = New System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold)
+        Me.LblAntenna.BackColor = System.Drawing.Color.Yellow
         Me.LblAntenna.Name      = "LblAntenna"
 
         ' Filtro data/ora

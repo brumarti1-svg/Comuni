@@ -107,7 +107,7 @@ Module Predisposizioni
     Public Const PCS_ERROR = 5     ' ERRORE DI CKS
     Public Const PCS_FAIL_COL As Integer = &HFF0000      ' AVARIA
     Public Const PCS_MAINT = 1     ' MANUTENZIONE
-    Public ReadOnly PCS_NORMAL_COL As System.Drawing.Color = System.Drawing.Color.LightGreen
+    Public ReadOnly PCS_NORMAL_COL As System.Drawing.Color = System.Drawing.Color.Lime   ' VB6: vbGreen
     Public ReadOnly PCS_RESET_COL As System.Drawing.Color = System.Drawing.Color.Magenta
     Public Const PCS_STOP = 4      ' RICEZIONE BLOCCATA
     Public ReadOnly SCS_FAIL_COL As System.Drawing.Color = System.Drawing.Color.Red
